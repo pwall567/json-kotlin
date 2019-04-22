@@ -1,2 +1,3 @@
 # json-kotlin
-JSON serialisation and deserialisation for Kotlin
+
+JSON serialization and deserialization for Kotlin
