@@ -1,7 +1,8 @@
 # Change Log
 
-
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
+
+## [Unreleased]
 
 ## [0.1] - 2019-04-22
 ### Added
