@@ -4,6 +4,7 @@
 
 package net.pwall.json
 
+import net.pwall.json.annotation.JSONName
 import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashMap
 import kotlin.test.*
@@ -347,6 +348,37 @@ class JSONAutoTest {
         expect(expected) { JSONAuto.deserialize(json4) }
     }
 
+    @Test fun `JSONObject should return simple class with properties`() {
+        val json = JSONObject.create().putValue("field1", "qqq").putValue("field2", 888)
+        val expected = Super()
+        expected.field1 = "qqq"
+        expected.field2 = 888
+        assertEquals(expected, JSONAuto.deserialize(Super::class, json))
+    }
+
+    @Test fun `JSONObject should return derived class with properties`() {
+        val json = JSONObject.create().putValue("field1", "qqq").putValue("field2", 888).putValue("field3", 12345.0)
+        val expected = Derived()
+        expected.field1 = "qqq"
+        expected.field2 = 888
+        expected.field3 = 12345.0
+        assertEquals(expected, JSONAuto.deserialize(Derived::class, json))
+    }
+
+    @Test fun `JSONObject should return simple class with properties using name annotation`() {
+        val json = JSONObject.create().putValue("field1", "qqq").putValue("fieldX", 888)
+        val expected = DummyAnno()
+        expected.field1 = "qqq"
+        expected.field2 = 888
+        assertEquals(expected, JSONAuto.deserialize(DummyAnno::class, json))
+    }
+
+    @Test fun `JSONObject should return data class using name annotation`() {
+        val json = JSONObject.create().putValue("field1", "qqq").putValue("fieldX", 888)
+        val expected = DummyAnnoData("qqq", 888)
+        assertEquals(expected, JSONAuto.deserialize(DummyAnnoData::class, json))
+    }
+
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH,
             Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND,
             Calendar.MILLISECOND, Calendar.ZONE_OFFSET)
@@ -459,3 +491,50 @@ data class DummyFromJSON(val int1: Int) {
 }
 
 enum class DummyEnum { ALPHA, BETA, GAMMA }
+
+open class Super {
+
+    var field1: String = "xxx"
+    var field2: Int = 111
+
+    override fun equals(other: Any?): Boolean {
+        return other is Super && field1 == other.field1 && field2 == other.field2
+    }
+
+    override fun hashCode(): Int {
+        return field1.hashCode() xor field2.hashCode()
+    }
+
+}
+
+class Derived : Super() {
+
+    var field3: Double = 0.1
+
+    override fun equals(other: Any?): Boolean {
+        return super.equals(other) && other is Derived && field3 == other.field3
+    }
+
+    override fun hashCode(): Int {
+        return super.hashCode() xor field3.toInt()
+    }
+
+}
+
+class DummyAnno {
+
+    var field1: String = "xxx"
+    @JSONName("fieldX")
+    var field2: Int = 111
+
+    override fun equals(other: Any?): Boolean {
+        return other is DummyAnno && field1 == other.field1 && field2 == other.field2
+    }
+
+    override fun hashCode(): Int {
+        return field1.hashCode() xor field2.hashCode()
+    }
+
+}
+
+data class DummyAnnoData(val field1: String, @JSONName("fieldX") val field2: Int)
