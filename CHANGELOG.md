@@ -5,9 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ## [Unreleased]
 ### Changed
 - `JSONAutoTest`: added more tests (derived classes)
+- `JSONAuto`: added code to check for `@JSONName` annotation
+- `JSONAutoTest`: added tests for `@JSONName` annotation
+
+### Added
+- `JSONName`: added annotation
+
 
 ## [0.1] - 2019-04-22
 ### Added
 - `JSONAuto`: `parse` and `deserialize` functions
 - `JSONAutoTest`
-c
