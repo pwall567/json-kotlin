@@ -4,6 +4,7 @@
 
 package net.pwall.json
 
+import net.pwall.json.annotation.JSONName
 import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashMap
 import kotlin.test.*
@@ -364,6 +365,20 @@ class JSONAutoTest {
         assertEquals(expected, JSONAuto.deserialize(Derived::class, json))
     }
 
+    @Test fun `JSONObject should return simple class with properties using name annotation`() {
+        val json = JSONObject.create().putValue("field1", "qqq").putValue("fieldX", 888)
+        val expected = DummyAnno()
+        expected.field1 = "qqq"
+        expected.field2 = 888
+        assertEquals(expected, JSONAuto.deserialize(DummyAnno::class, json))
+    }
+
+    @Test fun `JSONObject should return data class using name annotation`() {
+        val json = JSONObject.create().putValue("field1", "qqq").putValue("fieldX", 888)
+        val expected = DummyAnnoData("qqq", 888)
+        assertEquals(expected, JSONAuto.deserialize(DummyAnnoData::class, json))
+    }
+
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH,
             Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND,
             Calendar.MILLISECOND, Calendar.ZONE_OFFSET)
@@ -505,3 +520,21 @@ class Derived : Super() {
     }
 
 }
+
+class DummyAnno {
+
+    var field1: String = "xxx"
+    @JSONName("fieldX")
+    var field2: Int = 111
+
+    override fun equals(other: Any?): Boolean {
+        return other is DummyAnno && field1 == other.field1 && field2 == other.field2
+    }
+
+    override fun hashCode(): Int {
+        return field1.hashCode() xor field2.hashCode()
+    }
+
+}
+
+data class DummyAnnoData(val field1: String, @JSONName("fieldX") val field2: Int)

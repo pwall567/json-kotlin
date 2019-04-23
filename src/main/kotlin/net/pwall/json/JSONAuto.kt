@@ -1,7 +1,7 @@
 /*
  * @(#) JSONAuto.kt
  *
- * jso-kotlin Kotlin JSON Auto Serialize/deserialize
+ * json-kotlin Kotlin JSON Auto Serialize/deserialize
  * Copyright (c) 2019 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,8 +25,10 @@
 
 package net.pwall.json
 
+import net.pwall.json.annotation.JSONName
 import kotlin.collections.ArrayList
 import kotlin.jvm.internal.markers.KMappedMarker
+import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
@@ -337,20 +339,25 @@ object JSONAuto {
 
             findBestConstructor(resultClass.constructors, json)?.let { constructor ->
                 val argMap = HashMap<KParameter, Any?>()
+                val jsonCopy = HashMap<String, JSONValue?>(json)
                 constructor.parameters.forEach { parameter ->
-                    json[parameter.name]?.let { argMap[parameter] = deserialize(parameter.type, it) } }
-
-                val instance = constructor.callBy(argMap)
-                json.forEach { name: String ->
-                    if (!constructor.parameters.any { it.name == name }) { // field not used in constructor
-                        val member = resultClass.members.find { it.name == name }
-                        if (member == null || member !is KMutableProperty<*>)
-                            throw JSONException("Can't find property $name in ${resultClass.simpleName}")
-                        member.setter.call(instance, deserialize(member.returnType, json[name]))
+                    val paramName = parameter.aName()
+                    jsonCopy[paramName]?.let {
+                        argMap[parameter] = deserialize(parameter.type, it)
+                        jsonCopy.remove(paramName)
                     }
+                }
+                val instance = constructor.callBy(argMap)
+                jsonCopy.forEach { entry -> // JSONObject fields not used in constructor
+                    val member = findFieldToSet(resultClass.members, entry.key) ?:
+                            throw JSONException("Can't find property ${entry.key} in ${resultClass.simpleName}")
+                    member.setter.call(instance, deserialize(member.returnType, jsonCopy[entry.key]))
                 }
                 return instance
             }
+        }
+        catch (e: JSONException) {
+            throw e
         }
         catch (e: Exception) {
             throw JSONException("Can't deserialize object as $resultClass", e)
@@ -360,12 +367,20 @@ object JSONAuto {
 
     }
 
+    private fun findFieldToSet(members: Collection<KCallable<*>>, name: String): KMutableProperty<*>? {
+        for (member in members) {
+            if (member is KMutableProperty<*> && member.aName() == name)
+                    return member
+        }
+        return null
+    }
+
     private fun <T: Any> findBestConstructor(constructors: Collection<KFunction<T>>, json: JSONObject): KFunction<T>? {
         var result: KFunction<T>? = null
         var best = -1
         for (constructor in constructors) {
             val parameters = constructor.parameters
-            if (parameters.any { it.name == null || it.kind != KParameter.Kind.VALUE })
+            if (parameters.any { it.aName() == null || it.kind != KParameter.Kind.VALUE })
                 continue
             val n = findMatchingParameters(parameters, json)
             if (n > best) {
@@ -379,8 +394,7 @@ object JSONAuto {
     private fun findMatchingParameters(parameters: List<KParameter>, json: JSONObject): Int {
         var n = 0
         for (parameter in parameters) {
-            val name = parameter.name
-            if (json.containsKey(name))
+            if (json.containsKey(parameter.aName()))
                 n++
             else {
                 if (!parameter.isOptional)
@@ -388,6 +402,14 @@ object JSONAuto {
             }
         }
         return n
+    }
+
+    private fun KParameter.aName(): String? { // annotated name, or regular name if not overridden
+        return findAnnotation<JSONName>()?.name ?: name
+    }
+
+    private fun KMutableProperty<*>.aName(): String? { // annotated name, or regular name if not overridden
+        return findAnnotation<JSONName>()?.name ?: name
     }
 
     private fun findFromJSON(resultClass: KClass<*>): KFunction<*>? {
