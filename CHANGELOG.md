@@ -3,6 +3,9 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
+### Changed
+- `JSONAuto` renamed to `JSONDeserializer`
+- `JSONAutoTest` renamed to `JSONDeserializerTest`
 
 ## [0.2] - 2019-04-23
 ### Changed
