@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - `JSONAuto` renamed to `JSONDeserializer`
 - `JSONAutoTest` renamed to `JSONDeserializerTest`
 
+### Added
+- `JSONAuto`: new version (pass-through to `JSONDeserializer`)
+
 ## [0.2] - 2019-04-23
 ### Changed
 - `JSONAutoTest`: added more tests (derived classes)

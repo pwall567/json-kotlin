@@ -60,28 +60,6 @@ import net.pwall.util.ISO8601Date
 object JSONDeserializer {
 
     /**
-     * Deserialize JSON from [String] to a specified [KType].
-     *
-     * @param   resultType  the target type
-     * @param   str         the JSON in [String] form
-     * @return              the converted object
-     */
-    fun parse(resultType: KType, str: String): Any? {
-        return deserialize(resultType, JSON.parse(str))
-    }
-
-    /**
-     * Deserialize JSON from [String] to a specified [KClass].
-     *
-     * @param   resultClass the target class
-     * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
-     * @return              the converted object
-     */
-    fun <T: Any> parse(resultClass: KClass<T>, str: String): T? {
-        return deserialize(resultClass, JSON.parse(str))
-    }
-
-    /**
      * Deserialize a parsed [JSONValue] to a specified [KType].
      *
      * @param   resultType  the target type
@@ -429,8 +407,6 @@ object JSONDeserializer {
 
     private fun isMutable(resultClass: KClass<*>): Boolean = resultClass.isSubclassOf(KMappedMarker::class)
     // NOTE - KMappedMarker is a marker interface indicating mutability
-
-    inline fun <reified T: Any> parse(str: String): T? = parse(T::class, str)
 
     inline fun <reified T: Any> deserialize(json: JSONValue): T? = deserialize(T::class, json)
 

@@ -385,7 +385,7 @@ class JSONDeserializerTest {
         expected.field1 = "qqq"
         expected.field2 = 888
         expected.field3 = 12345.0
-        assertEquals(expected, JSONDeserializer.parse(Derived::class, str))
+        assertEquals(expected, JSONAuto.parse(Derived::class, str))
     }
 
     @Test fun `JSONObject should return simple class with properties using name annotation`() {
