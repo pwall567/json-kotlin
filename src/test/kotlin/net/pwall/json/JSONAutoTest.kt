@@ -357,12 +357,13 @@ class JSONAutoTest {
     }
 
     @Test fun `JSONObject should return derived class with properties`() {
-        val json = JSONObject.create().putValue("field1", "qqq").putValue("field2", 888).putValue("field3", 12345.0)
+        // also test parsing from String
+        val str = "{\"field1\":\"qqq\",\"field2\":888,\"field3\":12345.0}"
         val expected = Derived()
         expected.field1 = "qqq"
         expected.field2 = 888
         expected.field3 = 12345.0
-        assertEquals(expected, JSONAuto.deserialize(Derived::class, json))
+        assertEquals(expected, JSONAuto.parse(Derived::class, str))
     }
 
     @Test fun `JSONObject should return simple class with properties using name annotation`() {
