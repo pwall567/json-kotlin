@@ -1,5 +1,5 @@
 /*
- * @(#) JSONAuto.kt
+ * @(#) JSONDeserializer.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
  * Copyright (c) 2019 Peter Wall
@@ -25,7 +25,6 @@
 
 package net.pwall.json
 
-import net.pwall.json.annotation.JSONName
 import kotlin.collections.ArrayList
 import kotlin.jvm.internal.markers.KMappedMarker
 import kotlin.reflect.KCallable
@@ -50,6 +49,7 @@ import java.util.Date
 import java.util.LinkedList
 import java.util.UUID
 
+import net.pwall.json.annotation.JSONName
 import net.pwall.util.ISO8601Date
 
 /**
@@ -57,7 +57,7 @@ import net.pwall.util.ISO8601Date
  *
  * @author  Peter Wall
  */
-object JSONAuto {
+object JSONDeserializer {
 
     /**
      * Deserialize JSON from [String] to a specified [KType].
