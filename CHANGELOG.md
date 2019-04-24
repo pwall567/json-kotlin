@@ -3,6 +3,8 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
+
+## [0.2] - 2019-04-23
 ### Changed
 - `JSONAutoTest`: added more tests (derived classes)
 - `JSONAuto`: added code to check for `@JSONName` annotation
