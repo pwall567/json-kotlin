@@ -53,7 +53,7 @@ import net.pwall.json.annotation.JSONName
 import net.pwall.util.ISO8601Date
 
 /**
- * JSON Auto serialize and deserialize for Kotlin.
+ * JSON Auto deserialize for Kotlin.
  *
  * @author  Peter Wall
  */
@@ -105,8 +105,13 @@ object JSONDeserializer {
 
         // does the target class companion object have a "fromJSON()" method?
 
-        findFromJSON(resultClass) ?.let {
-            return it.call(resultClass.companionObjectInstance, json) as T
+        try {
+            findFromJSON(resultClass)?.let {
+                return it.call(resultClass.companionObjectInstance, json) as T
+            }
+        }
+        catch (e: Exception) {
+            throw JSONException("Error in custom fromJSON - ${resultClass.simpleName}", e)
         }
 
         when (json) {
@@ -390,8 +395,11 @@ object JSONDeserializer {
         return findAnnotation<JSONName>()?.name ?: name
     }
 
+    private val fromJsonCache = HashMap<KClass<*>, KFunction<*>>()
+
     private fun findFromJSON(resultClass: KClass<*>): KFunction<*>? {
-        return try {
+        fromJsonCache[resultClass]?.let { return it }
+        val newEntry = try {
             resultClass.companionObject?.functions?.find { function ->
                 function.name == "fromJSON" &&
                         function.parameters.size == 2 &&
@@ -403,6 +411,7 @@ object JSONDeserializer {
         catch (e: Exception) {
             null
         }
+        return newEntry?.apply { fromJsonCache[resultClass] = this }
     }
 
     private fun isMutable(resultClass: KClass<*>): Boolean = resultClass.isSubclassOf(KMappedMarker::class)
