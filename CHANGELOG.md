@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.3] - 2019-04-26
 ### Changed
 - `JSONAuto` renamed to `JSONDeserializer`
 - `JSONAutoTest` renamed to `JSONDeserializerTest`
