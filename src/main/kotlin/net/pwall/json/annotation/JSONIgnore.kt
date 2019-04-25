@@ -1,5 +1,5 @@
 /*
- * @(#) JSONAuto.kt
+ * @(#) JSONIgnore.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
  * Copyright (c) 2019 Peter Wall
@@ -23,35 +23,14 @@
  * SOFTWARE.
  */
 
-package net.pwall.json
+package net.pwall.json.annotation
 
-import kotlin.reflect.KClass
-import kotlin.reflect.KType
-
-object JSONAuto {
-
-    /**
-     * Deserialize JSON from [String] to a specified [KType].
-     *
-     * @param   resultType  the target type
-     * @param   str         the JSON in [String] form
-     * @return              the converted object
-     */
-    fun parse(resultType: KType, str: String): Any? {
-        return JSONDeserializer.deserialize(resultType, JSON.parse(str))
-    }
-
-    /**
-     * Deserialize JSON from [String] to a specified [KClass].
-     *
-     * @param   resultClass the target class
-     * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
-     * @return              the converted object
-     */
-    fun <T: Any> parse(resultClass: KClass<T>, str: String): T? {
-        return JSONDeserializer.deserialize(resultClass, JSON.parse(str))
-    }
-
-    inline fun <reified T: Any> parse(str: String): T? = parse(T::class, str)
-
-}
+/**
+ * Annotation to indicate property is to be ignored in auto-serialization and deserialization.
+ *
+ * @author  Peter Wall
+ */
+@Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
+@Retention(AnnotationRetention.RUNTIME)
+@MustBeDocumented
+annotation class JSONIgnore
