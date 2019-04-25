@@ -1,0 +1,422 @@
+/*
+ * @(#) JSONDeserializer.kt
+ *
+ * json-kotlin Kotlin JSON Auto Serialize/deserialize
+ * Copyright (c) 2019 Peter Wall
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package net.pwall.json
+
+import kotlin.collections.ArrayList
+import kotlin.jvm.internal.markers.KMappedMarker
+import kotlin.reflect.KCallable
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KParameter
+import kotlin.reflect.KType
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.full.*
+
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.OffsetTime
+import java.time.Year
+import java.time.YearMonth
+import java.time.ZonedDateTime
+import java.util.Calendar
+import java.util.Date
+import java.util.LinkedList
+import java.util.UUID
+
+import net.pwall.json.annotation.JSONName
+import net.pwall.util.ISO8601Date
+
+/**
+ * JSON Auto deserialize for Kotlin.
+ *
+ * @author  Peter Wall
+ */
+object JSONDeserializer {
+
+    /**
+     * Deserialize a parsed [JSONValue] to a specified [KType].
+     *
+     * @param   resultType  the target type
+     * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @return              the converted object
+     */
+    fun deserialize(resultType: KType, json: JSONValue?): Any? {
+        val classifier = resultType.classifier as? KClass<*> ?: throw JSONException("Can't deserialize $resultType")
+        return deserialize(classifier, resultType.arguments, json)
+    }
+
+    /**
+     * Deserialize a parsed [JSONValue] to a specified [KClass].
+     *
+     * @param   resultClass the target class
+     * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @return              the converted object
+     */
+    fun <T: Any> deserialize(resultClass: KClass<T>, json: JSONValue?): T? {
+        return deserialize(resultClass, emptyList(), json)
+    }
+
+    /**
+     * Deserialize a parsed [JSONValue] to a parameterized [KClass], with the specified [KTypeProjection]s.
+     *
+     * @param   resultClass the target class
+     * @param   types       the [KTypeProjection]s
+     * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @return              the converted object
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun <T: Any> deserialize(resultClass: KClass<T>, types: List<KTypeProjection>, json: JSONValue?): T? {
+
+        // check for null
+
+        if (json == null)
+            return null
+
+        // check for JSONValue
+
+        if (resultClass.isSubclassOf(JSONValue::class) && resultClass.isSuperclassOf(json::class))
+            return json as T
+
+        // does the target class companion object have a "fromJSON()" method?
+
+        try {
+            findFromJSON(resultClass)?.let {
+                return it.call(resultClass.companionObjectInstance, json) as T
+            }
+        }
+        catch (e: Exception) {
+            throw JSONException("Error in custom fromJSON - ${resultClass.simpleName}", e)
+        }
+
+        when (json) {
+
+            is JSONBoolean -> {
+                if (resultClass == Boolean::class)
+                    return json.booleanValue() as T
+            }
+
+            is JSONString -> return deserializeString(resultClass, json.toString())
+
+            is Number -> {
+
+                when (resultClass) {
+
+                    Int::class -> if (json is JSONInteger || json is JSONZero)
+                        return json.toInt() as T
+
+                    Long::class -> if (json is JSONLong || json is JSONInteger || json is JSONZero)
+                        return json.toLong() as T
+
+                    Double::class -> return json.toDouble() as T
+
+                    Float::class -> return json.toFloat() as T
+
+                    Short::class -> if (json is JSONInteger || json is JSONZero)
+                        return json.toShort() as T
+
+                    Byte::class -> if (json is JSONInteger || json is JSONZero)
+                        return json.toByte() as T
+
+                }
+
+                throw JSONException("Can't deserialize $json as $resultClass")
+            }
+
+            is JSONArray -> return deserializeArray(resultClass, types, json)
+
+            is JSONObject -> return deserializeObject(resultClass, types, json)
+
+        }
+
+        throw JSONException("Can't deserialize $resultClass")
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T: Any> deserializeString(resultClass: KClass<T>, str: String): T {
+
+        try {
+
+            when (resultClass) {
+
+                String::class -> return str as T
+
+                Char::class -> {
+                    if (str.length != 1)
+                        throw JSONException("Character must be string of length 1")
+                    return str[0] as T
+                }
+
+                CharArray::class -> return str.toCharArray() as T
+
+                Array<Char>::class -> return Array(str.length) { i -> str[i] } as T
+
+                Calendar::class -> return ISO8601Date.decode(str) as T
+
+                Date::class -> return ISO8601Date.decode(str).time as T
+
+                Instant::class -> return Instant.parse(str) as T
+
+                LocalDate::class -> return LocalDate.parse(str) as T
+
+                LocalDateTime::class -> return LocalDateTime.parse(str) as T
+
+                OffsetTime::class -> return OffsetTime.parse(str) as T
+
+                OffsetDateTime::class -> return OffsetDateTime.parse(str) as T
+
+                ZonedDateTime::class -> return ZonedDateTime.parse(str) as T
+
+                Year::class -> return Year.parse(str) as T
+
+                YearMonth::class -> return YearMonth.parse(str) as T
+
+                UUID::class -> return UUID.fromString(str) as T
+
+            }
+
+        }
+        catch (e: Exception) {
+            throw JSONException("Can't deserialize \"$str\" as $resultClass", e)
+        }
+
+        // is the target class an enum?
+        // this is ugly code but it works
+        // it should be converted to use a Kotlin enum method if one is available
+        if (resultClass.isSubclassOf(Enum::class))
+            return resultClass.java.getMethod("valueOf", Class::class.java, String::class.java).
+                    invoke(null, resultClass.java, str) as T
+
+        // does the target class have a public constructor that takes String?
+        // (e.g. StringBuilder, Integer, ... )
+
+        resultClass.constructors.find { it.parameters.size == 1 && it.parameters[0].type.classifier == String::class }?.
+                apply { return call(str) }
+
+        throw JSONException("Can't deserialize \"$str\" as $resultClass")
+    }
+
+    @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
+    fun <T: Any> deserializeArray(resultClass: KClass<T>, types: List<KTypeProjection>, json: JSONArray): T {
+        try {
+
+            return when (resultClass) {
+
+                BooleanArray::class -> BooleanArray(json.size) { i -> deserialize(Boolean::class, json[i]) ?:
+                throw JSONException("Can't deserialize null as Boolean") }
+
+                ByteArray::class -> ByteArray(json.size) { i -> deserialize(Byte::class, json[i]) ?:
+                throw JSONException("Can't deserialize null as Byte") }
+
+                CharArray::class -> CharArray(json.size) { i -> deserialize(Char::class, json[i]) ?:
+                throw JSONException("Can't deserialize null as Char") }
+
+                DoubleArray::class -> DoubleArray(json.size) { i -> deserialize(Double::class, json[i]) ?:
+                throw JSONException("Can't deserialize null as Double") }
+
+                FloatArray::class -> FloatArray(json.size) { i -> deserialize(Float::class, json[i]) ?:
+                throw JSONException("Can't deserialize null as Float") }
+
+                IntArray::class -> IntArray(json.size) { i -> deserialize(Int::class, json[i]) ?:
+                throw JSONException("Can't deserialize null as Int") }
+
+                LongArray::class -> LongArray(json.size) { i -> deserialize(Long::class, json[i]) ?:
+                throw JSONException("Can't deserialize null as Long") }
+
+                ShortArray::class -> ShortArray(json.size) { i -> deserialize(Short::class, json[i]) ?:
+                throw JSONException("Can't deserialize null as Short") }
+
+                ArrayList::class -> {
+                    val type = types.firstOrNull()?.type ?: throw JSONException("Type not specified")
+                    ArrayList<Any?>(json.size).apply {
+                        json.forEach { add(deserialize(type, it)) }
+                    }
+                }
+
+                LinkedList::class -> {
+                    val type = types.firstOrNull()?.type ?: throw JSONException("Type not specified")
+                    LinkedList<Any?>().apply {
+                        json.forEach { add(deserialize(type, it)) }
+                    }
+                }
+
+                List::class -> {
+                    val type = types.firstOrNull()?.type ?: throw JSONException("Type not specified")
+                    val result =  json.map { deserialize(type, it) }
+                    if (isMutable(resultClass)) result.toMutableList() else result
+                }
+
+                HashSet::class -> {
+                    val type = types.firstOrNull()?.type ?: throw JSONException("Type not specified")
+                    HashSet<Any?>(json.size).apply {
+                        json.forEach { add(deserialize(type, it)) }
+                    }
+                }
+
+                LinkedHashSet::class -> {
+                    val type = types.firstOrNull()?.type ?: throw JSONException("Type not specified")
+                    LinkedHashSet<Any?>(json.size).apply {
+                        json.forEach { add(deserialize(type, it)) }
+                    }
+                }
+
+                Set::class -> {
+                    val result = HashSet<Any?>(json.size)
+                    val type = types.firstOrNull()?.type ?: throw JSONException("Type not specified")
+                    json.forEach { result.add(deserialize(type, it)) }
+                    if (isMutable(resultClass)) result.toMutableSet() else result.toSet()
+                }
+
+                else -> throw JSONException("Can't deserialize array as $resultClass")
+
+            } as T
+
+        }
+        catch (e: Exception) {
+            throw JSONException("Can't deserialize array as $resultClass", e)
+        }
+
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T: Any> deserializeObject(resultClass: KClass<T>, types: List<KTypeProjection>, json: JSONObject): T {
+
+        try {
+            if (resultClass.isSubclassOf(Map::class)) {
+                if (types.size != 2)
+                    throw JSONException("Incorrect type arguments for Map")
+                val keyClass = types[0].type?.classifier as? KClass<*> ?:
+                throw JSONException("Key type not specified for Map")
+                val valueType = types[1].type ?: throw JSONException("Value type not specified for Map")
+                val result =  HashMap<Any, Any?>()
+                json.forEach { key: String ->
+                    result[deserializeString(keyClass, key)] = deserialize(valueType, json[key])
+                }
+                return (if (isMutable(resultClass)) result.toMutableMap() else result.toMap()) as T
+            }
+
+            findBestConstructor(resultClass.constructors, json)?.let { constructor ->
+                val argMap = HashMap<KParameter, Any?>()
+                val jsonCopy = HashMap<String, JSONValue?>(json)
+                constructor.parameters.forEach { parameter ->
+                    val paramName = parameter.aName()
+                    jsonCopy[paramName]?.let {
+                        argMap[parameter] = deserialize(parameter.type, it)
+                        jsonCopy.remove(paramName)
+                    }
+                }
+                val instance = constructor.callBy(argMap)
+                jsonCopy.forEach { entry -> // JSONObject fields not used in constructor
+                    val member = findFieldToSet(resultClass.members, entry.key) ?:
+                            throw JSONException("Can't find property ${entry.key} in ${resultClass.simpleName}")
+                    member.setter.call(instance, deserialize(member.returnType, jsonCopy[entry.key]))
+                }
+                return instance
+            }
+        }
+        catch (e: JSONException) {
+            throw e
+        }
+        catch (e: Exception) {
+            throw JSONException("Can't deserialize object as $resultClass", e)
+        }
+
+        throw JSONException("Can't deserialize object as $resultClass")
+
+    }
+
+    private fun findFieldToSet(members: Collection<KCallable<*>>, name: String): KMutableProperty<*>? {
+        for (member in members) {
+            if (member is KMutableProperty<*> && member.aName() == name)
+                    return member
+        }
+        return null
+    }
+
+    private fun <T: Any> findBestConstructor(constructors: Collection<KFunction<T>>, json: JSONObject): KFunction<T>? {
+        var result: KFunction<T>? = null
+        var best = -1
+        for (constructor in constructors) {
+            val parameters = constructor.parameters
+            if (parameters.any { it.aName() == null || it.kind != KParameter.Kind.VALUE })
+                continue
+            val n = findMatchingParameters(parameters, json)
+            if (n > best) {
+                result = constructor
+                best = n
+            }
+        }
+        return result
+    }
+
+    private fun findMatchingParameters(parameters: List<KParameter>, json: JSONObject): Int {
+        var n = 0
+        for (parameter in parameters) {
+            if (json.containsKey(parameter.aName()))
+                n++
+            else {
+                if (!parameter.isOptional)
+                    return -1
+            }
+        }
+        return n
+    }
+
+    private fun KParameter.aName(): String? { // annotated name, or regular name if not overridden
+        return findAnnotation<JSONName>()?.name ?: name
+    }
+
+    private fun KMutableProperty<*>.aName(): String? { // annotated name, or regular name if not overridden
+        return findAnnotation<JSONName>()?.name ?: name
+    }
+
+    private val fromJsonCache = HashMap<KClass<*>, KFunction<*>>()
+
+    private fun findFromJSON(resultClass: KClass<*>): KFunction<*>? {
+        fromJsonCache[resultClass]?.let { return it }
+        val newEntry = try {
+            resultClass.companionObject?.functions?.find { function ->
+                function.name == "fromJSON" &&
+                        function.parameters.size == 2 &&
+                        function.parameters[0].type.classifier == resultClass.companionObject &&
+                        function.parameters[1].type.classifier == JSONValue::class &&
+                        function.returnType.classifier == resultClass
+            }
+        }
+        catch (e: Exception) {
+            null
+        }
+        return newEntry?.apply { fromJsonCache[resultClass] = this }
+    }
+
+    private fun isMutable(resultClass: KClass<*>): Boolean = resultClass.isSubclassOf(KMappedMarker::class)
+    // NOTE - KMappedMarker is a marker interface indicating mutability
+
+    inline fun <reified T: Any> deserialize(json: JSONValue): T? = deserialize(T::class, json)
+
+}

@@ -1,5 +1,5 @@
 /*
- * @(#) JSONAuto.kt
+ * @(#) JSONName.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
  * Copyright (c) 2019 Peter Wall
@@ -25,6 +25,12 @@
 
 package net.pwall.json.annotation
 
+/**
+ * Annotation to set name to be used in auto-serialization and deserialization.
+ *
+ * @author  Peter Wall
+ */
 @Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.RUNTIME)
+@MustBeDocumented
 annotation class JSONName(val name: String)
