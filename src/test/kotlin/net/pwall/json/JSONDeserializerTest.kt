@@ -40,9 +40,11 @@ import java.time.YearMonth
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import java.util.*
-
-import net.pwall.json.annotation.JSONName
+import java.util.Arrays
+import java.util.Calendar
+import java.util.Date
+import java.util.LinkedList
+import java.util.TimeZone
 
 class JSONDeserializerTest {
 

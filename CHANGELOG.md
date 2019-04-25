@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 - `JSONAuto`: new version (pass-through to `JSONDeserializer`)
 - `DummyClasses` (test): split out from `JSONDeserializerTest`
+- `JSONSerializer`
+- `JSONSerializerTest`
+- `JSONIgnore` annotation class
 
 ## [0.2] - 2019-04-23
 ### Changed

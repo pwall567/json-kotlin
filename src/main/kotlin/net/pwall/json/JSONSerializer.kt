@@ -25,7 +25,13 @@
 
 package net.pwall.json
 
-import net.pwall.util.Strings
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
+import kotlin.reflect.KProperty
+import kotlin.reflect.KType
+import kotlin.reflect.full.isSubclassOf
+
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -39,11 +45,10 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Enumeration
 import java.util.UUID
-import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
-import kotlin.reflect.KParameter
-import kotlin.reflect.KType
-import kotlin.reflect.full.isSubclassOf
+
+import net.pwall.json.annotation.JSONIgnore
+import net.pwall.json.annotation.JSONName
+import net.pwall.util.Strings
 
 /**
  * JSON Auto serialize for Kotlin.
@@ -114,8 +119,35 @@ object JSONSerializer {
 
         }
 
-        throw JSONException("Can't do that yet...")
+        val result = JSONObject()
+        obj::class.members.forEach { member ->
+            if (member is KProperty<*>) {
+                val combinedAnnotations = ArrayList<Annotation>(member.annotations)
+                obj::class.constructors.firstOrNull()?.parameters?.find { it.name == member.name }?.let {
+                    combinedAnnotations.addAll(it.annotations)
+                }
+                if (findAnnotation<JSONIgnore>(combinedAnnotations) == null) {
+                    val name = findAnnotation<JSONName>(combinedAnnotations)?.name ?: member.name
+                    val value = member.getter.call(obj)
+                    if (value != null)
+                        result[name] = serialize(value)
+                }
+            }
+        }
+        return result
     }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <T: Annotation> findAnnotation(cls: KClass<T>, annotations: List<Annotation>): T? {
+        for (annotation in annotations) {
+            if (annotation::class.isSubclassOf(cls))
+                return annotation as T?
+        }
+        return null
+    }
+
+    private inline fun <reified T: Annotation> findAnnotation(annotations: List<Annotation>): T? =
+            findAnnotation(T::class, annotations)
 
     private fun serializeNumber(number: Number): JSONValue = when (number) {
 

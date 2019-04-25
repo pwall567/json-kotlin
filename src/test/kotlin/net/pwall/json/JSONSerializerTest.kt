@@ -25,6 +25,12 @@
 
 package net.pwall.json
 
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
+
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -40,11 +46,6 @@ import java.util.Calendar
 import java.util.Enumeration
 import java.util.TimeZone
 import java.util.UUID
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
 
 class JSONSerializerTest {
 
@@ -335,6 +336,56 @@ class JSONSerializerTest {
         bitSet.set(3)
         val expected = JSONArray().addValue(1).addValue(3)
         assertEquals(expected, JSONSerializer.serialize(bitSet))
+    }
+
+    @Test fun `Simple data class should return JSONObject`() {
+        val obj = Dummy1("abc", 123)
+        val expected = JSONObject().putValue("field1", "abc").putValue("field2", 123)
+        assertEquals(expected, JSONSerializer.serialize(obj))
+    }
+
+    @Test fun `Simple data class with extra property should return JSONObject`() {
+        val obj = Dummy2("abc", 123)
+        obj.extra = "qqqqq"
+        val expected = JSONObject().putValue("field1", "abc").putValue("field2", 123).putValue("extra", "qqqqq")
+        assertEquals(expected, JSONSerializer.serialize(obj))
+    }
+
+    @Test fun `Derived class should return JSONObject`() {
+        val obj = Derived()
+        obj.field1 = "qwerty"
+        obj.field2 = 98765
+        obj.field3 = 0.012
+        val expected = JSONObject().putValue("field1", "qwerty").putValue("field2", 98765).putValue("field3", 0.012)
+        assertEquals(expected, JSONSerializer.serialize(obj))
+    }
+
+    @Test fun `Annotated class should return JSONObject using specified name`() {
+        val obj = DummyAnno()
+        obj.field1 = "qwerty"
+        obj.field2 = 98765
+        val expected = JSONObject().putValue("field1", "qwerty").putValue("fieldX", 98765)
+        assertEquals(expected, JSONSerializer.serialize(obj))
+    }
+
+    @Test fun `Annotated data class should return JSONObject using specified name`() {
+        val obj = DummyAnnoData("abc", 123)
+        val expected = JSONObject().putValue("field1", "abc").putValue("fieldX", 123)
+        assertEquals(expected, JSONSerializer.serialize(obj))
+    }
+
+    @Test fun `Nested class should return nested JSONObject`() {
+        val obj1 = Dummy1("asdfg", 987)
+        val obj3 = Dummy3(obj1, "what?")
+        val expected1 = JSONObject().putValue("field1", "asdfg").putValue("field2", 987)
+        val expected = JSONObject().putJSON("dummy1", expected1).putValue("text", "what?")
+        assertEquals(expected, JSONSerializer.serialize(obj3))
+    }
+
+    @Test fun `Class with @JSONIgnore should return nested JSONObject skipping field`() {
+        val obj = Dummy5("alpha", "beta", "gamma")
+        val expected = JSONObject().putValue("field1", "alpha").putValue("field3", "gamma")
+        assertEquals(expected, JSONSerializer.serialize(obj))
     }
 
     private fun intEquals(a: Int, b: Int): Boolean {
