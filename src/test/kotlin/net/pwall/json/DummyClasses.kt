@@ -25,6 +25,7 @@
 
 package net.pwall.json
 
+import net.pwall.json.annotation.JSONIgnore
 import net.pwall.json.annotation.JSONName
 
 data class Dummy1(val field1: String, val field2: Int = 999)
@@ -36,6 +37,8 @@ data class Dummy2(val field1: String, val field2: Int = 999) {
 data class Dummy3(val dummy1: Dummy1, val text: String)
 
 data class Dummy4(val listDummy1: List<Dummy1>, val text: String)
+
+data class Dummy5(val field1: String, @JSONIgnore val field2: String, val field3: String)
 
 data class DummyFromJSON(val int1: Int) {
 
