@@ -27,6 +27,9 @@ package net.pwall.json
 
 import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashMap
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.starProjectedType
 import kotlin.test.*
 
 import java.math.BigInteger
@@ -277,60 +280,56 @@ class JSONDeserializerTest {
         assertTrue(deepEquals(expected, JSONDeserializer.deserialize(ShortArray::class, json)))
     }
 
+    private val stringType = String::class.starProjectedType
+    private val stringTypeProjection = KTypeProjection.invariant(stringType)
+    private val intType = Int::class.starProjectedType
+    private val intTypeProjection = KTypeProjection.invariant(intType)
+    private val listStringType = List::class.createType(listOf(stringTypeProjection))
+    private val arrayListStringType = ArrayList::class.createType(listOf(stringTypeProjection))
+    private val linkedListStringType = LinkedList::class.createType(listOf(stringTypeProjection))
+    private val hashSetStringType = HashSet::class.createType(listOf(stringTypeProjection))
+    private val linkedHashSetStringType = LinkedHashSet::class.createType(listOf(stringTypeProjection))
+    private val mapStringIntType = Map::class.createType(listOf(stringTypeProjection, intTypeProjection))
+    private val linkedHashMapStringIntType = LinkedHashMap::class.createType(listOf(stringTypeProjection,
+            intTypeProjection))
+
     private val listStrings = listOf("abc", "def")
+    private val jsonArrayString = JSONArray.create().addValue("abc").addValue("def")
 
     @Test fun `JSONArray of JSONString should return List of String`() {
-        val json = JSONArray.create().addValue("abc").addValue("def")
-        val listType = this::class.members.find { it.name == "listStrings" }?.returnType ?: fail()
-        expect(listStrings) { JSONDeserializer.deserialize(listType, json) }
+        expect(listStrings) { JSONDeserializer.deserialize(listStringType, jsonArrayString) }
     }
-
-    private val arrayListStrings = ArrayList(listStrings)
 
     @Test fun `JSONArray of JSONString should return ArrayList of String`() {
-        val json = JSONArray.create().addValue("abc").addValue("def")
-        val listType = this::class.members.find { it.name == "arrayListStrings" }?.returnType ?: fail()
-        expect(arrayListStrings) { JSONDeserializer.deserialize(listType, json) }
+        val arrayListStrings = ArrayList(listStrings)
+        expect(arrayListStrings) { JSONDeserializer.deserialize(arrayListStringType, jsonArrayString) }
     }
-
-    private val linkedListStrings = LinkedList(listStrings)
 
     @Test fun `JSONArray of JSONString should return LinkedList of String`() {
-        val json = JSONArray.create().addValue("abc").addValue("def")
-        val listType = this::class.members.find { it.name == "linkedListStrings" }?.returnType ?: fail()
-        expect(linkedListStrings) { JSONDeserializer.deserialize(listType, json) }
+        val linkedListStrings = LinkedList(listStrings)
+        expect(linkedListStrings) { JSONDeserializer.deserialize(linkedListStringType, jsonArrayString) }
     }
-
-    private val hashSetStrings = HashSet(listStrings)
 
     @Test fun `JSONArray of JSONString should return HashSet of String`() {
-        val json = JSONArray.create().addValue("abc").addValue("def")
-        val setType = this::class.members.find { it.name == "hashSetStrings" }?.returnType ?: fail()
-        expect(hashSetStrings) { JSONDeserializer.deserialize(setType, json) }
+        val hashSetStrings = HashSet(listStrings)
+        expect(hashSetStrings) { JSONDeserializer.deserialize(hashSetStringType, jsonArrayString) }
     }
 
-    private val linkedHashSetStrings = LinkedHashSet(listStrings)
-
     @Test fun `JSONArray of JSONString should return LinkedHashSet of String`() {
-        val json = JSONArray.create().addValue("abc").addValue("def")
-        val setType = this::class.members.find { it.name == "linkedHashSetStrings" }?.returnType ?: fail()
-        expect(linkedHashSetStrings) { JSONDeserializer.deserialize(setType, json) }
+        val linkedHashSetStrings = LinkedHashSet(listStrings)
+        expect(linkedHashSetStrings) { JSONDeserializer.deserialize(linkedHashSetStringType, jsonArrayString) }
     }
 
     private val mapStringInt = mapOf("abc" to 123, "def" to 456, "ghi" to 789)
+    private val jsonObjectInt = JSONObject.create().putValue("abc", 123).putValue("def", 456).putValue("ghi", 789)
 
     @Test fun `JSONObject should return map of String to Int`() {
-        val json = JSONObject.create().putValue("abc", 123).putValue("def", 456).putValue("ghi", 789)
-        val mapType = this::class.members.find { it.name == "mapStringInt" }?.returnType ?: fail()
-        expect(mapStringInt) { JSONDeserializer.deserialize(mapType, json)}
+        expect(mapStringInt) { JSONDeserializer.deserialize(mapStringIntType, jsonObjectInt)}
     }
 
-    private val linkedHashMapStringInt = LinkedHashMap(mapStringInt)
-
     @Test fun `JSONObject should return LinkedHashMap of String to Int`() {
-        val json = JSONObject.create().putValue("abc", 123).putValue("def", 456).putValue("ghi", 789)
-        val mapType = this::class.members.find { it.name == "linkedHashMapStringInt" }?.returnType ?: fail()
-        val result = JSONDeserializer.deserialize(mapType, json)
+        val linkedHashMapStringInt = LinkedHashMap(mapStringInt)
+        val result = JSONDeserializer.deserialize(linkedHashMapStringIntType, jsonObjectInt)
         assertEquals(linkedHashMapStringInt, result)
         assertTrue(result is LinkedHashMap<*, *>)
     }
