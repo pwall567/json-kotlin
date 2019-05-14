@@ -30,6 +30,7 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
+import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubclassOf
 
 import java.time.Instant
@@ -120,17 +121,45 @@ object JSONSerializer {
         }
 
         val result = JSONObject()
-        obj::class.members.forEach { member ->
-            if (member is KProperty<*>) {
-                val combinedAnnotations = ArrayList<Annotation>(member.annotations)
-                obj::class.constructors.firstOrNull()?.parameters?.find { it.name == member.name }?.let {
-                    combinedAnnotations.addAll(it.annotations)
+        val objClass = obj::class
+        if (objClass.isData && objClass.constructors.isNotEmpty()) {
+            // data classes will be a frequent use of serialization, so optimise for them
+            val constructor = objClass.constructors.first()
+            constructor.parameters.forEach { parameter ->
+                if (parameter.findAnnotation<JSONIgnore>() == null) {
+                    val member = objClass.members.find { it.name == parameter.name }
+                    if (member is KProperty<*>) {
+                        val name = parameter.findAnnotation<JSONName>()?.name ?: parameter.name
+                        val value = member.getter.call(obj)
+                        if (value != null)
+                            result[name] = serialize(value)
+                    }
                 }
-                if (findAnnotation<JSONIgnore>(combinedAnnotations) == null) {
-                    val name = findAnnotation<JSONName>(combinedAnnotations)?.name ?: member.name
+            }
+            // now check whether there are any more properties not in constructor
+            objClass.members.forEach { member ->
+                if (member is KProperty<*> && !constructor.parameters.any { it.name == member.name } &&
+                        member.findAnnotation<JSONIgnore>() == null) {
+                    val name = member.findAnnotation<JSONName>()?.name ?: member.name
                     val value = member.getter.call(obj)
                     if (value != null)
                         result[name] = serialize(value)
+                }
+            }
+        }
+        else {
+            objClass.members.forEach { member ->
+                if (member is KProperty<*>) {
+                    val combinedAnnotations = ArrayList<Annotation>(member.annotations)
+                    objClass.constructors.firstOrNull()?.parameters?.find { it.name == member.name }?.let {
+                        combinedAnnotations.addAll(it.annotations)
+                    }
+                    if (findAnnotation<JSONIgnore>(combinedAnnotations) == null) {
+                        val name = findAnnotation<JSONName>(combinedAnnotations)?.name ?: member.name
+                        val value = member.getter.call(obj)
+                        if (value != null)
+                            result[name] = serialize(value)
+                    }
                 }
             }
         }
