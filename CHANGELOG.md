@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.4] - 2019-05-14
 ### Changed
 - `JSONDeserializerTest`: modified to use `KType` values
 - `JSONSerializer`: optimisation of data classes
