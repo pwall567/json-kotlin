@@ -2,6 +2,12 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.4] - 2019-05-14
+### Changed
+- `JSONDeserializerTest`: modified to use `KType` values
+- `JSONSerializer`: optimisation of data classes
+- `JSONAuto`: added `stringify()`
+
 ## [0.3] - 2019-04-26
 ### Changed
 - `JSONAuto` renamed to `JSONDeserializer`

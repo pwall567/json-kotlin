@@ -31,6 +31,14 @@ import kotlin.reflect.KType
 object JSONAuto {
 
     /**
+     * Serialize an object to JSON. (The word "stringify" is borrowed from the JavaScript implementation of JSON.)
+     *
+     * @param   obj     the object
+     * @return          the JSON form of the object
+     */
+    fun stringify(obj: Any?): String = JSONSerializer.serialize(obj)?.toJSON() ?: "null"
+
+    /**
      * Deserialize JSON from [String] to a specified [KType].
      *
      * @param   resultType  the target type
