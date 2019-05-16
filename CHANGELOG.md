@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Changed
 - `JSONSerializer`: added serialization of `Pair` and `Triple`
 - `JSONSerializerTest`: corresponding tests
+- `JSONDeserializer`: added deserialization of `Pair` and `Triple`
+- `JSONDeserializerTest`: corresponding tests
 
 ## [0.4] - 2019-05-14
 ### Changed

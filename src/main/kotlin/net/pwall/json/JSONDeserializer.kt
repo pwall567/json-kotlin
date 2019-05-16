@@ -292,6 +292,28 @@ object JSONDeserializer {
                     if (isMutable(resultClass)) result.toMutableSet() else result.toSet()
                 }
 
+                Pair::class -> {
+                    if (json.size != 2)
+                        throw JSONException("Pair must have two members")
+                    val type0 = types.firstOrNull()?.type ?: throw JSONException("First type not specified")
+                    val type1 = types.getOrNull(1)?.type ?: throw JSONException("Second type not specified")
+                    val result0 = deserialize(type0, json[0])
+                    val result1 = deserialize(type1, json[1])
+                    result0 to result1
+                }
+
+                Triple::class -> {
+                    if (json.size != 3)
+                        throw JSONException("Triple must have three members")
+                    val type0 = types.firstOrNull()?.type ?: throw JSONException("First type not specified")
+                    val type1 = types.getOrNull(1)?.type ?: throw JSONException("Second type not specified")
+                    val type2 = types.getOrNull(2)?.type ?: throw JSONException("Third type not specified")
+                    val result0 = deserialize(type0, json[0])
+                    val result1 = deserialize(type1, json[1])
+                    val result2 = deserialize(type2, json[2])
+                    Triple(result0, result1, result2)
+                }
+
                 else -> throw JSONException("Can't deserialize array as $resultClass")
 
             } as T
