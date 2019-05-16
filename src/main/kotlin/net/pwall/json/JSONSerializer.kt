@@ -79,6 +79,9 @@ object JSONSerializer {
 
             is Array<*> -> return serializeArray(obj)
 
+            is Pair<*, *> -> return serializePair(obj)
+
+            is Triple<*, *, *> -> return serializeTriple(obj)
         }
 
         try {
@@ -200,6 +203,21 @@ object JSONSerializer {
             return JSONString(StringBuilder().apply { array.forEach { append(it) } })
 
         return JSONArray(array.map { serialize(it) })
+    }
+
+    private fun serializePair(pair: Pair<*, *>): JSONArray {
+        return JSONArray().apply {
+            add(serialize(pair.first))
+            add(serialize(pair.second))
+        }
+    }
+
+    private fun serializeTriple(triple: Triple<*, *, *>): JSONArray {
+        return JSONArray().apply {
+            add(serialize(triple.first))
+            add(serialize(triple.second))
+            add(serialize(triple.third))
+        }
     }
 
     private fun serializeMap(map: Map<*, *>): JSONObject {
