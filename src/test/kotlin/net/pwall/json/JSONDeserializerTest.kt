@@ -398,9 +398,40 @@ class JSONDeserializerTest {
     }
 
     @Test fun `JSONObject should return data class using name annotation`() {
-        val json = JSONObject.create().putValue("field1", "qqq").putValue("fieldX", 888)
+        val json = JSONObject().putValue("field1", "qqq").putValue("fieldX", 888)
         val expected = DummyAnnoData("qqq", 888)
         assertEquals(expected, JSONDeserializer.deserialize(DummyAnnoData::class, json))
+    }
+
+    private val pairStringStringType = Pair::class.createType(listOf(stringTypeProjection, stringTypeProjection))
+    private val pairStringIntType = Pair::class.createType(listOf(stringTypeProjection, intTypeProjection))
+    private val tripleStringStringStringType = Triple::class.createType(listOf(stringTypeProjection,
+            stringTypeProjection, stringTypeProjection))
+    private val tripleStringIntStringType = Triple::class.createType(listOf(stringTypeProjection,
+            intTypeProjection, stringTypeProjection))
+
+    @Test fun `JSONArray should return Pair`() {
+        val json = JSONArray().addValue("abc").addValue("def")
+        val expected = "abc" to "def"
+        assertEquals(expected, JSONDeserializer.deserialize(pairStringStringType, json))
+    }
+
+    @Test fun `JSONArray should return Heterogenous Pair`() {
+        val json = JSONArray().addValue("abc").addValue(88)
+        val expected = "abc" to 88
+        assertEquals(expected, JSONDeserializer.deserialize(pairStringIntType, json))
+    }
+
+    @Test fun `JSONArray should return Triple`() {
+        val json = JSONArray().addValue("abc").addValue("def").addValue("xyz")
+        val expected = Triple("abc", "def", "xyz")
+        assertEquals(expected, JSONDeserializer.deserialize(tripleStringStringStringType, json))
+    }
+
+    @Test fun `JSONArray should return Heterogenous Triple`() {
+        val json = JSONArray().addValue("abc").addValue(66).addValue("xyz")
+        val expected = Triple("abc", 66, "xyz")
+        assertEquals(expected, JSONDeserializer.deserialize(tripleStringIntStringType, json))
     }
 
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH,
