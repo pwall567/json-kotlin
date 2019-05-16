@@ -434,6 +434,15 @@ class JSONDeserializerTest {
         assertEquals(expected, JSONDeserializer.deserialize(tripleStringIntStringType, json))
     }
 
+    @Test fun `null should return null for nullable String`() {
+        val json: JSONValue? = null
+        assertNull(JSONDeserializer.deserialize(String::class.createType(emptyList(), true), json))
+    }
+
+    @Test fun `null should fail for non-nullable String`() {
+        assertFailsWith<JSONException> { JSONDeserializer.deserialize(stringType, null) }
+    }
+
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH,
             Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND,
             Calendar.MILLISECOND, Calendar.ZONE_OFFSET)

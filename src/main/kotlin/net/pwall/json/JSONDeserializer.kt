@@ -67,6 +67,8 @@ object JSONDeserializer {
      * @return              the converted object
      */
     fun deserialize(resultType: KType, json: JSONValue?): Any? {
+        if (json == null && !resultType.isMarkedNullable)
+            throw JSONException("Can't deserialize null as $resultType")
         val classifier = resultType.classifier as? KClass<*> ?: throw JSONException("Can't deserialize $resultType")
         return deserialize(classifier, resultType.arguments, json)
     }
@@ -228,28 +230,28 @@ object JSONDeserializer {
             return when (resultClass) {
 
                 BooleanArray::class -> BooleanArray(json.size) { i -> deserialize(Boolean::class, json[i]) ?:
-                throw JSONException("Can't deserialize null as Boolean") }
+                        throw JSONException("Can't deserialize null as Boolean") }
 
                 ByteArray::class -> ByteArray(json.size) { i -> deserialize(Byte::class, json[i]) ?:
-                throw JSONException("Can't deserialize null as Byte") }
+                        throw JSONException("Can't deserialize null as Byte") }
 
                 CharArray::class -> CharArray(json.size) { i -> deserialize(Char::class, json[i]) ?:
-                throw JSONException("Can't deserialize null as Char") }
+                        throw JSONException("Can't deserialize null as Char") }
 
                 DoubleArray::class -> DoubleArray(json.size) { i -> deserialize(Double::class, json[i]) ?:
-                throw JSONException("Can't deserialize null as Double") }
+                        throw JSONException("Can't deserialize null as Double") }
 
                 FloatArray::class -> FloatArray(json.size) { i -> deserialize(Float::class, json[i]) ?:
-                throw JSONException("Can't deserialize null as Float") }
+                        throw JSONException("Can't deserialize null as Float") }
 
                 IntArray::class -> IntArray(json.size) { i -> deserialize(Int::class, json[i]) ?:
-                throw JSONException("Can't deserialize null as Int") }
+                        throw JSONException("Can't deserialize null as Int") }
 
                 LongArray::class -> LongArray(json.size) { i -> deserialize(Long::class, json[i]) ?:
-                throw JSONException("Can't deserialize null as Long") }
+                        throw JSONException("Can't deserialize null as Long") }
 
                 ShortArray::class -> ShortArray(json.size) { i -> deserialize(Short::class, json[i]) ?:
-                throw JSONException("Can't deserialize null as Short") }
+                        throw JSONException("Can't deserialize null as Short") }
 
                 ArrayList::class -> {
                     val type = types.firstOrNull()?.type ?: throw JSONException("Type not specified")
