@@ -50,6 +50,7 @@ import java.util.UUID
 import net.pwall.json.annotation.JSONIgnore
 import net.pwall.json.annotation.JSONName
 import net.pwall.util.Strings
+import kotlin.reflect.full.starProjectedType
 
 /**
  * JSON Auto serialize for Kotlin.
@@ -58,10 +59,12 @@ import net.pwall.util.Strings
  */
 object JSONSerializer {
 
-    fun serialize(obj: Any?): JSONValue? {
+    fun serialize(obj: Any?, config: JSONConfig? = null): JSONValue? {
 
         if (obj == null)
             return null
+
+        config?.findToJSONMMapping(obj::class.starProjectedType)?.let { return it(obj) }
 
         when (obj) {
 
@@ -77,8 +80,11 @@ object JSONSerializer {
 
             is CharArray -> return JSONString(StringBuilder().append(obj))
 
-            is Array<*> -> return serializeArray(obj)
+            is Array<*> -> return serializeArray(obj, config)
 
+            is Pair<*, *> -> return serializePair(obj, config)
+
+            is Triple<*, *, *> -> return serializeTriple(obj, config)
         }
 
         try {
@@ -90,15 +96,15 @@ object JSONSerializer {
 
         when (obj) {
 
-            is Iterable<*> -> return JSONArray(obj.map { serialize(it) })
+            is Iterable<*> -> return JSONArray(obj.map { serialize(it, config) })
 
-            is Iterator<*> -> return JSONArray().apply { obj.forEach { add(serialize(it)) } }
+            is Iterator<*> -> return JSONArray().apply { obj.forEach { add(serialize(it, config)) } }
 
-            is Sequence<*> -> return JSONArray().apply { obj.forEach { add(serialize(it)) } }
+            is Sequence<*> -> return JSONArray().apply { obj.forEach { add(serialize(it, config)) } }
 
-            is Enumeration<*> -> return JSONArray().apply { obj.forEach { add(serialize(it)) } }
+            is Enumeration<*> -> return JSONArray().apply { obj.forEach { add(serialize(it, config)) } }
 
-            is Map<*, *> -> return serializeMap(obj)
+            is Map<*, *> -> return serializeMap(obj, config)
 
             is Enum<*> -> return JSONString(obj.toString())
 
@@ -132,7 +138,7 @@ object JSONSerializer {
                         val name = parameter.findAnnotation<JSONName>()?.name ?: parameter.name
                         val value = member.getter.call(obj)
                         if (value != null)
-                            result[name] = serialize(value)
+                            result[name] = serialize(value, config)
                     }
                 }
             }
@@ -143,7 +149,7 @@ object JSONSerializer {
                     val name = member.findAnnotation<JSONName>()?.name ?: member.name
                     val value = member.getter.call(obj)
                     if (value != null)
-                        result[name] = serialize(value)
+                        result[name] = serialize(value, config)
                 }
             }
         }
@@ -158,7 +164,7 @@ object JSONSerializer {
                         val name = findAnnotation<JSONName>(combinedAnnotations)?.name ?: member.name
                         val value = member.getter.call(obj)
                         if (value != null)
-                            result[name] = serialize(value)
+                            result[name] = serialize(value, config)
                     }
                 }
             }
@@ -194,18 +200,33 @@ object JSONSerializer {
 
     }
 
-    private fun serializeArray(array: Array<*>): JSONValue {
+    private fun serializeArray(array: Array<*>, config: JSONConfig?): JSONValue {
 
         if (array.isArrayOf<Char>())
             return JSONString(StringBuilder().apply { array.forEach { append(it) } })
 
-        return JSONArray(array.map { serialize(it) })
+        return JSONArray(array.map { serialize(it, config) })
     }
 
-    private fun serializeMap(map: Map<*, *>): JSONObject {
+    private fun serializePair(pair: Pair<*, *>, config: JSONConfig?): JSONArray {
+        return JSONArray().apply {
+            add(serialize(pair.first, config))
+            add(serialize(pair.second, config))
+        }
+    }
+
+    private fun serializeTriple(triple: Triple<*, *, *>, config: JSONConfig?): JSONArray {
+        return JSONArray().apply {
+            add(serialize(triple.first, config))
+            add(serialize(triple.second, config))
+            add(serialize(triple.third, config))
+        }
+    }
+
+    private fun serializeMap(map: Map<*, *>, config: JSONConfig?): JSONObject {
         return JSONObject().apply {
             map.entries.forEach { entry ->
-                this[entry.key.toString()] = serialize(entry.value)
+                this[entry.key.toString()] = serialize(entry.value, config)
             }
         }
     }

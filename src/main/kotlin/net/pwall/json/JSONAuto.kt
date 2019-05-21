@@ -53,7 +53,7 @@ object JSONAuto {
      * Deserialize JSON from [String] to a specified [KClass].
      *
      * @param   resultClass the target class
-     * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @param   str         the JSON in [String] form
      * @return              the converted object
      */
     fun <T: Any> parse(resultClass: KClass<T>, str: String): T? {

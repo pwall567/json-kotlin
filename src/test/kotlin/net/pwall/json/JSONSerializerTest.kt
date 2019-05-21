@@ -388,6 +388,24 @@ class JSONSerializerTest {
         assertEquals(expected, JSONSerializer.serialize(obj))
     }
 
+    @Test fun `Pair should return JSONArray`() {
+        val pair = "xyz" to "abc"
+        val expected = JSONArray().addJSON(JSONString("xyz")).addJSON(JSONString("abc"))
+        assertEquals(expected, JSONSerializer.serialize(pair))
+    }
+
+    @Test fun `Triple should return JSONArray`() {
+        val triple = Triple("xyz","abc","def")
+        val expected = JSONArray().addJSON(JSONString("xyz")).addJSON(JSONString("abc")).addJSON(JSONString("def"))
+        assertEquals(expected, JSONSerializer.serialize(triple))
+    }
+
+    @Test fun `Heterogenous Triple should return JSONArray`() {
+        val triple = Triple("xyz",88,"def")
+        val expected = JSONArray().addJSON(JSONString("xyz")).addJSON(JSONInteger(88)).addJSON(JSONString("def"))
+        assertEquals(expected, JSONSerializer.serialize(triple))
+    }
+
     private fun intEquals(a: Int, b: Int): Boolean {
         return a == b
     }
