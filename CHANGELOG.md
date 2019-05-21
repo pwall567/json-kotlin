@@ -10,6 +10,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - `JSONDeserializerTest`: corresponding tests
 - `JSONDeserializer`: added checking of types marked nullable
 - `JSONDeserializerTest`: corresponding tests
+- `JSONDeserializer`: added use of custom deserialization from `JSONConfig`
+- `JSONDeserializerTest`: corresponding tests
+- `JSONSerializer`: added use of custom serialization from `JSONConfig`
+- `JSONSerializerTest`: corresponding tests
+
+### Added
+- `JSONConfig`: new configuration class
 
 ## [0.4] - 2019-05-14
 ### Changed
