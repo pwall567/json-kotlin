@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.5] - 2019-05-21
 ### Changed
 - `JSONSerializer`: added serialization of `Pair` and `Triple`
 - `JSONSerializerTest`: corresponding tests
