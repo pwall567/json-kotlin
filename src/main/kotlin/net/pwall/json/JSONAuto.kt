@@ -27,7 +27,6 @@ package net.pwall.json
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
-import kotlin.reflect.full.starProjectedType
 
 object JSONAuto {
 

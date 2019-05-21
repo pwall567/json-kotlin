@@ -30,7 +30,13 @@ import kotlin.collections.LinkedHashMap
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.starProjectedType
-import kotlin.test.*
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
+import kotlin.test.expect
+import kotlin.test.Test
 
 import java.math.BigInteger
 import java.time.Instant
