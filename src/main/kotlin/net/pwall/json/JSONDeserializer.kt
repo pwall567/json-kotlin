@@ -85,10 +85,10 @@ object JSONDeserializer {
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
      * @return              the converted object
      */
-    fun <T: Any> deserialize(resultClass: KClass<T>, json: JSONValue?): T? {
+    fun <T: Any> deserialize(resultClass: KClass<T>, json: JSONValue?, config: JSONConfig? = null): T? {
         if (json == null)
             return null
-        return deserialize(resultClass, emptyList(), json)
+        return deserialize(resultClass, emptyList(), json, config)
     }
 
     /**
@@ -98,10 +98,10 @@ object JSONDeserializer {
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
      * @return              the converted object
      */
-    fun <T: Any> deserializeNonNull(resultClass: KClass<T>, json: JSONValue?): T {
+    fun <T: Any> deserializeNonNull(resultClass: KClass<T>, json: JSONValue?, config: JSONConfig? = null): T {
         if (json == null)
             throw JSONException("Can't deserialize null as ${resultClass.simpleName}")
-        return deserialize(resultClass, emptyList(), json)
+        return deserialize(resultClass, emptyList(), json, config)
     }
 
     /**
@@ -114,7 +114,7 @@ object JSONDeserializer {
      * @return              the converted object
      */
     @Suppress("UNCHECKED_CAST")
-    private fun <T: Any> deserialize(resultClass: KClass<T>, types: List<KTypeProjection>, json: JSONValue,
+    fun <T: Any> deserialize(resultClass: KClass<T>, types: List<KTypeProjection>, json: JSONValue,
             config: JSONConfig? = null): T {
 
         // check for JSONValue
