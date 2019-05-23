@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+### Changed
+- `JSONAuto`: added `JSONConfig` to functions
+- `JSONDeserializer`: added `JSONConfig` to functions
+
 ## [0.5] - 2019-05-21
 ### Changed
 - `JSONSerializer`: added serialization of `Pair` and `Triple`
