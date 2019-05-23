@@ -34,19 +34,22 @@ object JSONAuto {
      * Serialize an object to JSON. (The word "stringify" is borrowed from the JavaScript implementation of JSON.)
      *
      * @param   obj     the object
+     * @param   config  an optional [JSONConfig]
      * @return          the JSON form of the object
      */
-    fun stringify(obj: Any?): String = JSONSerializer.serialize(obj)?.toJSON() ?: "null"
+    fun stringify(obj: Any?, config: JSONConfig? = null): String =
+            JSONSerializer.serialize(obj, config)?.toJSON() ?: "null"
 
     /**
      * Deserialize JSON from [String] to a specified [KType].
      *
      * @param   resultType  the target type
      * @param   str         the JSON in [String] form
+     * @param   config  an optional [JSONConfig]
      * @return              the converted object
      */
-    fun parse(resultType: KType, str: String): Any? {
-        return JSONDeserializer.deserialize(resultType, JSON.parse(str))
+    fun parse(resultType: KType, str: String, config: JSONConfig? = null): Any? {
+        return JSONDeserializer.deserialize(resultType, JSON.parse(str), config)
     }
 
     /**
