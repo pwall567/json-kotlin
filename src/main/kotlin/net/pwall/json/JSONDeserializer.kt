@@ -32,6 +32,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KParameter
+import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.full.*
@@ -220,6 +221,9 @@ object JSONDeserializer {
             }
 
         }
+        catch (e: JSONException) {
+            throw e
+        }
         catch (e: Exception) {
             throw JSONException("Can't deserialize \"$str\" as $resultClass", e)
         }
@@ -331,6 +335,9 @@ object JSONDeserializer {
             } as T
 
         }
+        catch (e: JSONException) {
+            throw e
+        }
         catch (e: Exception) {
             throw JSONException("Can't deserialize array as $resultClass", e)
         }
@@ -355,6 +362,8 @@ object JSONDeserializer {
                 return (if (isMutable(resultClass)) result.toMutableMap() else result.toMap()) as T
             }
 
+            resultClass.objectInstance?.let { return setRemainingFields(resultClass, it, json, config) }
+
             findBestConstructor(resultClass.constructors, json)?.let { constructor ->
                 val argMap = HashMap<KParameter, Any?>()
                 val jsonCopy = HashMap<String, JSONValue?>(json)
@@ -365,13 +374,7 @@ object JSONDeserializer {
                         jsonCopy.remove(paramName)
                     }
                 }
-                val instance = constructor.callBy(argMap)
-                jsonCopy.forEach { entry -> // JSONObject fields not used in constructor
-                    val member = findFieldToSet(resultClass.members, entry.key) ?:
-                            throw JSONException("Can't find property ${entry.key} in ${resultClass.simpleName}")
-                    member.setter.call(instance, deserialize(member.returnType, jsonCopy[entry.key], config))
-                }
-                return instance
+                return setRemainingFields(resultClass, constructor.callBy(argMap), jsonCopy, config)
             }
         }
         catch (e: JSONException) {
@@ -385,9 +388,25 @@ object JSONDeserializer {
 
     }
 
-    private fun findFieldToSet(members: Collection<KCallable<*>>, name: String): KMutableProperty<*>? {
+    private fun <T: Any>  setRemainingFields(resultClass: KClass<T>, instance: T, json: Map<String, JSONValue?>,
+            config: JSONConfig?): T {
+        json.forEach { entry -> // JSONObject fields not used in constructor
+            val member = findField(resultClass.members, entry.key) ?:
+                    throw JSONException("Can't find property ${entry.key} in ${resultClass.simpleName}")
+            val value = deserialize(member.returnType, json[entry.key], config)
+            if (member is KMutableProperty<*>)
+                member.setter.call(instance, value)
+            else {
+                if (member.getter.call(instance) != value)
+                    throw JSONException("Can't set property ${entry.key} in ${resultClass.simpleName}")
+            }
+        }
+        return instance
+    }
+
+    private fun findField(members: Collection<KCallable<*>>, name: String): KProperty<*>? {
         for (member in members) {
-            if (member is KMutableProperty<*> && member.aName() == name)
+            if (member is KProperty<*> && member.aName() == name)
                     return member
         }
         return null
@@ -426,7 +445,7 @@ object JSONDeserializer {
         return findAnnotation<JSONName>()?.name ?: name
     }
 
-    private fun KMutableProperty<*>.aName(): String? { // annotated name, or regular name if not overridden
+    private fun KProperty<*>.aName(): String? { // annotated name, or regular name if not overridden
         return findAnnotation<JSONName>()?.name ?: name
     }
 

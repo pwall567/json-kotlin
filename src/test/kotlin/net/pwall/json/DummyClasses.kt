@@ -109,3 +109,31 @@ class DummyAnno {
 }
 
 data class DummyAnnoData(val field1: String, @JSONName("fieldX") val field2: Int)
+
+interface DummyInterface
+
+object DummyObject : DummyInterface {
+
+    val field1: String = "abc"
+
+}
+
+class NestedDummy {
+
+    val obj = DummyObject
+
+}
+
+class DummyWithVal {
+
+    val field8: String = "blert"
+
+    override fun equals(other: Any?): Boolean {
+        return other is DummyWithVal && other.field8 == field8
+    }
+
+    override fun hashCode(): Int {
+        return field8.hashCode()
+    }
+
+}
