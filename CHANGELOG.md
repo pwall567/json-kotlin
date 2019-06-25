@@ -2,6 +2,8 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+
 ## [0.6] - 2019-05-23
 ### Changed
 - `JSONAuto`: added `JSONConfig` to functions
