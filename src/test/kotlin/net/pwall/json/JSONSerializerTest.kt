@@ -406,6 +406,25 @@ class JSONSerializerTest {
         assertEquals(expected, JSONSerializer.serialize(triple))
     }
 
+    @Test fun `object should return JSONObject()`() {
+        val obj = DummyObject
+        val expected = JSONObject().putValue("field1", "abc")
+        assertEquals(expected, JSONSerializer.serialize(obj))
+    }
+
+    @Test fun `nested object should return JSONObject()`() {
+        val obj = NestedDummy()
+        val nested = JSONObject().putValue("field1", "abc")
+        val expected = JSONObject().putJSON("obj", nested)
+        assertEquals(expected, JSONSerializer.serialize(obj))
+    }
+
+    @Test fun `class with constant val should serialize correctly`() {
+        val constClass = DummyWithVal()
+        val expected = JSONObject().putValue("field8", "blert")
+        assertEquals(expected, JSONSerializer.serialize(constClass))
+    }
+
     private fun intEquals(a: Int, b: Int): Boolean {
         return a == b
     }

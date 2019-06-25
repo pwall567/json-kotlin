@@ -449,6 +449,18 @@ class JSONDeserializerTest {
         assertFailsWith<JSONException> { JSONDeserializer.deserialize(stringType, null) }
     }
 
+    @Test fun `JSONObject should deserialize to object`() {
+        val json = JSONObject().putValue("field1", "abc")
+        val expected = DummyObject
+        assertEquals(expected, JSONDeserializer.deserialize(DummyObject::class, json))
+    }
+
+    @Test fun `class with constant val should deserialize correctly`() {
+        val json = JSONObject().putValue("field8", "blert")
+        val expected = DummyWithVal()
+        assertEquals(expected, JSONDeserializer.deserialize(DummyWithVal::class, json))
+    }
+
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH,
             Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND,
             Calendar.MILLISECOND, Calendar.ZONE_OFFSET)
