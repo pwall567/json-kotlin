@@ -39,11 +39,13 @@ import kotlin.test.expect
 import kotlin.test.Test
 
 import java.math.BigInteger
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.OffsetTime
+import java.time.Period
 import java.time.Year
 import java.time.YearMonth
 import java.time.ZoneId
@@ -177,6 +179,18 @@ class JSONDeserializerTest {
     @Test fun `JSONString should return YearMonth`() {
         val json = JSONString("2019-03")
         val expected: YearMonth? = YearMonth.of(2019, 3)
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONString should return Duration`() {
+        val json = JSONString("PT2H")
+        val expected: Duration? = Duration.ofHours(2)
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONString should return Period`() {
+        val json = JSONString("P3M")
+        val expected: Period? = Period.ofMonths(3)
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
 
@@ -447,6 +461,24 @@ class JSONDeserializerTest {
 
     @Test fun `null should fail for non-nullable String`() {
         assertFailsWith<JSONException> { JSONDeserializer.deserialize(stringType, null) }
+    }
+
+    @Test fun `JSONObject should deserialize to object`() {
+        val json = JSONObject().putValue("field1", "abc")
+        val expected = DummyObject
+        assertEquals(expected, JSONDeserializer.deserialize(DummyObject::class, json))
+    }
+
+    @Test fun `class with constant val should deserialize correctly`() {
+        val json = JSONObject().putValue("field8", "blert")
+        val expected = DummyWithVal()
+        assertEquals(expected, JSONDeserializer.deserialize(DummyWithVal::class, json))
+    }
+
+    @Test fun `java class should deserialize correctly`() {
+        val json = JSONObject().putValue("field1", 1234).putValue("field2", "Hello!")
+        val expected = JavaClass1(1234, "Hello!")
+        assertEquals(expected, JSONDeserializer.deserialize(JavaClass1::class, json))
     }
 
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH,

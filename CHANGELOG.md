@@ -2,6 +2,15 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.7] - 2019-07-06
+### Changed
+- `JSONDeserializer`: added deserialization of Kotlin `object`s (serialization already worked)
+- `JSONSerializer`: improved serialization of Java objects
+- `JSONDeserializer`: improved deserialization of Java objects
+- `JSONSerializer`: added serialization of `java.time.Duration`, `java.time.Period`
+- `JSONDeserializer`: added deserialization of `java.time.Duration`, `java.time.Period`
+- `JSONConfig`: added `readBufferSize`
+
 ## [0.6] - 2019-05-23
 ### Changed
 - `JSONAuto`: added `JSONConfig` to functions
