@@ -44,6 +44,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.OffsetTime
+import java.time.Period
 import java.time.Year
 import java.time.YearMonth
 import java.time.ZonedDateTime
@@ -219,6 +220,8 @@ object JSONDeserializer {
                 YearMonth::class -> return YearMonth.parse(str) as T
 
                 Duration::class -> return Duration.parse(str) as T
+
+                Period::class -> return Period.parse(str) as T
 
                 UUID::class -> return UUID.fromString(str) as T
 

@@ -37,6 +37,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.OffsetTime
+import java.time.Period
 import java.time.Year
 import java.time.YearMonth
 import java.time.ZoneId
@@ -328,6 +329,12 @@ class JSONSerializerTest {
         val duration = Duration.ofHours(2)
         val expected = JSONString("PT2H")
         assertEquals(expected, JSONSerializer.serialize(duration))
+    }
+
+    @Test fun `Period should return JSONString`() {
+        val period = Period.ofMonths(3)
+        val expected = JSONString("P3M")
+        assertEquals(expected, JSONSerializer.serialize(period))
     }
 
     @Test fun `UUID should return JSONString`() {

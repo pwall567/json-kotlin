@@ -45,6 +45,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.OffsetTime
+import java.time.Period
 import java.time.Year
 import java.time.YearMonth
 import java.time.ZoneId
@@ -184,6 +185,12 @@ class JSONDeserializerTest {
     @Test fun `JSONString should return Duration`() {
         val json = JSONString("PT2H")
         val expected: Duration? = Duration.ofHours(2)
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONString should return Period`() {
+        val json = JSONString("P3M")
+        val expected: Period? = Period.ofMonths(3)
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
 

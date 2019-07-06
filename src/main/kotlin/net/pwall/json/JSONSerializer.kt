@@ -43,6 +43,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.OffsetTime
+import java.time.Period
 import java.time.Year
 import java.time.YearMonth
 import java.time.ZonedDateTime
@@ -125,6 +126,7 @@ object JSONSerializer {
             is Year,
             is YearMonth,
             is Duration,
+            is Period,
             is UUID -> return JSONString(obj.toString())
 
             is BitSet -> return serializeBitSet(obj)
