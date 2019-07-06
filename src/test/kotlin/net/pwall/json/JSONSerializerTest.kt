@@ -326,7 +326,7 @@ class JSONSerializerTest {
 
     @Test fun `Duration should return JSONString`() {
         val duration = Duration.ofHours(2)
-        val expected = JSONString("P2H")
+        val expected = JSONString("PT2H")
         assertEquals(expected, JSONSerializer.serialize(duration))
     }
 

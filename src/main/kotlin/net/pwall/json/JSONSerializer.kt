@@ -54,6 +54,7 @@ import java.util.UUID
 import net.pwall.json.annotation.JSONIgnore
 import net.pwall.json.annotation.JSONName
 import net.pwall.util.Strings
+import java.time.Duration
 
 /**
  * JSON Auto serialize for Kotlin.
@@ -123,6 +124,7 @@ object JSONSerializer {
             is ZonedDateTime,
             is Year,
             is YearMonth,
+            is Duration,
             is UUID -> return JSONString(obj.toString())
 
             is BitSet -> return serializeBitSet(obj)
