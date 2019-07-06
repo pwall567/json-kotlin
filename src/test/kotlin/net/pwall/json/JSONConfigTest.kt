@@ -38,6 +38,7 @@ class JSONConfigTest {
 
     @Test fun `add fromJSON mapping should return the function`() {
         val config = JSONConfig()
+        assertEquals(config.readBufferSize, 8192)
         assertNull(config.getFromJSONMMapping(stringType))
         config.fromJSON { json -> json?.toString() }
         assertNotNull(config.getFromJSONMMapping(stringType))
