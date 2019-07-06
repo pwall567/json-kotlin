@@ -25,6 +25,7 @@
 
 package net.pwall.json
 
+import java.time.Duration
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -323,6 +324,12 @@ class JSONSerializerTest {
         assertEquals(expected, JSONSerializer.serialize(year))
     }
 
+    @Test fun `Duration should return JSONString`() {
+        val duration = Duration.ofHours(2)
+        val expected = JSONString("P2H")
+        assertEquals(expected, JSONSerializer.serialize(duration))
+    }
+
     @Test fun `UUID should return JSONString`() {
         val uuidString = "12ce3730-2d97-11e7-aeed-67b0e6bf0ed7"
         val uuid = UUID.fromString(uuidString)
@@ -423,6 +430,12 @@ class JSONSerializerTest {
         val constClass = DummyWithVal()
         val expected = JSONObject().putValue("field8", "blert")
         assertEquals(expected, JSONSerializer.serialize(constClass))
+    }
+
+    @Test fun `java class should serialize correctly`() {
+        val javaClass1 = JavaClass1(1234, "Hello!")
+        val expected = JSONObject().putValue("field1", 1234).putValue("field2", "Hello!")
+        assertEquals(expected, JSONSerializer.serialize(javaClass1))
     }
 
     private fun intEquals(a: Int, b: Int): Boolean {

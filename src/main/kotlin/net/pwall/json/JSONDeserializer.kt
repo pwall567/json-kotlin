@@ -36,6 +36,7 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.full.*
+import kotlin.reflect.jvm.isAccessible
 
 import java.time.Instant
 import java.time.LocalDate
@@ -394,8 +395,19 @@ object JSONDeserializer {
             val member = findField(resultClass.members, entry.key) ?:
                     throw JSONException("Can't find property ${entry.key} in ${resultClass.simpleName}")
             val value = deserialize(member.returnType, json[entry.key], config)
-            if (member is KMutableProperty<*>)
-                member.setter.call(instance, value)
+            if (member is KMutableProperty<*>) {
+                val wasAccessible = member.isAccessible
+                member.isAccessible = true
+                try {
+                    member.setter.call(instance, value)
+                }
+                catch (e: Exception) {
+                    throw JSONException("Error setting property ${entry.key} in ${resultClass.simpleName}", e)
+                }
+                finally {
+                    member.isAccessible = wasAccessible
+                }
+            }
             else {
                 if (member.getter.call(instance) != value)
                     throw JSONException("Can't set property ${entry.key} in ${resultClass.simpleName}")

@@ -25,6 +25,7 @@
 
 package net.pwall.json
 
+import kotlin.math.abs
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -32,6 +33,9 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.full.staticProperties
+import kotlin.reflect.jvm.isAccessible
 
 import java.time.Instant
 import java.time.LocalDate
@@ -50,7 +54,6 @@ import java.util.UUID
 import net.pwall.json.annotation.JSONIgnore
 import net.pwall.json.annotation.JSONName
 import net.pwall.util.Strings
-import kotlin.reflect.full.starProjectedType
 
 /**
  * JSON Auto serialize for Kotlin.
@@ -134,42 +137,50 @@ object JSONSerializer {
             constructor.parameters.forEach { parameter ->
                 if (parameter.findAnnotation<JSONIgnore>() == null) {
                     val member = objClass.members.find { it.name == parameter.name }
-                    if (member is KProperty<*>) {
-                        val name = parameter.findAnnotation<JSONName>()?.name ?: parameter.name
-                        val value = member.getter.call(obj)
-                        if (value != null)
-                            result[name] = serialize(value, config)
-                    }
+                    if (member is KProperty<*>)
+                        invokeSetter(member, parameter.findAnnotation<JSONName>()?.name, obj, result, config)
                 }
             }
             // now check whether there are any more properties not in constructor
+            val statics: Collection<KProperty<*>> = objClass.staticProperties
             objClass.members.forEach { member ->
-                if (member is KProperty<*> && !constructor.parameters.any { it.name == member.name } &&
-                        member.findAnnotation<JSONIgnore>() == null) {
-                    val name = member.findAnnotation<JSONName>()?.name ?: member.name
-                    val value = member.getter.call(obj)
-                    if (value != null)
-                        result[name] = serialize(value, config)
-                }
+                if (member is KProperty<*> && !statics.contains(member)&&
+                        !constructor.parameters.any { it.name == member.name } &&
+                        member.findAnnotation<JSONIgnore>() == null)
+                    invokeSetter(member, member.findAnnotation<JSONName>()?.name, obj, result, config)
             }
         }
         else {
+            val statics: Collection<KProperty<*>> = objClass.staticProperties
             objClass.members.forEach { member ->
-                if (member is KProperty<*>) {
-                    val combinedAnnotations = ArrayList<Annotation>(member.annotations)
+                if (member is KProperty<*> && !statics.contains(member)) {
+                    val combinedAnnotations = ArrayList(member.annotations)
                     objClass.constructors.firstOrNull()?.parameters?.find { it.name == member.name }?.let {
                         combinedAnnotations.addAll(it.annotations)
                     }
-                    if (findAnnotation<JSONIgnore>(combinedAnnotations) == null) {
-                        val name = findAnnotation<JSONName>(combinedAnnotations)?.name ?: member.name
-                        val value = member.getter.call(obj)
-                        if (value != null)
-                            result[name] = serialize(value, config)
-                    }
+                    if (findAnnotation<JSONIgnore>(combinedAnnotations) == null)
+                        invokeSetter(member, findAnnotation<JSONName>(combinedAnnotations)?.name, obj, result, config)
                 }
             }
         }
         return result
+    }
+
+    private fun invokeSetter(member: KProperty<*>, name: String?, obj: Any, result: JSONObject, config: JSONConfig?) {
+        val wasAccessible = member.isAccessible
+        member.isAccessible = true
+        try {
+            member.getter.call(obj)?.let { result[name ?: member.name] = serialize(it, config) }
+        }
+        catch (e: JSONException) {
+            throw e
+        }
+        catch (e: Exception) {
+            throw JSONException("Error getting property ${member.name} from ${obj::class.simpleName}", e)
+        }
+        finally {
+            member.isAccessible = wasAccessible
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -252,7 +263,7 @@ object JSONSerializer {
                 append('Z')
             else {
                 append(if (offset < 0) '-' else '+')
-                val absOffset = Math.abs(offset)
+                val absOffset = abs(offset)
                 Strings.append2Digits(this, absOffset / 60)
                 append(':')
                 Strings.append2Digits(this, absOffset % 60)

@@ -461,6 +461,12 @@ class JSONDeserializerTest {
         assertEquals(expected, JSONDeserializer.deserialize(DummyWithVal::class, json))
     }
 
+    @Test fun `java class should deserialize correctly`() {
+        val json = JSONObject().putValue("field1", 1234).putValue("field2", "Hello!")
+        val expected = JavaClass1(1234, "Hello!")
+        assertEquals(expected, JSONDeserializer.deserialize(JavaClass1::class, json))
+    }
+
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH,
             Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND,
             Calendar.MILLISECOND, Calendar.ZONE_OFFSET)
