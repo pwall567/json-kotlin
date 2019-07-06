@@ -37,6 +37,7 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.staticProperties
 import kotlin.reflect.jvm.isAccessible
 
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -54,7 +55,6 @@ import java.util.UUID
 import net.pwall.json.annotation.JSONIgnore
 import net.pwall.json.annotation.JSONName
 import net.pwall.util.Strings
-import java.time.Duration
 
 /**
  * JSON Auto serialize for Kotlin.

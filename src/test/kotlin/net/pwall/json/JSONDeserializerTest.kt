@@ -39,6 +39,7 @@ import kotlin.test.expect
 import kotlin.test.Test
 
 import java.math.BigInteger
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -177,6 +178,12 @@ class JSONDeserializerTest {
     @Test fun `JSONString should return YearMonth`() {
         val json = JSONString("2019-03")
         val expected: YearMonth? = YearMonth.of(2019, 3)
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONString should return Duration`() {
+        val json = JSONString("PT2H")
+        val expected: Duration? = Duration.ofHours(2)
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
 

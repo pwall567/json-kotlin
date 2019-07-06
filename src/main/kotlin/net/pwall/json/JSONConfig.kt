@@ -36,6 +36,9 @@ import kotlin.reflect.full.starProjectedType
  */
 class JSONConfig {
 
+    /** Read buffer size (for `json-ktor`) */
+    var readBufferSize = 8192
+
     private val fromJSONMap: MutableMap<KType, (JSONValue?) -> Any?> = HashMap()
 
     private val toJSONMap: MutableMap<KType, (Any?) -> JSONValue?> = HashMap()

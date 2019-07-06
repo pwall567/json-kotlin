@@ -38,6 +38,7 @@ import kotlin.reflect.KTypeProjection
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.isAccessible
 
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -216,6 +217,8 @@ object JSONDeserializer {
                 Year::class -> return Year.parse(str) as T
 
                 YearMonth::class -> return YearMonth.parse(str) as T
+
+                Duration::class -> return Duration.parse(str) as T
 
                 UUID::class -> return UUID.fromString(str) as T
 
