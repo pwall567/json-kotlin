@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.7] - 2019-07-06
 ### Changed
 - `JSONDeserializer`: added deserialization of Kotlin `object`s (serialization already worked)
 - `JSONSerializer`: improved serialization of Java objects
