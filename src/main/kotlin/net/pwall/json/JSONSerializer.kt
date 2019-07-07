@@ -113,10 +113,9 @@ object JSONSerializer {
 
             is Enum<*> -> return JSONString(obj.toString())
 
-            is Calendar -> return serializeCalendar(obj)
-
-            is Date -> return serializeDate(obj)
-
+            is java.sql.Date,
+            is java.sql.Time,
+            is java.sql.Timestamp,
             is Instant,
             is LocalDate,
             is LocalDateTime,
@@ -128,6 +127,10 @@ object JSONSerializer {
             is Duration,
             is Period,
             is UUID -> return JSONString(obj.toString())
+
+            is Calendar -> return serializeCalendar(obj)
+
+            is Date -> return serializeDate(obj)
 
             is BitSet -> return serializeBitSet(obj)
 

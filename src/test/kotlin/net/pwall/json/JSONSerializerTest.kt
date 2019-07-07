@@ -276,6 +276,27 @@ class JSONSerializerTest {
         assertEquals(expected, JSONSerializer.serialize(date))
     }
 
+    @Test fun `java-sql-Date should return JSONString`() {
+        val str = "2019-04-25"
+        val date = java.sql.Date.valueOf(str)
+        val expected = JSONString(str)
+        assertEquals(expected, JSONSerializer.serialize(date))
+    }
+
+    @Test fun `java-sql-Time should return JSONString`() {
+        val str = "22:41:19"
+        val time = java.sql.Time.valueOf(str)
+        val expected = JSONString(str)
+        assertEquals(expected, JSONSerializer.serialize(time))
+    }
+
+    @Test fun `java-sql-Timestamp should return JSONString`() {
+        val str = "2019-04-25 22:41:19.5"
+        val timestamp = java.sql.Timestamp.valueOf(str)
+        val expected = JSONString(str)
+        assertEquals(expected, JSONSerializer.serialize(timestamp))
+    }
+
     @Test fun `Instant should return JSONString`() {
         val str = "2019-04-25T21:01:09.456Z"
         val inst = Instant.parse(str)
