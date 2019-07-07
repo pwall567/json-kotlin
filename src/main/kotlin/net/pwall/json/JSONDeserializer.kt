@@ -199,6 +199,12 @@ object JSONDeserializer {
 
                 Array<Char>::class -> return Array(str.length) { i -> str[i] } as T
 
+                java.sql.Date::class -> return java.sql.Date.valueOf(str) as T
+
+                java.sql.Time::class -> return java.sql.Time.valueOf(str) as T
+
+                java.sql.Timestamp::class -> return java.sql.Timestamp.valueOf(str) as T
+
                 Calendar::class -> return ISO8601Date.decode(str) as T
 
                 Date::class -> return ISO8601Date.decode(str).time as T

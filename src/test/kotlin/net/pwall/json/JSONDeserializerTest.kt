@@ -128,6 +128,24 @@ class JSONDeserializerTest {
 //        expect(expected2) { JSONDeserializer.deserialize(json2) }
     }
 
+    @Test fun `JSONString should return java-sql-Date`() {
+        val json = JSONString("2019-03-10")
+        val expected: java.sql.Date? = java.sql.Date.valueOf("2019-03-10")
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONString should return java-sql-Time`() {
+        val json = JSONString("22:45:41")
+        val expected: java.sql.Time? = java.sql.Time.valueOf("22:45:41")
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONString should return java-sql-Timestamp`() {
+        val json = JSONString("2019-03-10 22:45:41.5")
+        val expected: java.sql.Timestamp? = java.sql.Timestamp.valueOf("2019-03-10 22:45:41.5")
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
     @Test fun `JSONString should return Instant`() {
         val json = JSONString("2019-03-10T15:34:02.234Z")
         val cal = Calendar.getInstance()
