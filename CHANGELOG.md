@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - `JSONConfig`: changed to use system default buffer size
 - `JSONSerializer`: added serialization of `java.sql.Date`, `java.sql.Time`, `java.sql.Timestamp`
 - `JSONDeserializer`: added deserialization of `java.sql.Date`, `java.sql.Time`, `java.sql.Timestamp`
+- `README.md`: documentation added (more needed)
 
 ### Added
 - `JSONFun`: JSON helper functions
