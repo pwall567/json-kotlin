@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.8] - 2019-07-08
 ### Changed
 - `JSONConfig`: changed to use system default buffer size
 - `JSONSerializer`: added serialization of `java.sql.Date`, `java.sql.Time`, `java.sql.Timestamp`
