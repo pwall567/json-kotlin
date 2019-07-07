@@ -37,7 +37,7 @@ import kotlin.reflect.full.starProjectedType
 class JSONConfig {
 
     /** Read buffer size (for `json-ktor`) */
-    var readBufferSize = 8192
+    var readBufferSize = defaultBufferSize
 
     private val fromJSONMap: MutableMap<KType, (JSONValue?) -> Any?> = HashMap()
 
@@ -93,5 +93,9 @@ class JSONConfig {
      */
     inline fun <reified T: Any> toJSON(noinline mapping: (T?) -> JSONValue?) =
             toJSON(T::class.starProjectedType) { mapping(it as T?) }
+
+    companion object {
+        const val defaultBufferSize = DEFAULT_BUFFER_SIZE
+    }
 
 }

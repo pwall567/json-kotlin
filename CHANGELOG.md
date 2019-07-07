@@ -2,6 +2,17 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+### Changed
+- `JSONConfig`: changed to use system default buffer size
+- `JSONSerializer`: added serialization of `java.sql.Date`, `java.sql.Time`, `java.sql.Timestamp`
+- `JSONDeserializer`: added deserialization of `java.sql.Date`, `java.sql.Time`, `java.sql.Timestamp`
+- `README.md`: documentation added (more needed)
+
+### Added
+- `JSONFun`: JSON helper functions
+- `JSONFunTest`: tests for JSON helper functions
+
 ## [0.7] - 2019-07-06
 ### Changed
 - `JSONDeserializer`: added deserialization of Kotlin `object`s (serialization already worked)

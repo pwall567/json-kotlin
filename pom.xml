@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.pwall.json</groupId>
   <artifactId>json-kotlin</artifactId>
-  <version>0.7</version>
+  <version>0.8-SNAPSHOT</version>
   <name>JSON serialization and deserialization for Kotlin</name>
   <description>Kotlin classes to perform auto-serialization and deserialization.</description>
   <packaging>jar</packaging>
@@ -75,7 +75,7 @@
     </dependency>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
-      <artifactId>kotlin-test-junit</artifactId>
+      <artifactId>kotlin-test-junit5</artifactId>
       <version>${kotlin.version}</version>
       <scope>test</scope>
     </dependency>
@@ -84,40 +84,6 @@
   <build>
 
     <sourceDirectory>src/main/kotlin</sourceDirectory>
-
-    <pluginManagement>
-      <plugins>
-        <!--
-          This plugin's configuration is used to store Eclipse m2e settings only.
-          It has no influence on the Maven build itself.
-        -->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.jetbrains.kotlin</groupId>
-                    <artifactId>kotlin-maven-plugin</artifactId>
-                    <versionRange>[${kotlin.version},)</versionRange>
-                    <goals>
-                      <goal>compile</goal>
-                      <goal>test-compile</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore/>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
 
     <plugins>
       <plugin>
