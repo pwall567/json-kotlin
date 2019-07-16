@@ -31,6 +31,10 @@ import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.net.URI
+import java.net.URL
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -56,7 +60,7 @@ class JSONSerializerTest {
     }
 
     @Test fun `JSONValue should be returned as-is`() {
-        val json = JSONInteger(12345)
+        val json = JSONInt(12345)
         assertSame(json, JSONSerializer.serialize(json))
     }
 
@@ -79,19 +83,19 @@ class JSONSerializerTest {
         assertEquals(expected, JSONSerializer.serialize(char))
     }
 
-    @Test fun `Int should return JSONInteger`() {
+    @Test fun `Int should return JSONInt`() {
         val i = 123456
         val actual = JSONSerializer.serialize(i)
-        assertTrue(actual is JSONInteger)
+        assertTrue(actual is JSONInt)
         assertTrue(intEquals(i, actual.get()))
-        // Note - these assertions are complicated because JSONInteger.equals() returns true
+        // Note - these assertions are complicated because JSONInt.equals() returns true
         // for any comparison with another numeric JSON types where the values are equal
     }
 
-    @Test fun `Int (negative) should return JSONInteger`() {
+    @Test fun `Int (negative) should return JSONInt`() {
         val i = -8888
         val actual = JSONSerializer.serialize(i)
-        assertTrue(actual is JSONInteger)
+        assertTrue(actual is JSONInt)
         assertTrue(intEquals(i, actual.get()))
     }
 
@@ -109,17 +113,17 @@ class JSONSerializerTest {
         assertTrue(longEquals(i, actual.get()))
     }
 
-    @Test fun `Short should return JSONInteger`() {
+    @Test fun `Short should return JSONInt`() {
         val i: Short = 1234
         val actual = JSONSerializer.serialize(i)
-        assertTrue(actual is JSONInteger)
+        assertTrue(actual is JSONInt)
         assertTrue(intEquals(i.toInt(), actual.get()))
     }
 
-    @Test fun `Byte should return JSONInteger`() {
+    @Test fun `Byte should return JSONInt`() {
         val i: Byte = 123
         val actual = JSONSerializer.serialize(i)
-        assertTrue(actual is JSONInteger)
+        assertTrue(actual is JSONInt)
         assertTrue(intEquals(i.toInt(), actual.get()))
     }
 
@@ -365,6 +369,34 @@ class JSONSerializerTest {
         assertEquals(expected, JSONSerializer.serialize(uuid))
     }
 
+    @Test fun `URI should return JSONString`() {
+        val uriString = "http://pwall.net"
+        val uri = URI(uriString)
+        val expected = JSONString(uriString)
+        assertEquals(expected, JSONSerializer.serialize(uri))
+    }
+
+    @Test fun `URL should return JSONString`() {
+        val urlString = "http://pwall.net"
+        val url = URL(urlString)
+        val expected = JSONString(urlString)
+        assertEquals(expected, JSONSerializer.serialize(url))
+    }
+
+    @Test fun `BigInteger should return JSONString`() {
+        val bigIntString = "12345678901234567890"
+        val bigInteger = BigInteger(bigIntString)
+        val expected = JSONString(bigIntString)
+        assertEquals(expected, JSONSerializer.serialize(bigInteger))
+    }
+
+    @Test fun `BigDecimal should return JSONString`() {
+        val bigDecString = "12345678901234567890.88888"
+        val bigDecimal = BigDecimal(bigDecString)
+        val expected = JSONString(bigDecString)
+        assertEquals(expected, JSONSerializer.serialize(bigDecimal))
+    }
+
     @Test fun `BitSet should return JSONArray`() {
         val bitSet = BitSet(4)
         bitSet.set(1)
@@ -437,7 +469,7 @@ class JSONSerializerTest {
 
     @Test fun `Heterogenous Triple should return JSONArray`() {
         val triple = Triple("xyz",88,"def")
-        val expected = JSONArray().addJSON(JSONString("xyz")).addJSON(JSONInteger(88)).addJSON(JSONString("def"))
+        val expected = JSONArray().addJSON(JSONString("xyz")).addJSON(JSONInt(88)).addJSON(JSONString("def"))
         assertEquals(expected, JSONSerializer.serialize(triple))
     }
 

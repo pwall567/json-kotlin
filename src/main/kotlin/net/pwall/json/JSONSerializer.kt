@@ -37,6 +37,10 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.staticProperties
 import kotlin.reflect.jvm.isAccessible
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.net.URI
+import java.net.URL
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -69,7 +73,7 @@ object JSONSerializer {
         if (obj == null)
             return null
 
-        config?.findToJSONMMapping(obj::class.starProjectedType)?.let { return it(obj) }
+        config?.findToJSONMapping(obj::class.starProjectedType)?.let { return it(obj) }
 
         when (obj) {
 
@@ -126,6 +130,8 @@ object JSONSerializer {
             is YearMonth,
             is Duration,
             is Period,
+            is URI,
+            is URL,
             is UUID -> return JSONString(obj.toString())
 
             is Calendar -> return serializeCalendar(obj)
@@ -145,7 +151,7 @@ object JSONSerializer {
                 if (parameter.findAnnotation<JSONIgnore>() == null) {
                     val member = objClass.members.find { it.name == parameter.name }
                     if (member is KProperty<*>)
-                        invokeSetter(member, parameter.findAnnotation<JSONName>()?.name, obj, result, config)
+                        invokeGetter(member, parameter.findAnnotation<JSONName>()?.name, obj, result, config)
                 }
             }
             // now check whether there are any more properties not in constructor
@@ -154,7 +160,7 @@ object JSONSerializer {
                 if (member is KProperty<*> && !statics.contains(member)&&
                         !constructor.parameters.any { it.name == member.name } &&
                         member.findAnnotation<JSONIgnore>() == null)
-                    invokeSetter(member, member.findAnnotation<JSONName>()?.name, obj, result, config)
+                    invokeGetter(member, member.findAnnotation<JSONName>()?.name, obj, result, config)
             }
         }
         else {
@@ -166,14 +172,14 @@ object JSONSerializer {
                         combinedAnnotations.addAll(it.annotations)
                     }
                     if (findAnnotation<JSONIgnore>(combinedAnnotations) == null)
-                        invokeSetter(member, findAnnotation<JSONName>(combinedAnnotations)?.name, obj, result, config)
+                        invokeGetter(member, findAnnotation<JSONName>(combinedAnnotations)?.name, obj, result, config)
                 }
             }
         }
         return result
     }
 
-    private fun invokeSetter(member: KProperty<*>, name: String?, obj: Any, result: JSONObject, config: JSONConfig?) {
+    private fun invokeGetter(member: KProperty<*>, name: String?, obj: Any, result: JSONObject, config: JSONConfig?) {
         val wasAccessible = member.isAccessible
         member.isAccessible = true
         try {
@@ -204,15 +210,18 @@ object JSONSerializer {
 
     private fun serializeNumber(number: Number): JSONValue = when (number) {
 
-        is Int -> JSONInteger(number)
+        is Int -> JSONInt(number)
 
         is Long -> JSONLong(number)
 
-        is Short -> JSONInteger(number.toInt())
+        is Short -> JSONInt(number.toInt())
 
-        is Byte -> JSONInteger(number.toInt())
+        is Byte -> JSONInt(number.toInt())
 
         is Float -> JSONFloat(number)
+
+        is BigInteger,
+        is BigDecimal -> JSONString(number.toString())
 
         else -> JSONDouble(number.toDouble())
 
@@ -284,7 +293,7 @@ object JSONSerializer {
     }
 
     private fun serializeBitSet(bitSet: BitSet) = JSONArray(ArrayList<JSONValue>().apply {
-            (0 until bitSet.length()).forEach { i -> if (bitSet.get(i)) add(JSONInteger(i)) }
+            (0 until bitSet.length()).forEach { i -> if (bitSet.get(i)) add(JSONInt(i)) }
         })
 
     private val toJsonCache = HashMap<KClass<*>, KFunction<JSONValue>>()

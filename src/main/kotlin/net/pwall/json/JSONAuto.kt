@@ -41,28 +41,27 @@ object JSONAuto {
             JSONSerializer.serialize(obj, config)?.toJSON() ?: "null"
 
     /**
-     * Deserialize JSON from [String] to a specified [KType].
+     * Deserialize JSON from string ([CharSequence]) to a specified [KType].
      *
      * @param   resultType  the target type
-     * @param   str         the JSON in [String] form
-     * @param   config  an optional [JSONConfig]
+     * @param   str         the JSON in string form
+     * @param   config      an optional [JSONConfig]
      * @return              the converted object
      */
-    fun parse(resultType: KType, str: String, config: JSONConfig? = null): Any? {
-        return JSONDeserializer.deserialize(resultType, JSON.parse(str), config)
-    }
+    fun parse(resultType: KType, str: CharSequence, config: JSONConfig? = null): Any? =
+            JSONDeserializer.deserialize(resultType, JSON.parse(str), config)
 
     /**
-     * Deserialize JSON from [String] to a specified [KClass].
+     * Deserialize JSON from string ([CharSequence]) to a specified [KClass].
      *
      * @param   resultClass the target class
-     * @param   str         the JSON in [String] form
+     * @param   str         the JSON in string form
+     * @param   config      an optional [JSONConfig]
      * @return              the converted object
      */
-    fun <T: Any> parse(resultClass: KClass<T>, str: String): T? {
-        return JSONDeserializer.deserialize(resultClass, JSON.parse(str))
-    }
+    fun <T: Any> parse(resultClass: KClass<T>, str: CharSequence, config: JSONConfig? = null): T? =
+            JSONDeserializer.deserialize(resultClass, JSON.parse(str), config)
 
-    inline fun <reified T: Any> parse(str: String): T? = parse(T::class, str)
+    inline fun <reified T: Any> parse(str: CharSequence, config: JSONConfig? = null): T? = parse(T::class, str, config)
 
 }
