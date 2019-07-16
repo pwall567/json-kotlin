@@ -18,7 +18,7 @@ Support is included for the following standard Kotlin classes:
 
 - `String`, `StringBuilder`, `CharSequence`, `Char`, `CharArray`
 - `Int`, `Long`, `Short`, `Byte`, `Double`, `Float`
-- `Array`, `IntArray`, `LongArray`, `ShortArray`, `ByteArray`, `DoubleArray`, `FloatArray`, `FloatArray`
+- `Array`, `IntArray`, `LongArray`, `ShortArray`, `ByteArray`, `DoubleArray`, `FloatArray`
 - `Boolean`, `BooleanArray`
 - `Collection`, `List`, `ArrayList`, `LinkedList`, `Set`, `HashSet`, `LinkedHashSet`, `Sequence`
 - `Map`, `HashMap`, `LinkedHashMap`
@@ -27,57 +27,72 @@ Support is included for the following standard Kotlin classes:
 
 Also, support is included for the following standard Java classes:
 
-- `java.util.Date`, `java.util.Calendar`, `java.util.Enumeration`, `java.util.Bitset`, `java.util.UUID`
+- `java.math.BigDecimal`, `java.math.BigInteger`
+- `java.net.URI`, `java.net.URL`
+- `java.util.Enumeration`, `java.util.Bitset`, `java.util.UUID`, `java.util.Date`, `java.util.Calendar`
 - `java.sql.Date`, `java.sql.Time`, `java.sql.Timestamp`
 - `java.time.Instant`, `java.time.LocalDate`, `java.time.LocalDateTime`, `java.time.OffsetDateTime`,
   `java.time.OffsetTime`, `java.time.ZonedDateTime`, `java.time.Year`, `java.time.YearMonth`, `java.time.Duration`,
   `java.time.Period`
 
-## Serialization
+## Quick Start
 
-To serialize any object:
+To serialize any object (say, a `data class`):
 ```kotlin
-    val serialized = JSONSerializer.serialize(anyObject)
+    val json = JSONAuto.stringify(dataClassInstance)
+```
+The result `json` is a `String` serialized from the object, recursively serializing any nested objects, collections
+etc.
+The JSON object will contain serialized forms of all of the properties of the object (as declared in `val` and `var`
+statements.
+
+For example, given the class:
+```kotlin
+    data class Example(val abc: String, val def: Int, val ghi: List<String>)
+```
+and the instantiation:
+```kotlin
+    val example = Example("hello", 12345, listOf("A", "B"))
+```
+then
+```kotlin
+    val json = JSONAuto.stringify(example)
+```
+will yield:
+```json
+{"abc":"hello","def":12345,"ghi":["A","B"]}
 ```
 
-The returned value is an object that implements the `JSONValue` interface as described in the
-[jsonutil](https://github.com/pwall567/jsonutil) library.
-This object may then be output as a string by:
-```kotlin
-    val stringForm = serialized.toJSON()
-```
+Deserialization is slightly more complicated, because the target data type must be specified to the function.
+This can be achieved in a number of ways:
 
-Or, to combine the two operations into one:
-```kotlin
-    val stringForm = JSONAuto.stringify(anyObject)
-```
+- The type can be inferred from the context, e.g. `val example: Example = JSONAuto.parse(json)`
+- The type may be specified as a type parameter, e.g. `val example = JSONAuto.parse<Example>(json)`
+- The type may be specified as a `KClass`, e.g. `val example = JSONAuto.parse(Example::class, json)`
+- The type may be specified as a `KType`, e.g. `val example = JSONAuto.parse(Example::class.starProjectedType, json)`
 
+(The last form is generally only needed when deserializing parameterized types and the parameter types can not be
+inferred.)
 
-## Deserialization
+## More Detail
 
-To deserialize any object:
-```kotlin
-    val newObject: ExpectedType = JSONDeserializer.deserialize(jsonValue)
-```
+The serialization and deserialization functions both operate as a two stage process.
+Serialization first creates a structured form of the input data using the
+[`jsonutil`](https://github.com/pwall567/jsonutil) library ([Javadoc](https://pwall.net/oss/jsonutil/)).
+The resulting structure is then converted to string form as a second pass.
 
-Or, to specify the type dynamically (`expectedType` is a `Ktype`):
-```kotlin
-    val newObject = JSONDeserializer.deserialize(expectedType, anyObject)
-```
+Deserialization does the same in reverse - the JSON string is first parsed into the internal form, and then that
+structure is traversed to produce the target object.
 
-In both cases, `jsonValue` is a `JSONValue` as above.
-This object may be the result of parsing an input string:
-```kotlin
-    val jsonValue = JSON.parse(stringForm)
-```
+This information is of significance when custom serialization and deserialization are required.
+More information will be provided in due course, but in the meantime, examples of this form of use may be found in the
+unit test classes.
 
-Again, the two operations may be combined into one:
-```kotlin
-    val newObject: ExpectedType = JSONAuto.parse(stringForm)
-```
+## Dependency Specification
 
-## Usage
-###Maven
+The latest version of the library is 0.8, and it may be found the the Maven Central repository.
+
+### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
@@ -85,11 +100,14 @@ Again, the two operations may be combined into one:
       <version>0.8</version>
     </dependency>
 ```
-###Gradle
+### Gradle
 ```groovy
     implementation "net.pwall.json:json-kotlin:0.8"
 ```
-###Gradle (kts)
+### Gradle (kts)
 ```kotlin
     implementation("net.pwall.json:json-kotlin:0.8")
 ```
+
+Peter Wall
+2019-07-14

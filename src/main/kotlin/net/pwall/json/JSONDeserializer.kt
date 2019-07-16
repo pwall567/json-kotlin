@@ -48,6 +48,7 @@ import java.time.Period
 import java.time.Year
 import java.time.YearMonth
 import java.time.ZonedDateTime
+import java.util.BitSet
 import java.util.Calendar
 import java.util.Date
 import java.util.LinkedList
@@ -72,7 +73,7 @@ object JSONDeserializer {
      * @return              the converted object
      */
     fun deserialize(resultType: KType, json: JSONValue?, config: JSONConfig? = null): Any? {
-        config?.getFromJSONMMapping(resultType)?.let { return it(json) }
+        config?.getFromJSONMapping(resultType)?.let { return it(json) }
         if (json == null) {
             if (!resultType.isMarkedNullable)
                 throw JSONException("Can't deserialize null as $resultType")
@@ -150,20 +151,20 @@ object JSONDeserializer {
 
                 when (resultClass) {
 
-                    Int::class -> if (json is JSONInteger || json is JSONZero)
+                    Int::class -> if (json is JSONInt || json is JSONZero)
                         return json.toInt() as T
 
-                    Long::class -> if (json is JSONLong || json is JSONInteger || json is JSONZero)
+                    Long::class -> if (json is JSONLong || json is JSONInt || json is JSONZero)
                         return json.toLong() as T
 
                     Double::class -> return json.toDouble() as T
 
                     Float::class -> return json.toFloat() as T
 
-                    Short::class -> if (json is JSONInteger || json is JSONZero)
+                    Short::class -> if (json is JSONInt || json is JSONZero)
                         return json.toShort() as T
 
-                    Byte::class -> if (json is JSONInteger || json is JSONZero)
+                    Byte::class -> if (json is JSONInt || json is JSONZero)
                         return json.toByte() as T
 
                 }
@@ -249,7 +250,7 @@ object JSONDeserializer {
                     invoke(null, resultClass.java, str) as T
 
         // does the target class have a public constructor that takes String?
-        // (e.g. StringBuilder, Integer, ... )
+        // (e.g. StringBuilder, BigInteger, ... )
 
         resultClass.constructors.find { it.parameters.size == 1 && it.parameters[0].type.classifier == String::class }?.
                 apply { return call(str) }
@@ -341,6 +342,16 @@ object JSONDeserializer {
                     val result1 = deserialize(type1, json[1], config)
                     val result2 = deserialize(type2, json[2], config)
                     Triple(result0, result1, result2)
+                }
+
+                BitSet::class -> {
+                    BitSet().apply {
+                        json.forEach {
+                            if (it !is JSONInt)
+                                throw JSONException("Can't deserialize BitSet; array member not int")
+                            set(it.get())
+                        }
+                    }
                 }
 
                 else -> throw JSONException("Can't deserialize array as $resultClass")

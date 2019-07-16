@@ -39,9 +39,9 @@ class JSONConfigTest {
     @Test fun `add fromJSON mapping should return the function`() {
         val config = JSONConfig()
         assertEquals(config.readBufferSize, 8192)
-        assertNull(config.getFromJSONMMapping(stringType))
+        assertNull(config.getFromJSONMapping(stringType))
         config.fromJSON { json -> json?.toString() }
-        assertNotNull(config.getFromJSONMMapping(stringType))
+        assertNotNull(config.getFromJSONMapping(stringType))
     }
 
     @Test fun `fromJSON mapping should map simple data class`() {
@@ -69,9 +69,9 @@ class JSONConfigTest {
 
     @Test fun `add toJSON mapping should return the function`() {
         val config = JSONConfig()
-        assertNull(config.getToJSONMMapping(stringType))
+        assertNull(config.getToJSONMapping(stringType))
         config.toJSON<String> { str -> JSONString(str ?: throw JSONException("String expected")) }
-        assertNotNull(config.getToJSONMMapping(stringType))
+        assertNotNull(config.getToJSONMapping(stringType))
     }
 
     @Test fun `toJSON mapping should map simple data class`() {

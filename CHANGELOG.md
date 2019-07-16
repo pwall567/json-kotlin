@@ -2,6 +2,22 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.9] - 2019-07-17
+### Changed
+- `JSONAuto`: added optional `JSONConfig` to all methods
+- `JSONAuto`: Changed `parse` to take `CharSequence` instead of `String`
+- `JSONConfig`: fixed typo in method names
+- `JSONDeserializer`: added deserialization of `java.util.BitSet`
+- `JSONDeserializer`: switched to use `JSONInt` `typealias`
+- `JSONFun`: renamed `toJSON` to `isJSON`
+- `JSONFun`: added `Any?.asJSON()`
+- `JSONFun`: added `CharSequence.parseJSON()`
+- `JSONFun`: added `Any?.stringifyJSON()`
+- `JSONSerializer`: added serialization of `java.math.BigDecimal`, `java.math.BigInteger`, `java.net.URI`,
+  `java.net.URL`
+- `JSONSerializer`: fixed typo - `invokeSetter` should have been `invokeGetter`
+- `JSONSerializer`: switched to use `JSONInt` `typealias`
+
 ## [0.8] - 2019-07-08
 ### Changed
 - `JSONConfig`: changed to use system default buffer size

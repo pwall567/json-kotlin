@@ -39,6 +39,8 @@ import kotlin.test.expect
 import kotlin.test.Test
 
 import java.math.BigInteger
+import java.net.URI
+import java.net.URL
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -52,15 +54,21 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.Arrays
+import java.util.BitSet
 import java.util.Calendar
 import java.util.Date
 import java.util.LinkedList
 import java.util.TimeZone
+import java.util.UUID
 
 class JSONDeserializerTest {
 
     @Test fun `null input should return null`() {
         assertNull(JSONDeserializer.deserialize(String::class, null))
+    }
+
+    @Test fun `null input should cause exception for non-null function`() {
+        assertFailsWith<JSONException> { JSONDeserializer.deserializeNonNull(String::class, null) }
     }
 
     @Test fun `when JSONValue expected it should pass through unchanged`() {
@@ -212,6 +220,36 @@ class JSONDeserializerTest {
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
 
+    @Test fun `JSONString should return UUID`() {
+        val uuid = UUID.randomUUID()
+        val json = JSONString(uuid.toString())
+        val expected: UUID? = uuid
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONString should return URI`() {
+        val uriString = "http://pwall.net"
+        val json = JSONString(uriString)
+        val expected: URI? = URI(uriString)
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONString should return URL`() {
+        val urlString = "https://pwall.net"
+        val json = JSONString(urlString)
+        val expected: URL? = URL(urlString)
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONArray should return BitSet`() {
+        val bitset = BitSet()
+        bitset.set(2)
+        bitset.set(7)
+        val json = JSONArray().addValue(2).addValue(7)
+        val expected: BitSet? = bitset
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
     @Test fun `JSONString should return enum`() {
         val json = JSONString("ALPHA")
         val expected: DummyEnum? = DummyEnum.ALPHA
@@ -225,8 +263,8 @@ class JSONDeserializerTest {
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
 
-    @Test fun `JSONInteger should return Int`() {
-        val json = JSONInteger(1234)
+    @Test fun `JSONInt should return Int`() {
+        val json = JSONInt(1234)
         val expected: Int? = 1234
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
@@ -243,14 +281,14 @@ class JSONDeserializerTest {
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
 
-    @Test fun `JSONInteger should return Short`() {
-        val json = JSONInteger(1234)
+    @Test fun `JSONInt should return Short`() {
+        val json = JSONInt(1234)
         val expected: Short? = 1234
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
 
-    @Test fun `JSONInteger should return Byte`() {
-        val json = JSONInteger(123)
+    @Test fun `JSONInt should return Byte`() {
+        val json = JSONInt(123)
         val expected: Byte? = 123
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
@@ -332,7 +370,7 @@ class JSONDeserializerTest {
             intTypeProjection))
 
     private val listStrings = listOf("abc", "def")
-    private val jsonArrayString = JSONArray.create().addValue("abc").addValue("def")
+    private val jsonArrayString = JSONArray().addValue("abc").addValue("def")
 
     @Test fun `JSONArray of JSONString should return List of String`() {
         expect(listStrings) { JSONDeserializer.deserialize(listStringType, jsonArrayString) }

@@ -43,11 +43,11 @@ class JSONConfig {
 
     private val toJSONMap: MutableMap<KType, (Any?) -> JSONValue?> = HashMap()
 
-    fun getFromJSONMMapping(type: KType): ((JSONValue?) -> Any?)? = fromJSONMap[type]
+    fun getFromJSONMapping(type: KType): ((JSONValue?) -> Any?)? = fromJSONMap[type]
 
-    fun getToJSONMMapping(type: KType): ((Any?) -> JSONValue?)? = toJSONMap[type]
+    fun getToJSONMapping(type: KType): ((Any?) -> JSONValue?)? = toJSONMap[type]
 
-    fun findToJSONMMapping(type: KType): ((Any?) -> JSONValue?)? {
+    fun findToJSONMapping(type: KType): ((Any?) -> JSONValue?)? {
         val match = toJSONMap.keys.find { it.isSupertypeOf(type) } ?: return null
         return toJSONMap[match]
     }
