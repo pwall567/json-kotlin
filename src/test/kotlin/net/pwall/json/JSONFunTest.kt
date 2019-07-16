@@ -27,6 +27,7 @@ package net.pwall.json
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class JSONFunTest {
 
@@ -37,7 +38,7 @@ class JSONFunTest {
 
     @Test fun `makeJSON with toJSON should create the same JSONObject as explicit creation`() {
         val expected = JSONObject().putValue("testString", "xyz").putValue("testInt", 12345)
-        assertEquals(expected, makeJSON("testString" toJSON "xyz", "testInt" toJSON 12345))
+        assertEquals(expected, makeJSON("testString" isJSON "xyz", "testInt" isJSON 12345))
     }
 
     @Test fun `asJSON should correctly handle String`() {
@@ -76,40 +77,76 @@ class JSONFunTest {
         assertEquals(expected, testBoolean.asJSON())
     }
 
-    @Test fun `toJSON should correctly handle String`() {
+    @Test fun `value should correctly handle String`() {
         val testString = "what next?"
         val expected = Pair("testString", JSONString(testString))
-        assertEquals(expected, "testString" toJSON testString)
+        assertEquals(expected, "testString" isJSON testString)
     }
 
-    @Test fun `toJSON should correctly handle Int`() {
+    @Test fun `value should correctly handle Int`() {
         val testInt = 987654321
         val expected = Pair("testInt", JSONInt(testInt))
-        assertEquals(expected, "testInt" toJSON testInt)
+        assertEquals(expected, "testInt" isJSON testInt)
     }
 
-    @Test fun `toJSON should correctly handle Long`() {
+    @Test fun `value should correctly handle Long`() {
         val testLong = 1234567890123456789
         val expected = Pair("testLong", JSONLong(testLong))
-        assertEquals(expected, "testLong" toJSON testLong)
+        assertEquals(expected, "testLong" isJSON testLong)
     }
 
-    @Test fun `toJSON should correctly handle Float`() {
+    @Test fun `value should correctly handle Float`() {
         val testFloat = 3.14159F
         val expected = Pair("testFloat", JSONFloat(testFloat))
-        assertEquals(expected, "testFloat" toJSON testFloat)
+        assertEquals(expected, "testFloat" isJSON testFloat)
     }
 
-    @Test fun `toJSON should correctly handle Double`() {
+    @Test fun `value should correctly handle Double`() {
         val testDouble = 3.14159265358979323846
         val expected = Pair("testDouble", JSONDouble(testDouble))
-        assertEquals(expected, "testDouble" toJSON testDouble)
+        assertEquals(expected, "testDouble" isJSON testDouble)
     }
 
-    @Test fun `toJSON should correctly handle Boolean`() {
+    @Test fun `value should correctly handle Boolean`() {
         val testBoolean = true
         val expected = Pair("testBoolean", JSONBoolean(testBoolean))
-        assertEquals(expected, "testBoolean" toJSON testBoolean)
+        assertEquals(expected, "testBoolean" isJSON testBoolean)
+    }
+
+    @Test fun `parseJSON should correctly parse string`() {
+        val json = """{"field1":"Hi there!","field2":888}"""
+        val expected: Dummy1? = Dummy1("Hi there!", 888)
+        assertEquals(expected, json.parseJSON())
+    }
+
+    @Test fun `parseJSON should correctly parse string using parameterised type`() {
+        val json = """{"field1":"Hi there!","field2":888}"""
+        val expected = Dummy1("Hi there!", 888)
+        val parsed = json.parseJSON<Dummy1>()
+        assertEquals(expected, parsed)
+    }
+
+    @Test fun `stringify should work on any object`() {
+        val dummy1 = Dummy1("Hi there!", 888)
+        val expected = """{"field1":"Hi there!","field2":888}"""
+        assertEquals(expected, dummy1.stringifyJSON())
+    }
+
+    @Test fun `stringify should work on null`() {
+        val dummy1 = null
+        val expected = "null"
+        assertEquals(expected, dummy1.stringifyJSON())
+    }
+
+    @Test fun `asJSON should correctly handle arbitrary object`() {
+        val dummy1 = Dummy1("Hi there!", 888)
+        val expected = makeJSON("field1" isJSON "Hi there!", "field2" isJSON 888)
+        assertEquals(expected, dummy1.asJSON())
+    }
+
+    @Test fun `asJSON should correctly handle null`() {
+        val dummy1 = null
+        assertNull(dummy1.asJSON())
     }
 
 }

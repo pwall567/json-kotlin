@@ -39,16 +39,24 @@ fun Double.asJSON(): JSONValue = JSONDouble.valueOf(this)
 
 fun Boolean.asJSON(): JSONValue = JSONBoolean.valueOf(this)
 
-infix fun String.toJSON(str: CharSequence?): Pair<String, JSONValue?> = this to str?.asJSON()
+fun Any?.asJSON(config: JSONConfig? = null): JSONValue? = JSONSerializer.serialize(this, config)
 
-infix fun String.toJSON(i: Int): Pair<String, JSONValue?> = this to i.asJSON()
+infix fun String.isJSON(str: CharSequence?): Pair<String, JSONValue?> = this to str?.asJSON()
 
-infix fun String.toJSON(i: Long): Pair<String, JSONValue?> = this to i.asJSON()
+infix fun String.isJSON(i: Int): Pair<String, JSONValue?> = this to i.asJSON()
 
-infix fun String.toJSON(f: Float): Pair<String, JSONValue?> = this to f.asJSON()
+infix fun String.isJSON(i: Long): Pair<String, JSONValue?> = this to i.asJSON()
 
-infix fun String.toJSON(d: Double): Pair<String, JSONValue?> = this to d.asJSON()
+infix fun String.isJSON(f: Float): Pair<String, JSONValue?> = this to f.asJSON()
 
-infix fun String.toJSON(b: Boolean): Pair<String, JSONValue?> = this to b.asJSON()
+infix fun String.isJSON(d: Double): Pair<String, JSONValue?> = this to d.asJSON()
+
+infix fun String.isJSON(b: Boolean): Pair<String, JSONValue?> = this to b.asJSON()
 
 fun makeJSON(vararg pairs: Pair<String, JSONValue?>) = JSONObject().apply { putAll(pairs) }
+
+inline fun <reified T: Any> CharSequence.parseJSON(config: JSONConfig? = null): T? {
+    return JSONAuto.parse<T>(this, config)
+}
+
+fun Any?.stringifyJSON(config: JSONConfig? = null): String = JSONAuto.stringify(this, config)
