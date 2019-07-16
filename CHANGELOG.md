@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.9] - 2019-07-17
 ### Changed
 - `JSONAuto`: added optional `JSONConfig` to all methods
 - `JSONAuto`: Changed `parse` to take `CharSequence` instead of `String`
