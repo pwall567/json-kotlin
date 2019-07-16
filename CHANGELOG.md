@@ -17,6 +17,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
   `java.net.URL`
 - `JSONSerializer`: fixed typo - `invokeSetter` should have been `invokeGetter`
 - `JSONSerializer`: switched to use `JSONInt` `typealias`
+- `pom.xml`: switched to use of parent POM
+- `pom.xml`: added link to `jsonutil` JavaDoc
 
 ## [0.8] - 2019-07-08
 ### Changed
