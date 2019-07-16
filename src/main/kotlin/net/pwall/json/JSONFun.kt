@@ -55,8 +55,6 @@ infix fun String.isJSON(b: Boolean): Pair<String, JSONValue?> = this to b.asJSON
 
 fun makeJSON(vararg pairs: Pair<String, JSONValue?>) = JSONObject().apply { putAll(pairs) }
 
-inline fun <reified T: Any> CharSequence.parseJSON(config: JSONConfig? = null): T? {
-    return JSONAuto.parse<T>(this, config)
-}
+inline fun <reified T: Any> CharSequence.parseJSON(config: JSONConfig? = null): T? = JSONAuto.parse<T>(this, config)
 
 fun Any?.stringifyJSON(config: JSONConfig? = null): String = JSONAuto.stringify(this, config)
