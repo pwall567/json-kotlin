@@ -479,6 +479,13 @@ class JSONDeserializerTest {
         assertEquals(expected, JSONDeserializer.deserialize(DummyAnnoData::class, json))
     }
 
+    @Test fun `JSONObject should return data class using custom name annotation`() {
+        val json = JSONObject().putValue("field1", "qqq").putValue("fieldX", 888)
+        val expected = DummyCustomAnnoData("qqq", 888)
+        val config = JSONConfig().addNameAnnotation(CustomName::class, "symbol")
+        assertEquals(expected, JSONDeserializer.deserialize(DummyCustomAnnoData::class, json, config))
+    }
+
     private val pairStringStringType = Pair::class.createType(listOf(stringTypeProjection, stringTypeProjection))
     private val pairStringIntType = Pair::class.createType(listOf(stringTypeProjection, intTypeProjection))
     private val tripleStringStringStringType = Triple::class.createType(listOf(stringTypeProjection,

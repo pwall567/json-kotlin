@@ -34,10 +34,10 @@ object JSONAuto {
      * Serialize an object to JSON. (The word "stringify" is borrowed from the JavaScript implementation of JSON.)
      *
      * @param   obj     the object
-     * @param   config  an optional [JSONConfig]
+     * @param   config  an optional [JSONConfig] to customise the conversion
      * @return          the JSON form of the object
      */
-    fun stringify(obj: Any?, config: JSONConfig? = null): String =
+    fun stringify(obj: Any?, config: JSONConfig = JSONConfig.defaultConfig): String =
             JSONSerializer.serialize(obj, config)?.toJSON() ?: "null"
 
     /**
@@ -45,10 +45,10 @@ object JSONAuto {
      *
      * @param   resultType  the target type
      * @param   str         the JSON in string form
-     * @param   config      an optional [JSONConfig]
+     * @param   config      an optional [JSONConfig] to customise the conversion
      * @return              the converted object
      */
-    fun parse(resultType: KType, str: CharSequence, config: JSONConfig? = null): Any? =
+    fun parse(resultType: KType, str: CharSequence, config: JSONConfig = JSONConfig.defaultConfig): Any? =
             JSONDeserializer.deserialize(resultType, JSON.parse(str), config)
 
     /**
@@ -56,12 +56,20 @@ object JSONAuto {
      *
      * @param   resultClass the target class
      * @param   str         the JSON in string form
-     * @param   config      an optional [JSONConfig]
+     * @param   config      an optional [JSONConfig] to customise the conversion
      * @return              the converted object
      */
-    fun <T: Any> parse(resultClass: KClass<T>, str: CharSequence, config: JSONConfig? = null): T? =
+    fun <T: Any> parse(resultClass: KClass<T>, str: CharSequence, config: JSONConfig = JSONConfig.defaultConfig): T? =
             JSONDeserializer.deserialize(resultClass, JSON.parse(str), config)
 
-    inline fun <reified T: Any> parse(str: CharSequence, config: JSONConfig? = null): T? = parse(T::class, str, config)
+    /**
+     * Deserialize JSON from string ([CharSequence]) to a the inferred [KClass].
+     *
+     * @param   str         the JSON in string form
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    inline fun <reified T: Any> parse(str: CharSequence, config: JSONConfig = JSONConfig.defaultConfig): T? =
+            parse(T::class, str, config)
 
 }

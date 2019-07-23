@@ -25,89 +25,126 @@
 
 package net.pwall.json
 
+import kotlin.reflect.full.starProjectedType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class JSONFunTest {
 
-    @Test fun `makeJSON with asJSON should create the same JSONObject as explicit creation`() {
+    @Test fun `makeJSON with asJSONValue should create the same JSONObject as explicit creation`() {
         val expected = JSONObject().putValue("testString", "xyz").putValue("testInt", 12345)
-        assertEquals(expected, makeJSON("testString" to "xyz".asJSON(), "testInt" to 12345.asJSON()))
+        assertEquals(expected, makeJSON("testString" to "xyz".asJSONValue(), "testInt" to 12345.asJSONValue()))
     }
 
-    @Test fun `makeJSON with toJSON should create the same JSONObject as explicit creation`() {
+    @Test fun `makeJSON with isJSON should create the same JSONObject as explicit creation`() {
         val expected = JSONObject().putValue("testString", "xyz").putValue("testInt", 12345)
         assertEquals(expected, makeJSON("testString" isJSON "xyz", "testInt" isJSON 12345))
     }
 
-    @Test fun `asJSON should correctly handle String`() {
+    @Test fun `asJSONValue should correctly handle String`() {
         val testString = "testing..."
         val expected = JSONString(testString)
-        assertEquals(expected, testString.asJSON())
+        assertEquals(expected, testString.asJSONValue())
     }
 
-    @Test fun `asJSON should correctly handle Int`() {
+    @Test fun `asJSONValue should correctly handle Char`() {
+        val testChar = 'Q'
+        val expected = JSONString("Q")
+        assertEquals(expected, testChar.asJSONValue())
+    }
+
+    @Test fun `asJSONValue should correctly handle Int`() {
         val testInt = 987654321
         val expected = JSONInt(testInt)
-        assertEquals(expected, testInt.asJSON())
+        assertEquals(expected, testInt.asJSONValue())
     }
 
-    @Test fun `asJSON should correctly handle Long`() {
+    @Test fun `asJSONValue should correctly handle Long`() {
         val testLong = 1234567890123456789
         val expected = JSONLong(testLong)
-        assertEquals(expected, testLong.asJSON())
+        assertEquals(expected, testLong.asJSONValue())
     }
 
-    @Test fun `asJSON should correctly handle Float`() {
+    @Test fun `asJSONValue should correctly handle Short`() {
+        val testShort: Short = 1234
+        val expected = JSONInt(testShort.toInt())
+        assertEquals(expected, testShort.asJSONValue())
+    }
+
+    @Test fun `asJSONValue should correctly handle Byte`() {
+        val testByte: Byte = 123
+        val expected = JSONInt(testByte.toInt())
+        assertEquals(expected, testByte.asJSONValue())
+    }
+
+    @Test fun `asJSONValue should correctly handle Float`() {
         val testFloat = 3.14159F
         val expected = JSONFloat(testFloat)
-        assertEquals(expected, testFloat.asJSON())
+        assertEquals(expected, testFloat.asJSONValue())
     }
 
-    @Test fun `asJSON should correctly handle Double`() {
+    @Test fun `asJSONValue should correctly handle Double`() {
         val testDouble = 3.14159265358979323846
         val expected = JSONDouble(testDouble)
-        assertEquals(expected, testDouble.asJSON())
+        assertEquals(expected, testDouble.asJSONValue())
     }
 
-    @Test fun `asJSON should correctly handle Boolean`() {
+    @Test fun `asJSONValue should correctly handle Boolean`() {
         val testBoolean = true
         val expected = JSONBoolean(testBoolean)
-        assertEquals(expected, testBoolean.asJSON())
+        assertEquals(expected, testBoolean.asJSONValue())
     }
 
-    @Test fun `value should correctly handle String`() {
+    @Test fun `isJSON should correctly handle String`() {
         val testString = "what next?"
         val expected = Pair("testString", JSONString(testString))
         assertEquals(expected, "testString" isJSON testString)
     }
 
-    @Test fun `value should correctly handle Int`() {
+    @Test fun `isJSON should correctly handle Char`() {
+        val testChar = 'Z'
+        val expected = Pair("testChar", JSONString("Z"))
+        assertEquals(expected, "testChar" isJSON testChar)
+    }
+
+    @Test fun `isJSON should correctly handle Int`() {
         val testInt = 987654321
         val expected = Pair("testInt", JSONInt(testInt))
         assertEquals(expected, "testInt" isJSON testInt)
     }
 
-    @Test fun `value should correctly handle Long`() {
+    @Test fun `isJSON should correctly handle Long`() {
         val testLong = 1234567890123456789
         val expected = Pair("testLong", JSONLong(testLong))
         assertEquals(expected, "testLong" isJSON testLong)
     }
 
-    @Test fun `value should correctly handle Float`() {
+    @Test fun `isJSON should correctly handle Short`() {
+        val testShort: Short = 1234
+        val expected = Pair("testShort", JSONInt(testShort.toInt()))
+        assertEquals(expected, "testShort" isJSON testShort)
+    }
+
+    @Test fun `isJSON should correctly handle Byte`() {
+        val testByte: Byte = 123
+        val expected = Pair("testByte", JSONInt(testByte.toInt()))
+        assertEquals(expected, "testByte" isJSON testByte)
+    }
+
+    @Test fun `isJSON should correctly handle Float`() {
         val testFloat = 3.14159F
         val expected = Pair("testFloat", JSONFloat(testFloat))
         assertEquals(expected, "testFloat" isJSON testFloat)
     }
 
-    @Test fun `value should correctly handle Double`() {
+    @Test fun `isJSON should correctly handle Double`() {
         val testDouble = 3.14159265358979323846
         val expected = Pair("testDouble", JSONDouble(testDouble))
         assertEquals(expected, "testDouble" isJSON testDouble)
     }
 
-    @Test fun `value should correctly handle Boolean`() {
+    @Test fun `isJSON should correctly handle Boolean`() {
         val testBoolean = true
         val expected = Pair("testBoolean", JSONBoolean(testBoolean))
         assertEquals(expected, "testBoolean" isJSON testBoolean)
@@ -126,6 +163,20 @@ class JSONFunTest {
         assertEquals(expected, parsed)
     }
 
+    @Test fun `parseJSON should correctly parse string using explicit KClass`() {
+        val json = """{"field1":"Hi there!","field2":888}"""
+        val expected = Dummy1("Hi there!", 888)
+        val parsed = json.parseJSON(Dummy1::class)
+        assertEquals(expected, parsed)
+    }
+
+    @Test fun `parseJSON should correctly parse string using explicit KType`() {
+        val json = """{"field1":"Hi there!","field2":888}"""
+        val expected = Dummy1("Hi there!", 888)
+        val parsed = json.parseJSON(Dummy1::class.starProjectedType)
+        assertEquals(expected, parsed)
+    }
+
     @Test fun `stringify should work on any object`() {
         val dummy1 = Dummy1("Hi there!", 888)
         val expected = """{"field1":"Hi there!","field2":888}"""
@@ -138,15 +189,15 @@ class JSONFunTest {
         assertEquals(expected, dummy1.stringifyJSON())
     }
 
-    @Test fun `asJSON should correctly handle arbitrary object`() {
+    @Test fun `asJSONValue should correctly handle arbitrary object`() {
         val dummy1 = Dummy1("Hi there!", 888)
         val expected = makeJSON("field1" isJSON "Hi there!", "field2" isJSON 888)
-        assertEquals(expected, dummy1.asJSON())
+        assertEquals(expected, dummy1.asJSONValue())
     }
 
-    @Test fun `asJSON should correctly handle null`() {
+    @Test fun `asJSONValue should correctly handle null`() {
         val dummy1 = null
-        assertNull(dummy1.asJSON())
+        assertNull(dummy1.asJSONValue())
     }
 
 }

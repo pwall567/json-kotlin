@@ -441,6 +441,13 @@ class JSONSerializerTest {
         assertEquals(expected, JSONSerializer.serialize(obj))
     }
 
+    @Test fun `Annotated data class with custom annotation should return JSONObject using specified name`() {
+        val obj = DummyCustomAnnoData("abc", 123)
+        val expected = JSONObject().putValue("field1", "abc").putValue("fieldX", 123)
+        val config = JSONConfig().addNameAnnotation(CustomName::class, "symbol")
+        assertEquals(expected, JSONSerializer.serialize(obj, config))
+    }
+
     @Test fun `Nested class should return nested JSONObject`() {
         val obj1 = Dummy1("asdfg", 987)
         val obj3 = Dummy3(obj1, "what?")
@@ -453,6 +460,13 @@ class JSONSerializerTest {
         val obj = Dummy5("alpha", "beta", "gamma")
         val expected = JSONObject().putValue("field1", "alpha").putValue("field3", "gamma")
         assertEquals(expected, JSONSerializer.serialize(obj))
+    }
+
+    @Test fun `Class with @custom ignore annotation should return nested JSONObject skipping field`() {
+        val obj = Dummy6("alpha", "beta", "gamma")
+        val expected = JSONObject().putValue("field1", "alpha").putValue("field3", "gamma")
+        val config = JSONConfig().addIgnoreAnnotation(CustomIgnore::class)
+        assertEquals(expected, JSONSerializer.serialize(obj, config))
     }
 
     @Test fun `Pair should return JSONArray`() {

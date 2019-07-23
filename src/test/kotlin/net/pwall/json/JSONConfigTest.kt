@@ -91,4 +91,30 @@ class JSONConfigTest {
         assertEquals(expected, JSONSerializer.serialize(Dummy3(Dummy1("xyz", 888), "Hi there!"), config))
     }
 
+    @Test fun `toJSON mapping should be transferred on combineMappings`() {
+        val config = JSONConfig().toJSON<Dummy1> { obj ->
+            obj?.let { JSONObject().putValue("a", it.field1).putValue("b", it.field2) }
+        }
+        val config2 = JSONConfig().combineMappings(config)
+        val expected = JSONObject().putValue("a", "xyz").putValue("b", 888)
+        assertEquals(expected, JSONSerializer.serialize(Dummy1("xyz", 888), config2))
+    }
+
+    @Test fun `toJSON mapping should be transferred on combineAll`() {
+        val config = JSONConfig().toJSON<Dummy1> { obj ->
+            obj?.let { JSONObject().putValue("a", it.field1).putValue("b", it.field2) }
+        }
+        val config2 = JSONConfig().combineAll(config)
+        val expected = JSONObject().putValue("a", "xyz").putValue("b", 888)
+        assertEquals(expected, JSONSerializer.serialize(Dummy1("xyz", 888), config2))
+    }
+
+    @Test fun `JSONName annotation should be transferred on combineAll`() {
+        val obj = DummyCustomAnnoData("abc", 123)
+        val expected = JSONObject().putValue("field1", "abc").putValue("fieldX", 123)
+        val config = JSONConfig().addNameAnnotation(CustomName::class, "symbol")
+        val config2 = JSONConfig().combineAll(config)
+        assertEquals(expected, JSONSerializer.serialize(obj, config2))
+    }
+
 }
