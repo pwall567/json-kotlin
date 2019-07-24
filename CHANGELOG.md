@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - `JSONFun`: added added more extensions functions
 - `JSONFun`: added KDoc
 - `JSONSerializer`: changed to use custom name and ignore annotations
+- `JSONDeserializer`: improved enum handling
 
 ## [0.9] - 2019-07-17
 ### Changed
