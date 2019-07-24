@@ -244,11 +244,9 @@ object JSONDeserializer {
         }
 
         // is the target class an enum?
-        // this is ugly code but it works
-        // it should be converted to use a Kotlin enum method if one is available
+
         if (resultClass.isSubclassOf(Enum::class))
-            return resultClass.java.getMethod("valueOf", Class::class.java, String::class.java).
-                    invoke(null, resultClass.java, str) as T
+            resultClass.staticFunctions.find { it.name == "valueOf" }?.let { return it.call(str) as T }
 
         // does the target class have a public constructor that takes String?
         // (e.g. StringBuilder, BigInteger, ... )
