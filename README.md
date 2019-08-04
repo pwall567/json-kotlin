@@ -89,6 +89,26 @@ The type may be specified as a `KType`:
 (The last form is generally only needed when deserializing parameterized types and the parameter types can not be
 inferred; the `as` expression is needed because `KType` does not convey inferred type information.)
 
+## Customization
+
+### Annotations
+
+When serializing or deserializing a Kotlin object object, the property name discovered by reflection will be used as the
+name in the JSON object.
+An alternative name may be specified if required, by the use the the `@JSONName` annotation:
+```kotlin
+    data class Example(val abc: String, @JSONName("xyz") val def: Int)
+```
+
+If it is not necessary (or desirable) to output a particular field, the `@JSONIgnore` annotation may be used to prevent
+serialisation:
+```kotlin
+    data class Example(val abc: String, @Ignore val def: Int)
+```
+
+
+The `@JSONName` annotation can be used to specify the name to be used when 
+
 ## More Detail
 
 The serialization and deserialization functions both operate as a two stage process.
