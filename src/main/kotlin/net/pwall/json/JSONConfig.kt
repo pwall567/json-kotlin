@@ -54,10 +54,28 @@ class JSONConfig {
 
     private val ignoreAnnotations: MutableList<KClass<*>> = arrayListOf(JSONIgnore::class)
 
+    /**
+     * Get a `fromJSON` mapping function for the specified [KType].
+     *
+     * @param   type    the target type
+     * @return          the mapping function, or `null` if not found
+     */
     fun getFromJSONMapping(type: KType): ((JSONValue?) -> Any?)? = fromJSONMap[type]
 
+    /**
+     * Get a `toJSON` mapping function for the specified [KType].
+     *
+     * @param   type    the source type
+     * @return          the mapping function, or `null` if not found
+     */
     fun getToJSONMapping(type: KType): ((Any?) -> JSONValue?)? = toJSONMap[type]
 
+    /**
+     * Find a `toJSON` mapping function that will accept the specified type, or any supertype of it.
+     *
+     * @param   type    the source type
+     * @return          the mapping function, or `null` if not found
+     */
     fun findToJSONMapping(type: KType): ((Any?) -> JSONValue?)? {
         val match = toJSONMap.keys.find { it.isSupertypeOf(type) } ?: return null
         return toJSONMap[match]

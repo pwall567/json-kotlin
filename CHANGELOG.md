@@ -4,6 +4,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 ### Changed
+- `JSONConfig`: added more KDoc
 - `JSONConfig`: added custom name and ignore annotation specification
 - `JSONConfig`: added `defaultConfig` (and added use of default to other functions)
 - `JSONConfig`: added combine functions
