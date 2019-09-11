@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.10] - 2019-09-11
 ### Changed
 - `JSONConfig`: added more KDoc
 - `JSONConfig`: added custom name and ignore annotation specification
