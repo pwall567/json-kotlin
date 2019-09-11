@@ -2,6 +2,20 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.10] - 2019-09-11
+### Changed
+- `JSONConfig`: added more KDoc
+- `JSONConfig`: added custom name and ignore annotation specification
+- `JSONConfig`: added `defaultConfig` (and added use of default to other functions)
+- `JSONConfig`: added combine functions
+- `JSONDeserializer`: changed to use custom name and ignore annotations
+- `JSONFun`: changed `asJSON` to `asJSONValue`; changed `toJSON` to `isJSON`
+- `JSONFun`: added coverage of data types `Char`, `Short`, `Byte`
+- `JSONFun`: added added more extensions functions
+- `JSONFun`: added KDoc
+- `JSONSerializer`: changed to use custom name and ignore annotations
+- `JSONDeserializer`: improved enum handling
+
 ## [0.9] - 2019-07-17
 ### Changed
 - `JSONAuto`: added optional `JSONConfig` to all methods

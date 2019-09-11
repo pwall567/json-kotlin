@@ -40,6 +40,12 @@ data class Dummy4(val listDummy1: List<Dummy1>, val text: String)
 
 data class Dummy5(val field1: String, @JSONIgnore val field2: String, val field3: String)
 
+@Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class CustomIgnore
+
+data class Dummy6(val field1: String, @CustomIgnore val field2: String, val field3: String)
+
 data class DummyFromJSON(val int1: Int) {
 
     @Suppress("unused")
@@ -109,6 +115,12 @@ class DummyAnno {
 }
 
 data class DummyAnnoData(val field1: String, @JSONName("fieldX") val field2: Int)
+
+@Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class CustomName(val symbol: String)
+
+data class DummyCustomAnnoData(val field1: String, @CustomName("fieldX") val field2: Int)
 
 interface DummyInterface
 

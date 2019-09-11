@@ -31,7 +31,6 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
-import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.staticProperties
@@ -57,8 +56,6 @@ import java.util.Date
 import java.util.Enumeration
 import java.util.UUID
 
-import net.pwall.json.annotation.JSONIgnore
-import net.pwall.json.annotation.JSONName
 import net.pwall.util.Strings
 
 /**
@@ -68,12 +65,12 @@ import net.pwall.util.Strings
  */
 object JSONSerializer {
 
-    fun serialize(obj: Any?, config: JSONConfig? = null): JSONValue? {
+    fun serialize(obj: Any?, config: JSONConfig = JSONConfig.defaultConfig): JSONValue? {
 
         if (obj == null)
             return null
 
-        config?.findToJSONMapping(obj::class.starProjectedType)?.let { return it(obj) }
+        config.findToJSONMapping(obj::class.starProjectedType)?.let { return it(obj) }
 
         when (obj) {
 
@@ -148,19 +145,16 @@ object JSONSerializer {
             // data classes will be a frequent use of serialization, so optimise for them
             val constructor = objClass.constructors.first()
             constructor.parameters.forEach { parameter ->
-                if (parameter.findAnnotation<JSONIgnore>() == null) {
-                    val member = objClass.members.find { it.name == parameter.name }
-                    if (member is KProperty<*>)
-                        invokeGetter(member, parameter.findAnnotation<JSONName>()?.name, obj, result, config)
-                }
+                val member = objClass.members.find { it.name == parameter.name }
+                if (member is KProperty<*>)
+                    invokeGetter(member, parameter.annotations, obj, result, config)
             }
             // now check whether there are any more properties not in constructor
             val statics: Collection<KProperty<*>> = objClass.staticProperties
             objClass.members.forEach { member ->
                 if (member is KProperty<*> && !statics.contains(member)&&
-                        !constructor.parameters.any { it.name == member.name } &&
-                        member.findAnnotation<JSONIgnore>() == null)
-                    invokeGetter(member, member.findAnnotation<JSONName>()?.name, obj, result, config)
+                        !constructor.parameters.any { it.name == member.name })
+                    invokeGetter(member, member.annotations, obj, result, config)
             }
         }
         else {
@@ -171,42 +165,33 @@ object JSONSerializer {
                     objClass.constructors.firstOrNull()?.parameters?.find { it.name == member.name }?.let {
                         combinedAnnotations.addAll(it.annotations)
                     }
-                    if (findAnnotation<JSONIgnore>(combinedAnnotations) == null)
-                        invokeGetter(member, findAnnotation<JSONName>(combinedAnnotations)?.name, obj, result, config)
+                    invokeGetter(member, combinedAnnotations, obj, result, config)
                 }
             }
         }
         return result
     }
 
-    private fun invokeGetter(member: KProperty<*>, name: String?, obj: Any, result: JSONObject, config: JSONConfig?) {
-        val wasAccessible = member.isAccessible
-        member.isAccessible = true
-        try {
-            member.getter.call(obj)?.let { result[name ?: member.name] = serialize(it, config) }
-        }
-        catch (e: JSONException) {
-            throw e
-        }
-        catch (e: Exception) {
-            throw JSONException("Error getting property ${member.name} from ${obj::class.simpleName}", e)
-        }
-        finally {
-            member.isAccessible = wasAccessible
+    private fun invokeGetter(member: KProperty<*>, annotations: List<Annotation>?, obj: Any, result: JSONObject,
+            config: JSONConfig) {
+        if (!config.hasIgnoreAnnotation(annotations)) {
+            val name = config.findNameFromAnnotation(annotations) ?: member.name
+            val wasAccessible = member.isAccessible
+            member.isAccessible = true
+            try {
+                member.getter.call(obj)?.let { result[name] = serialize(it, config) }
+            }
+            catch (e: JSONException) {
+                throw e
+            }
+            catch (e: Exception) {
+                throw JSONException("Error getting property ${member.name} from ${obj::class.simpleName}", e)
+            }
+            finally {
+                member.isAccessible = wasAccessible
+            }
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun <T: Annotation> findAnnotation(cls: KClass<T>, annotations: List<Annotation>): T? {
-        for (annotation in annotations) {
-            if (annotation::class.isSubclassOf(cls))
-                return annotation as T?
-        }
-        return null
-    }
-
-    private inline fun <reified T: Annotation> findAnnotation(annotations: List<Annotation>): T? =
-            findAnnotation(T::class, annotations)
 
     private fun serializeNumber(number: Number): JSONValue = when (number) {
 
@@ -227,7 +212,7 @@ object JSONSerializer {
 
     }
 
-    private fun serializeArray(array: Array<*>, config: JSONConfig?): JSONValue {
+    private fun serializeArray(array: Array<*>, config: JSONConfig): JSONValue {
 
         if (array.isArrayOf<Char>())
             return JSONString(StringBuilder().apply { array.forEach { append(it) } })
@@ -235,14 +220,14 @@ object JSONSerializer {
         return JSONArray(array.map { serialize(it, config) })
     }
 
-    private fun serializePair(pair: Pair<*, *>, config: JSONConfig?): JSONArray {
+    private fun serializePair(pair: Pair<*, *>, config: JSONConfig): JSONArray {
         return JSONArray().apply {
             add(serialize(pair.first, config))
             add(serialize(pair.second, config))
         }
     }
 
-    private fun serializeTriple(triple: Triple<*, *, *>, config: JSONConfig?): JSONArray {
+    private fun serializeTriple(triple: Triple<*, *, *>, config: JSONConfig): JSONArray {
         return JSONArray().apply {
             add(serialize(triple.first, config))
             add(serialize(triple.second, config))
@@ -250,7 +235,7 @@ object JSONSerializer {
         }
     }
 
-    private fun serializeMap(map: Map<*, *>, config: JSONConfig?): JSONObject {
+    private fun serializeMap(map: Map<*, *>, config: JSONConfig): JSONObject {
         return JSONObject().apply {
             map.entries.forEach { entry ->
                 this[entry.key.toString()] = serialize(entry.value, config)

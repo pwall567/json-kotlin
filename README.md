@@ -44,7 +44,7 @@ To serialize any object (say, a `data class`):
 The result `json` is a `String` serialized from the object, recursively serializing any nested objects, collections
 etc.
 The JSON object will contain serialized forms of all of the properties of the object (as declared in `val` and `var`
-statements.
+statements).
 
 For example, given the class:
 ```kotlin
@@ -66,14 +66,48 @@ will yield:
 Deserialization is slightly more complicated, because the target data type must be specified to the function.
 This can be achieved in a number of ways (the following examples assume `json` is a `String` containing JSON):
 
-- The type can be inferred from the context, e.g. `val example: Example = json.parseJSON()`
-- The type may be specified as a type parameter, e.g. `val example = json.parseJSON<Example>()`
-- The type may be specified as a `KClass`, e.g. `val example = JSONAuto.parse(Example::class, json)`
-- The type may be specified as a `KType`, e.g.
-  `val example = JSONAuto.parse(Example::class.starProjectedType, json) as Example`
+The type can be inferred from the context:
+```kotlin
+    val example: Example? = json.parseJSON()
+```
+
+The type may be specified as a type parameter:
+```kotlin
+    val example = json.parseJSON<Example>()
+```
+
+The type may be specified as a `KClass`:
+```kotlin
+    val example = json.parseJSON(Example::class)
+```
+
+The type may be specified as a `KType`:
+```kotlin
+    val example = json.parseJSON(Example::class.starProjectedType) as Example
+```
 
 (The last form is generally only needed when deserializing parameterized types and the parameter types can not be
-inferred.)
+inferred; the `as` expression is needed because `KType` does not convey inferred type information.)
+
+## Customization
+
+### Annotations
+
+When serializing or deserializing a Kotlin object object, the property name discovered by reflection will be used as the
+name in the JSON object.
+An alternative name may be specified if required, by the use the the `@JSONName` annotation:
+```kotlin
+    data class Example(val abc: String, @JSONName("xyz") val def: Int)
+```
+
+If it is not necessary (or desirable) to output a particular field, the `@JSONIgnore` annotation may be used to prevent
+serialisation:
+```kotlin
+    data class Example(val abc: String, @Ignore val def: Int)
+```
+
+
+The `@JSONName` annotation can be used to specify the name to be used when 
 
 ## More Detail
 
@@ -111,4 +145,4 @@ The latest version of the library is 0.9, and it may be found the the Maven Cent
 ```
 
 Peter Wall
-2019-07-17
+2019-07-18

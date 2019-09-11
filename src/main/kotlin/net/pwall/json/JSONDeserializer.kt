@@ -35,7 +35,12 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection
-import kotlin.reflect.full.*
+import kotlin.reflect.full.companionObject
+import kotlin.reflect.full.companionObjectInstance
+import kotlin.reflect.full.functions
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.isSuperclassOf
+import kotlin.reflect.full.staticFunctions
 import kotlin.reflect.jvm.isAccessible
 
 import java.time.Duration
@@ -54,7 +59,6 @@ import java.util.Date
 import java.util.LinkedList
 import java.util.UUID
 
-import net.pwall.json.annotation.JSONName
 import net.pwall.util.ISO8601Date
 
 /**
@@ -72,8 +76,8 @@ object JSONDeserializer {
      * @param   config      an optional [JSONConfig]
      * @return              the converted object
      */
-    fun deserialize(resultType: KType, json: JSONValue?, config: JSONConfig? = null): Any? {
-        config?.getFromJSONMapping(resultType)?.let { return it(json) }
+    fun deserialize(resultType: KType, json: JSONValue?, config: JSONConfig = JSONConfig.defaultConfig): Any? {
+        config.getFromJSONMapping(resultType)?.let { return it(json) }
         if (json == null) {
             if (!resultType.isMarkedNullable)
                 throw JSONException("Can't deserialize null as $resultType")
@@ -90,7 +94,8 @@ object JSONDeserializer {
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
      * @return              the converted object
      */
-    fun <T: Any> deserialize(resultClass: KClass<T>, json: JSONValue?, config: JSONConfig? = null): T? {
+    fun <T: Any> deserialize(resultClass: KClass<T>, json: JSONValue?,
+            config: JSONConfig = JSONConfig.defaultConfig): T? {
         if (json == null)
             return null
         return deserialize(resultClass, emptyList(), json, config)
@@ -103,7 +108,8 @@ object JSONDeserializer {
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
      * @return              the converted object
      */
-    fun <T: Any> deserializeNonNull(resultClass: KClass<T>, json: JSONValue?, config: JSONConfig? = null): T {
+    fun <T: Any> deserializeNonNull(resultClass: KClass<T>, json: JSONValue?,
+            config: JSONConfig = JSONConfig.defaultConfig): T {
         if (json == null)
             throw JSONException("Can't deserialize null as ${resultClass.simpleName}")
         return deserialize(resultClass, emptyList(), json, config)
@@ -120,7 +126,7 @@ object JSONDeserializer {
      */
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> deserialize(resultClass: KClass<T>, types: List<KTypeProjection>, json: JSONValue,
-            config: JSONConfig? = null): T {
+            config: JSONConfig = JSONConfig.defaultConfig): T {
 
         // check for JSONValue
 
@@ -243,11 +249,9 @@ object JSONDeserializer {
         }
 
         // is the target class an enum?
-        // this is ugly code but it works
-        // it should be converted to use a Kotlin enum method if one is available
+
         if (resultClass.isSubclassOf(Enum::class))
-            return resultClass.java.getMethod("valueOf", Class::class.java, String::class.java).
-                    invoke(null, resultClass.java, str) as T
+            resultClass.staticFunctions.find { it.name == "valueOf" }?.let { return it.call(str) as T }
 
         // does the target class have a public constructor that takes String?
         // (e.g. StringBuilder, BigInteger, ... )
@@ -260,7 +264,7 @@ object JSONDeserializer {
 
     @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
     fun <T: Any> deserializeArray(resultClass: KClass<T>, types: List<KTypeProjection>, json: JSONArray,
-            config: JSONConfig?): T {
+            config: JSONConfig): T {
         try {
 
             return when (resultClass) {
@@ -370,7 +374,7 @@ object JSONDeserializer {
 
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> deserializeObject(resultClass: KClass<T>, types: List<KTypeProjection>, json: JSONObject,
-            config: JSONConfig?): T {
+            config: JSONConfig): T {
 
         try {
             if (resultClass.isSubclassOf(Map::class)) {
@@ -388,11 +392,11 @@ object JSONDeserializer {
 
             resultClass.objectInstance?.let { return setRemainingFields(resultClass, it, json, config) }
 
-            findBestConstructor(resultClass.constructors, json)?.let { constructor ->
+            findBestConstructor(resultClass.constructors, json, config)?.let { constructor ->
                 val argMap = HashMap<KParameter, Any?>()
                 val jsonCopy = HashMap<String, JSONValue?>(json)
                 constructor.parameters.forEach { parameter ->
-                    val paramName = parameter.aName()
+                    val paramName = findParameterName(parameter, config)
                     jsonCopy[paramName]?.let {
                         argMap[parameter] = deserialize(parameter.type, it, config)
                         jsonCopy.remove(paramName)
@@ -413,9 +417,9 @@ object JSONDeserializer {
     }
 
     private fun <T: Any>  setRemainingFields(resultClass: KClass<T>, instance: T, json: Map<String, JSONValue?>,
-            config: JSONConfig?): T {
+            config: JSONConfig): T {
         json.forEach { entry -> // JSONObject fields not used in constructor
-            val member = findField(resultClass.members, entry.key) ?:
+            val member = findField(resultClass.members, entry.key, config) ?:
                     throw JSONException("Can't find property ${entry.key} in ${resultClass.simpleName}")
             val value = deserialize(member.returnType, json[entry.key], config)
             if (member is KMutableProperty<*>) {
@@ -439,22 +443,23 @@ object JSONDeserializer {
         return instance
     }
 
-    private fun findField(members: Collection<KCallable<*>>, name: String): KProperty<*>? {
+    private fun findField(members: Collection<KCallable<*>>, name: String, config: JSONConfig): KProperty<*>? {
         for (member in members) {
-            if (member is KProperty<*> && member.aName() == name)
+            if (member is KProperty<*> && (config.findNameFromAnnotation(member.annotations) ?: member.name) == name)
                     return member
         }
         return null
     }
 
-    private fun <T: Any> findBestConstructor(constructors: Collection<KFunction<T>>, json: JSONObject): KFunction<T>? {
+    private fun <T: Any> findBestConstructor(constructors: Collection<KFunction<T>>, json: JSONObject,
+            config: JSONConfig): KFunction<T>? {
         var result: KFunction<T>? = null
         var best = -1
         for (constructor in constructors) {
             val parameters = constructor.parameters
-            if (parameters.any { it.aName() == null || it.kind != KParameter.Kind.VALUE })
+            if (parameters.any { findParameterName(it, config) == null || it.kind != KParameter.Kind.VALUE })
                 continue
-            val n = findMatchingParameters(parameters, json)
+            val n = findMatchingParameters(parameters, json, config)
             if (n > best) {
                 result = constructor
                 best = n
@@ -463,10 +468,10 @@ object JSONDeserializer {
         return result
     }
 
-    private fun findMatchingParameters(parameters: List<KParameter>, json: JSONObject): Int {
+    private fun findMatchingParameters(parameters: List<KParameter>, json: JSONObject, config: JSONConfig): Int {
         var n = 0
         for (parameter in parameters) {
-            if (json.containsKey(parameter.aName()))
+            if (json.containsKey(findParameterName(parameter, config)))
                 n++
             else {
                 if (!parameter.isOptional)
@@ -476,13 +481,8 @@ object JSONDeserializer {
         return n
     }
 
-    private fun KParameter.aName(): String? { // annotated name, or regular name if not overridden
-        return findAnnotation<JSONName>()?.name ?: name
-    }
-
-    private fun KProperty<*>.aName(): String? { // annotated name, or regular name if not overridden
-        return findAnnotation<JSONName>()?.name ?: name
-    }
+    private fun findParameterName(parameter: KParameter, config: JSONConfig): String? =
+            config.findNameFromAnnotation(parameter.annotations) ?: parameter.name
 
     private val fromJsonCache = HashMap<KClass<*>, KFunction<*>>()
 
