@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.11] - 2019-09-17
+### Changed
+- `JSONDeserializer`: added shared function to access type parameters
+- `JSONAuto`: added `targetJSON` function
+
 ## [0.10] - 2019-09-11
 ### Changed
 - `JSONConfig`: added more KDoc

@@ -29,6 +29,7 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.expect
 
 class JSONFunTest {
 
@@ -198,6 +199,12 @@ class JSONFunTest {
     @Test fun `asJSONValue should correctly handle null`() {
         val dummy1 = null
         assertNull(dummy1.asJSONValue())
+    }
+
+    @Test fun `targetJSON should create correct type`() {
+        val listStrings = listOf("abc", "def")
+        val jsonArrayString = JSONArray().addValue("abc").addValue("def")
+        expect(listStrings) { JSONDeserializer.deserialize(targetJSON(List::class, String::class), jsonArrayString) }
     }
 
 }

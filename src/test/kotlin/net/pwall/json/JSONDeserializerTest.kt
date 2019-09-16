@@ -544,6 +544,12 @@ class JSONDeserializerTest {
         assertEquals(expected, JSONDeserializer.deserialize(JavaClass1::class, json))
     }
 
+    @Test fun `deserialize List should fail if no type parameter given`() {
+        val json = JSONArray().addValue("abc").addValue("def")
+        val except = assertFailsWith<JSONException> { JSONDeserializer.deserialize(List::class, json) }
+        assertEquals("Type parameter 0 not specified for class kotlin.collections.List", except.message)
+    }
+
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH,
             Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND,
             Calendar.MILLISECOND, Calendar.ZONE_OFFSET)
