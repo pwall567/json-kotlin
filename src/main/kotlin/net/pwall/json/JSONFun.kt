@@ -27,6 +27,9 @@ package net.pwall.json
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.starProjectedType
 
 typealias JSONInt = JSONInteger
 
@@ -240,3 +243,14 @@ inline fun <reified T: Any> CharSequence.parseJSON(config: JSONConfig = JSONConf
  * @return          the JSON string
  */
 fun Any?.stringifyJSON(config: JSONConfig = JSONConfig.defaultConfig): String = JSONAuto.stringify(this, config)
+
+/**
+ * Helper method to create a [KType] for a parameterised type.
+ *
+ * @param   mainClass       the parameterised class
+ * @param   paramClasses    the parameter classes
+ * @param   nullable        `true` if the [KType] is to be nullable
+ * @return                  the [KType]
+ */
+fun targetJSON(mainClass: KClass<*>, vararg paramClasses: KClass<*>, nullable: Boolean = false): KType =
+        mainClass.createType(paramClasses.asList().map { KTypeProjection.invariant(it.starProjectedType) }, nullable)

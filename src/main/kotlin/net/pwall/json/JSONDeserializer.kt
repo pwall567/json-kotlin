@@ -286,34 +286,34 @@ object JSONDeserializer {
                 ShortArray::class -> ShortArray(json.size) { i -> deserializeNonNull(Short::class, json[i]) }
 
                 ArrayList::class -> {
-                    val type = types.firstOrNull()?.type ?: throw JSONException("Type not specified")
+                    val type = getTypeParam(resultClass, types, 0)
                     ArrayList<Any?>(json.size).apply {
                         json.forEach { add(deserialize(type, it, config)) }
                     }
                 }
 
                 LinkedList::class -> {
-                    val type = types.firstOrNull()?.type ?: throw JSONException("Type not specified")
+                    val type = getTypeParam(resultClass, types, 0)
                     LinkedList<Any?>().apply {
                         json.forEach { add(deserialize(type, it, config)) }
                     }
                 }
 
                 List::class -> {
-                    val type = types.firstOrNull()?.type ?: throw JSONException("Type not specified")
+                    val type = getTypeParam(resultClass, types, 0)
                     val result =  json.map { deserialize(type, it, config) }
                     if (isMutable(resultClass)) result.toMutableList() else result
                 }
 
                 HashSet::class -> {
-                    val type = types.firstOrNull()?.type ?: throw JSONException("Type not specified")
+                    val type = getTypeParam(resultClass, types, 0)
                     HashSet<Any?>(json.size).apply {
                         json.forEach { add(deserialize(type, it, config)) }
                     }
                 }
 
                 LinkedHashSet::class -> {
-                    val type = types.firstOrNull()?.type ?: throw JSONException("Type not specified")
+                    val type = getTypeParam(resultClass, types, 0)
                     LinkedHashSet<Any?>(json.size).apply {
                         json.forEach { add(deserialize(type, it, config)) }
                     }
@@ -321,7 +321,7 @@ object JSONDeserializer {
 
                 Set::class -> {
                     val result = HashSet<Any?>(json.size)
-                    val type = types.firstOrNull()?.type ?: throw JSONException("Type not specified")
+                    val type = getTypeParam(resultClass, types, 0)
                     json.forEach { result.add(deserialize(type, it, config)) }
                     if (isMutable(resultClass)) result.toMutableSet() else result.toSet()
                 }
@@ -329,8 +329,8 @@ object JSONDeserializer {
                 Pair::class -> {
                     if (json.size != 2)
                         throw JSONException("Pair must have two members")
-                    val type0 = types.firstOrNull()?.type ?: throw JSONException("First type not specified")
-                    val type1 = types.getOrNull(1)?.type ?: throw JSONException("Second type not specified")
+                    val type0 = getTypeParam(resultClass, types, 0)
+                    val type1 = getTypeParam(resultClass, types, 1)
                     val result0 = deserialize(type0, json[0], config)
                     val result1 = deserialize(type1, json[1], config)
                     result0 to result1
@@ -339,9 +339,9 @@ object JSONDeserializer {
                 Triple::class -> {
                     if (json.size != 3)
                         throw JSONException("Triple must have three members")
-                    val type0 = types.firstOrNull()?.type ?: throw JSONException("First type not specified")
-                    val type1 = types.getOrNull(1)?.type ?: throw JSONException("Second type not specified")
-                    val type2 = types.getOrNull(2)?.type ?: throw JSONException("Third type not specified")
+                    val type0 = getTypeParam(resultClass, types, 0)
+                    val type1 = getTypeParam(resultClass, types, 1)
+                    val type2 = getTypeParam(resultClass, types, 2)
                     val result0 = deserialize(type0, json[0], config)
                     val result1 = deserialize(type1, json[1], config)
                     val result2 = deserialize(type2, json[2], config)
@@ -370,6 +370,10 @@ object JSONDeserializer {
             throw JSONException("Can't deserialize array as $resultClass", e)
         }
 
+    }
+
+    private fun getTypeParam(mainClass: KClass<*>, types: List<KTypeProjection>, n: Int): KType {
+        return types.getOrNull(n)?.type ?: throw JSONException("Type parameter $n not specified for $mainClass")
     }
 
     @Suppress("UNCHECKED_CAST")
