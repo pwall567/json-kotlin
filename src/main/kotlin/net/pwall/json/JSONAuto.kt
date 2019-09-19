@@ -28,6 +28,8 @@ package net.pwall.json
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 
+import java.lang.reflect.Type
+
 object JSONAuto {
 
     /**
@@ -71,5 +73,16 @@ object JSONAuto {
      */
     inline fun <reified T: Any> parse(str: CharSequence, config: JSONConfig = JSONConfig.defaultConfig): T? =
             parse(T::class, str, config)
+
+    /**
+     * Deserialize JSON from string ([CharSequence]) to a specified Java [Type].
+     *
+     * @param   javaType    the target type
+     * @param   str         the JSON in string form
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    fun parse(javaType: Type, str: CharSequence, config: JSONConfig = JSONConfig.defaultConfig): Any? =
+            JSONDeserializer.deserialize(javaType, JSON.parse(str), config)
 
 }

@@ -29,6 +29,8 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+import java.lang.reflect.Type
+
 /**
  * Tests for [JSONAuto].  These tests are somewhat rudimentary because [JSONAuto] simply delegates requests to
  * [JSONSerializer] and [JSONDeserializer], and those classes are extensively tested separately.
@@ -51,6 +53,13 @@ class JSONAutoTest {
         val json = """{"field1":"abdef","field2":54321}"""
         val expected = Dummy1("abdef", 54321)
         assertEquals(expected, JSONAuto.parse(Dummy1::class.starProjectedType, json))
+    }
+
+    @Test fun `JSONAuto should parse List using Java Type`() {
+        val json = """[{"field1":"abcdef","field2":567},{"field1":"qwerty","field2":9999}]"""
+        val type: Type = JavaClass2::class.java.getField("field1").genericType
+        val expected = listOf(Dummy1("abcdef", 567), Dummy1("qwerty", 9999))
+        assertEquals(expected, JSONAuto.parse(type, json))
     }
 
 }

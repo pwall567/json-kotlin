@@ -60,6 +60,7 @@ import java.util.LinkedList
 import java.util.UUID
 
 import net.pwall.util.ISO8601Date
+import java.lang.reflect.Type
 
 /**
  * JSON Auto deserialize for Kotlin.
@@ -114,6 +115,17 @@ object JSONDeserializer {
             throw JSONException("Can't deserialize null as ${resultClass.simpleName}")
         return deserialize(resultClass, emptyList(), json, config)
     }
+
+    /**
+     * Deserialize a parsed [JSONValue] to a specified Java [Type].
+     *
+     * @param   javaType    the target type
+     * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @param   config      an optional [JSONConfig]
+     * @return              the converted object
+     */
+    fun deserialize(javaType: Type, json: JSONValue?, config: JSONConfig = JSONConfig.defaultConfig): Any? =
+            deserialize(javaType.toKType(), json, config)
 
     /**
      * Deserialize a parsed [JSONValue] to a parameterized [KClass], with the specified [KTypeProjection]s.
