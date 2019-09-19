@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.12] - 2019-09-19
 ### Changed
 - `JSONFun`: changed name of `targetJSON` function to `targetKType`
 - `JSONFun`: added `toKType` extension function
