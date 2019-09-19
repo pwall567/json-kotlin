@@ -31,6 +31,10 @@ import kotlin.reflect.KTypeProjection
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.starProjectedType
 
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+import java.lang.reflect.WildcardType
+
 typealias JSONInt = JSONInteger
 
 /**
@@ -252,5 +256,29 @@ fun Any?.stringifyJSON(config: JSONConfig = JSONConfig.defaultConfig): String = 
  * @param   nullable        `true` if the [KType] is to be nullable
  * @return                  the [KType]
  */
-fun targetJSON(mainClass: KClass<*>, vararg paramClasses: KClass<*>, nullable: Boolean = false): KType =
+fun targetKType(mainClass: KClass<*>, vararg paramClasses: KClass<*>, nullable: Boolean = false): KType =
         mainClass.createType(paramClasses.asList().map { KTypeProjection.invariant(it.starProjectedType) }, nullable)
+
+/**
+ * Convert a Java [Type] to a Kotlin [KType].  This allows Java [Type]s to be used as the target type of a
+ * deserialization operation.
+ *
+ * This function is not complete, but with any luck it will cover the great majority of usages.
+ *
+ * @receiver    the Java [Type] to be converted
+ * @return      the resulting Kotlin [KType]
+ * @throws      JSONException if the [Type] can not be converted
+ */
+fun Type.toKType(): KType = when (this) {
+    is Class<*> -> this.kotlin.starProjectedType
+    is ParameterizedType -> (this.rawType as Class<*>).kotlin.createType(this.actualTypeArguments.map {
+        when (it) {
+            is WildcardType ->
+                if (it.lowerBounds?.firstOrNull() == null)
+                    KTypeProjection.covariant((it.upperBounds[0] as Class<*>).kotlin.starProjectedType)
+                else
+                    KTypeProjection.contravariant((it.lowerBounds[0] as Class<*>).kotlin.starProjectedType)
+            else -> KTypeProjection.invariant(it.toKType())
+        } })
+    else -> throw JSONException("Can't handle type: $this")
+}
