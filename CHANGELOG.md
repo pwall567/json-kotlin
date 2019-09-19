@@ -2,6 +2,8 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+
 ## [0.11] - 2019-09-17
 ### Changed
 - `JSONDeserializer`: added shared function to access type parameters
