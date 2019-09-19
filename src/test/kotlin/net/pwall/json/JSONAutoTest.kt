@@ -56,9 +56,9 @@ class JSONAutoTest {
     }
 
     @Test fun `JSONAuto should parse List using Java Type`() {
-        val json = """[{"field1":"abcdef","field2":567},{"field1":"qwerty","field2":9999}]"""
+        val json = """[{"field1":567,"field2":"abcdef"},{"field1":9999,"field2":"qwerty"}]"""
         val type: Type = JavaClass2::class.java.getField("field1").genericType
-        val expected = listOf(Dummy1("abcdef", 567), Dummy1("qwerty", 9999))
+        val expected = listOf(JavaClass1(567, "abcdef"), JavaClass1(9999, "qwerty"))
         assertEquals(expected, JSONAuto.parse(type, json))
     }
 

@@ -212,8 +212,8 @@ class JSONFunTest {
     }
 
     @Test fun `toKType should convert simple class`() {
-        val type: Type = Dummy1::class.java
-        val expected = Dummy1::class.starProjectedType
+        val type: Type = JavaClass1::class.java
+        val expected = JavaClass1::class.starProjectedType
         assertEquals(expected, type.toKType())
     }
 
@@ -221,7 +221,7 @@ class JSONFunTest {
         val field = JavaClass2::class.java.getField("field1")
         val type: Type = field.genericType
         val expected = java.util.List::class.createType(
-                listOf(KTypeProjection.invariant(Dummy1::class.starProjectedType)))
+                listOf(KTypeProjection.invariant(JavaClass1::class.starProjectedType)))
         assertEquals(expected, type.toKType())
     }
 
@@ -229,7 +229,7 @@ class JSONFunTest {
         val field = JavaClass2::class.java.getField("field2")
         val type: Type = field.genericType
         val expected = java.util.List::class.createType(
-                listOf(KTypeProjection.covariant(Dummy1::class.starProjectedType)))
+                listOf(KTypeProjection.covariant(JavaClass1::class.starProjectedType)))
         assertEquals(expected, type.toKType())
     }
 
@@ -237,7 +237,7 @@ class JSONFunTest {
         val field = JavaClass2::class.java.getField("field3")
         val type: Type = field.genericType
         val expected = java.util.List::class.createType(
-                listOf(KTypeProjection.contravariant(Dummy1::class.starProjectedType)))
+                listOf(KTypeProjection.contravariant(JavaClass1::class.starProjectedType)))
         assertEquals(expected, type.toKType())
     }
 
@@ -246,7 +246,7 @@ class JSONFunTest {
         val type: Type = field.genericType
         val expected = java.util.List::class.createType(
                 listOf(KTypeProjection.invariant(java.util.List::class.createType(
-                        listOf(KTypeProjection.invariant(Dummy1::class.starProjectedType))))))
+                        listOf(KTypeProjection.invariant(JavaClass1::class.starProjectedType))))))
         assertEquals(expected, type.toKType())
     }
 
