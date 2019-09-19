@@ -552,10 +552,10 @@ class JSONDeserializerTest {
     }
 
     @Test fun `deserialize List using Java Type should work correctly`() {
-        val json = JSONArray().addJSON(JSONObject().putValue("field1", "abcdef").putValue("field2", 567)).
-                addJSON(JSONObject().putValue("field1", "qwerty").putValue("field2", 9999))
+        val json = JSONArray().addJSON(JSONObject().putValue("field1", 567).putValue("field2", "abcdef")).
+                addJSON(JSONObject().putValue("field1", 9999).putValue("field2", "qwerty"))
         val type: Type = JavaClass2::class.java.getField("field1").genericType
-        val expected = listOf(Dummy1("abcdef", 567), Dummy1("qwerty", 9999))
+        val expected = listOf(JavaClass1(567, "abcdef"), JavaClass1(9999, "qwerty"))
         assertEquals(expected, JSONDeserializer.deserialize(type, json))
     }
 

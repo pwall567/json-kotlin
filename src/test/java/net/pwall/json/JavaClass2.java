@@ -30,12 +30,12 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class JavaClass2 {
 
-    public List<Dummy1> field1 = null;
+    public List<JavaClass1> field1 = null;
 
-    public List<? extends Dummy1> field2 = null;
+    public List<? extends JavaClass1> field2 = null;
 
-    public List<? super Dummy1> field3 = null;
+    public List<? super JavaClass1> field3 = null;
 
-    public List<List<Dummy1>> field4 = null;
+    public List<List<JavaClass1>> field4 = null;
 
 }
