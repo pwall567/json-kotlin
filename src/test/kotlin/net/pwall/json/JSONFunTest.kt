@@ -31,6 +31,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.expect
 
+import java.lang.reflect.Type
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.full.createType
+
 class JSONFunTest {
 
     @Test fun `makeJSON with asJSONValue should create the same JSONObject as explicit creation`() {
@@ -201,10 +205,49 @@ class JSONFunTest {
         assertNull(dummy1.asJSONValue())
     }
 
-    @Test fun `targetJSON should create correct type`() {
+    @Test fun `targetKType should create correct type`() {
         val listStrings = listOf("abc", "def")
         val jsonArrayString = JSONArray().addValue("abc").addValue("def")
-        expect(listStrings) { JSONDeserializer.deserialize(targetJSON(List::class, String::class), jsonArrayString) }
+        expect(listStrings) { JSONDeserializer.deserialize(targetKType(List::class, String::class), jsonArrayString) }
+    }
+
+    @Test fun `toKType should convert simple class`() {
+        val type: Type = Dummy1::class.java
+        val expected = Dummy1::class.starProjectedType
+        assertEquals(expected, type.toKType())
+    }
+
+    @Test fun `toKType should convert parameterized class`() {
+        val field = JavaClass2::class.java.getField("field1")
+        val type: Type = field.genericType
+        val expected = java.util.List::class.createType(
+                listOf(KTypeProjection.invariant(Dummy1::class.starProjectedType)))
+        assertEquals(expected, type.toKType())
+    }
+
+    @Test fun `toKType should convert parameterized class with extends`() {
+        val field = JavaClass2::class.java.getField("field2")
+        val type: Type = field.genericType
+        val expected = java.util.List::class.createType(
+                listOf(KTypeProjection.covariant(Dummy1::class.starProjectedType)))
+        assertEquals(expected, type.toKType())
+    }
+
+    @Test fun `toKType should convert parameterized class with super`() {
+        val field = JavaClass2::class.java.getField("field3")
+        val type: Type = field.genericType
+        val expected = java.util.List::class.createType(
+                listOf(KTypeProjection.contravariant(Dummy1::class.starProjectedType)))
+        assertEquals(expected, type.toKType())
+    }
+
+    @Test fun `toKType should convert nested parameterized class`() {
+        val field = JavaClass2::class.java.getField("field4")
+        val type: Type = field.genericType
+        val expected = java.util.List::class.createType(
+                listOf(KTypeProjection.invariant(java.util.List::class.createType(
+                        listOf(KTypeProjection.invariant(Dummy1::class.starProjectedType))))))
+        assertEquals(expected, type.toKType())
     }
 
 }

@@ -38,6 +38,7 @@ import kotlin.test.assertTrue
 import kotlin.test.expect
 import kotlin.test.Test
 
+import java.lang.reflect.Type
 import java.math.BigInteger
 import java.net.URI
 import java.net.URL
@@ -548,6 +549,14 @@ class JSONDeserializerTest {
         val json = JSONArray().addValue("abc").addValue("def")
         val except = assertFailsWith<JSONException> { JSONDeserializer.deserialize(List::class, json) }
         assertEquals("Type parameter 0 not specified for class kotlin.collections.List", except.message)
+    }
+
+    @Test fun `deserialize List using Java Type should work correctly`() {
+        val json = JSONArray().addJSON(JSONObject().putValue("field1", "abcdef").putValue("field2", 567)).
+                addJSON(JSONObject().putValue("field1", "qwerty").putValue("field2", 9999))
+        val type: Type = JavaClass2::class.java.getField("field1").genericType
+        val expected = listOf(Dummy1("abcdef", 567), Dummy1("qwerty", 9999))
+        assertEquals(expected, JSONDeserializer.deserialize(type, json))
     }
 
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH,

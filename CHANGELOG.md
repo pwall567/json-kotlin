@@ -2,6 +2,13 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+### Changed
+- `JSONFun`: changed name of `targetJSON` function to `targetKType`
+- `JSONFun`: added `toKType` extension function
+- `JSONDeserializer`: added function to take Java `Type`
+- `JSONAuto`: added function to take Java `Type`
+
 ## [0.11] - 2019-09-17
 ### Changed
 - `JSONDeserializer`: added shared function to access type parameters
