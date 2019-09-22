@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [0.13] - 2019-09-22
 ### Changed
 - `JSONConfig`: added `charset`
 
