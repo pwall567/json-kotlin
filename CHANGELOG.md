@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+### Changed
+- `JSONConfig`: added `charset`
+
 ## [0.12] - 2019-09-19
 ### Changed
 - `JSONFun`: changed name of `targetJSON` function to `targetKType`

@@ -45,6 +45,9 @@ class JSONConfig {
     /** Read buffer size (for `json-ktor`) */
     var readBufferSize = defaultBufferSize
 
+    /** Character set (for `json-ktor' and  `json-ktor-client' */
+    var charset = defaultCharset
+
     private val fromJSONMap: MutableMap<KType, (JSONValue?) -> Any?> = HashMap()
 
     private val toJSONMap: MutableMap<KType, (Any?) -> JSONValue?> = HashMap()
@@ -209,6 +212,7 @@ class JSONConfig {
      */
     fun combineAll(config: JSONConfig): JSONConfig {
         readBufferSize = config.readBufferSize
+        charset = config.charset
         fromJSONMap.putAll(config.fromJSONMap)
         toJSONMap.putAll(config.toJSONMap)
         nameAnnotations.addAll(config.nameAnnotations)
@@ -231,6 +235,8 @@ class JSONConfig {
     companion object {
 
         const val defaultBufferSize = DEFAULT_BUFFER_SIZE
+
+        val defaultCharset = Charsets.UTF_8
 
         val defaultConfig = JSONConfig()
 
