@@ -237,7 +237,7 @@ fun <T: Any> CharSequence.parseJSON(resultClass: KClass<T>, config: JSONConfig =
  * @return          the converted object
  */
 inline fun <reified T: Any> CharSequence.parseJSON(config: JSONConfig = JSONConfig.defaultConfig): T? =
-        JSONAuto.parse<T>(this, config)
+        JSONAuto.parse(this, config)
 
 /**
  * Stringify any object to JSON.

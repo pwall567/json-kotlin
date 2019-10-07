@@ -25,11 +25,12 @@
 
 package net.pwall.json
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.math.abs
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
+import kotlin.test.expect
+import kotlin.test.Test
 
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -66,21 +67,18 @@ class JSONSerializerTest {
 
     @Test fun `String should return JSONString`() {
         val str = "Hello JSON!"
-        val expected = JSONString(str)
-        assertEquals(expected, JSONSerializer.serialize(str))
+        expect(JSONString(str)) { JSONSerializer.serialize(str) }
     }
 
     @Test fun `StringBuilder should return JSONString`() {
         val str = "Hello JSON!"
         val sb = StringBuilder(str)
-        val expected = JSONString(str)
-        assertEquals(expected, JSONSerializer.serialize(sb))
+        expect(JSONString(str)) { JSONSerializer.serialize(sb) }
     }
 
     @Test fun `Char should return JSONString`() {
         val char = 'Q'
-        val expected = JSONString("Q")
-        assertEquals(expected, JSONSerializer.serialize(char))
+        expect(JSONString("Q")) { JSONSerializer.serialize(char) }
     }
 
     @Test fun `Int should return JSONInt`() {
@@ -164,45 +162,38 @@ class JSONSerializerTest {
 
     @Test fun `CharArray should return JSONString`() {
         val ca = charArrayOf('H', 'e', 'l', 'l', 'o', '!')
-        val expected = JSONString("Hello!")
-        assertEquals(expected, JSONSerializer.serialize(ca))
+        expect(JSONString("Hello!")) { JSONSerializer.serialize(ca) }
     }
 
     @Test fun `Array of Char should return JSONString`() {
         val ca = arrayOf('H', 'e', 'l', 'l', 'o', '!')
-        val expected = JSONString("Hello!")
-        assertEquals(expected, JSONSerializer.serialize(ca))
+        expect(JSONString("Hello!")) { JSONSerializer.serialize(ca) }
     }
 
     @Test fun `Array of Int should return JSONArray`() {
         val array = arrayOf(123, 2345, 0, 999)
-        val expected = JSONArray.create().addValue(123).addValue(2345).addValue(0).addValue(999)
-        assertEquals(expected, JSONSerializer.serialize(array))
+        expect(JSONArray().addValue(123).addValue(2345).addValue(0).addValue(999)) { JSONSerializer.serialize(array) }
     }
 
     @Test fun `Array of Int? should return JSONArray`() {
         val array = arrayOf(123, null, 0, 999)
-        val expected = JSONArray.create().addValue(123).addNull().addValue(0).addValue(999)
-        assertEquals(expected, JSONSerializer.serialize(array))
+        expect(JSONArray().addValue(123).addNull().addValue(0).addValue(999)) { JSONSerializer.serialize(array) }
     }
 
     @Test fun `Array of String should return JSONArray`() {
         val array = arrayOf("Hello", "Kotlin")
-        val expected = JSONArray.create().addValue("Hello").addValue("Kotlin")
-        assertEquals(expected, JSONSerializer.serialize(array))
+        expect(JSONArray().addValue("Hello").addValue("Kotlin")) { JSONSerializer.serialize(array) }
     }
 
     @Test fun `Iterator of String should return JSONArray`() {
         val iterator = listOf("Hello", "Kotlin").iterator()
-        val expected = JSONArray.create().addValue("Hello").addValue("Kotlin")
-        assertEquals(expected, JSONSerializer.serialize(iterator))
+        expect(JSONArray().addValue("Hello").addValue("Kotlin")) { JSONSerializer.serialize(iterator) }
     }
 
     @Test fun `Enumeration of String should return JSONArray`() {
         val list = listOf("Hello", "Kotlin")
         val eee = ListEnum(list)
-         val expected = JSONArray.create().addValue("Hello").addValue("Kotlin")
-        assertEquals(expected, JSONSerializer.serialize(eee))
+        expect(JSONArray().addValue("Hello").addValue("Kotlin")) { JSONSerializer.serialize(eee) }
     }
 
     class ListEnum<T>(private val list: List<T>) : Enumeration<T> {
@@ -217,38 +208,36 @@ class JSONSerializerTest {
 
     @Test fun `List of String should return JSONArray`() {
         val list = listOf("Hello", "Kotlin")
-        val expected = JSONArray.create().addValue("Hello").addValue("Kotlin")
-        assertEquals(expected, JSONSerializer.serialize(list))
+        expect(JSONArray().addValue("Hello").addValue("Kotlin")) { JSONSerializer.serialize(list) }
     }
 
     @Test fun `Sequence of String should return JSONArray`() {
         val seq = listOf("Hello", "Kotlin").asSequence()
-        val expected = JSONArray.create().addValue("Hello").addValue("Kotlin")
-        assertEquals(expected, JSONSerializer.serialize(seq))
+        expect(JSONArray().addValue("Hello").addValue("Kotlin")) { JSONSerializer.serialize(seq) }
     }
 
     @Test fun `Map of String to Int should return JSONObject`() {
         val map = mapOf("abc" to 1, "def" to 4, "ghi" to 999)
-        val expected = JSONObject.create().putValue("abc", 1).putValue("def", 4).putValue("ghi", 999)
-        assertEquals(expected, JSONSerializer.serialize(map))
+        expect(JSONObject().putValue("abc", 1).putValue("def", 4).putValue("ghi", 999)) {
+            JSONSerializer.serialize(map)
+        }
     }
 
     @Test fun `Map of String to String? should return JSONObject`() {
         val map = mapOf("abc" to "hello", "def" to null, "ghi" to "goodbye")
-        val expected = JSONObject.create().putValue("abc", "hello").putNull("def").putValue("ghi", "goodbye")
-        assertEquals(expected, JSONSerializer.serialize(map))
+        expect(JSONObject().putValue("abc", "hello").putNull("def").putValue("ghi", "goodbye")) {
+            JSONSerializer.serialize(map)
+        }
     }
 
     @Test fun `Class with toJSON() should serialize as JSONObject`() {
         val obj = DummyFromJSON(23)
-        val expected = JSONObject.create().putValue("dec", "23").putValue("hex", "17")
-        assertEquals(expected, JSONSerializer.serialize(obj))
+        expect(JSONObject().putValue("dec", "23").putValue("hex", "17")) { JSONSerializer.serialize(obj) }
     }
 
     @Test fun `Enum should serialize as JSONString`() {
         val eee = DummyEnum.GAMMA
-        val expected = JSONString("GAMMA")
-        assertEquals(expected, JSONSerializer.serialize(eee))
+        expect(JSONString("GAMMA")) { JSONSerializer.serialize(eee) }
     }
 
     @Test fun `Calendar should return JSONString`() {
@@ -261,8 +250,7 @@ class JSONSerializerTest {
         cal.set(Calendar.SECOND, 47)
         cal.set(Calendar.MILLISECOND, 123)
         cal.set(Calendar.ZONE_OFFSET, 10 * 60 * 60 * 1000)
-        val expected = JSONString("2019-04-25T18:52:47.123+10:00")
-        assertEquals(expected, JSONSerializer.serialize(cal))
+        expect(JSONString("2019-04-25T18:52:47.123+10:00")) { JSONSerializer.serialize(cal) }
     }
 
     @Test fun `Date should return JSONString`() {
@@ -276,146 +264,126 @@ class JSONSerializerTest {
         cal.set(Calendar.MILLISECOND, 123)
         cal.set(Calendar.ZONE_OFFSET, 10 * 60 * 60 * 1000)
         val date = cal.time
-        val expected = JSONString("2019-04-25T18:52:47.123+10:00")
-        assertEquals(expected, JSONSerializer.serialize(date))
+        expect(JSONString("2019-04-25T18:52:47.123+10:00")) { JSONSerializer.serialize(date) }
     }
 
     @Test fun `java-sql-Date should return JSONString`() {
         val str = "2019-04-25"
         val date = java.sql.Date.valueOf(str)
-        val expected = JSONString(str)
-        assertEquals(expected, JSONSerializer.serialize(date))
+        expect(JSONString(str)) { JSONSerializer.serialize(date) }
     }
 
     @Test fun `java-sql-Time should return JSONString`() {
         val str = "22:41:19"
         val time = java.sql.Time.valueOf(str)
-        val expected = JSONString(str)
-        assertEquals(expected, JSONSerializer.serialize(time))
+        expect(JSONString(str)) { JSONSerializer.serialize(time) }
     }
 
     @Test fun `java-sql-Timestamp should return JSONString`() {
         val str = "2019-04-25 22:41:19.5"
         val timestamp = java.sql.Timestamp.valueOf(str)
-        val expected = JSONString(str)
-        assertEquals(expected, JSONSerializer.serialize(timestamp))
+        expect(JSONString(str)) { JSONSerializer.serialize(timestamp) }
     }
 
     @Test fun `Instant should return JSONString`() {
         val str = "2019-04-25T21:01:09.456Z"
         val inst = Instant.parse(str)
-        val expected = JSONString(str)
-        assertEquals(expected, JSONSerializer.serialize(inst))
+        expect(JSONString(str)) { JSONSerializer.serialize(inst) }
     }
 
     @Test fun `LocalDate should return JSONString`() {
         val date = LocalDate.of(2019, 4, 25)
-        val expected = JSONString("2019-04-25")
-        assertEquals(expected, JSONSerializer.serialize(date))
+        expect(JSONString("2019-04-25")) { JSONSerializer.serialize(date) }
     }
 
     @Test fun `LocalDateTime should return JSONString`() {
         val date = LocalDateTime.of(2019, 4, 25, 21, 6, 5)
-        val expected = JSONString("2019-04-25T21:06:05")
-        assertEquals(expected, JSONSerializer.serialize(date))
+        expect(JSONString("2019-04-25T21:06:05")) { JSONSerializer.serialize(date) }
     }
 
     @Test fun `OffsetTime should return JSONString`() {
         val time = OffsetTime.of(21, 6, 5, 456000000, ZoneOffset.ofHours(10))
-        val expected = JSONString("21:06:05.456+10:00")
-        assertEquals(expected, JSONSerializer.serialize(time))
+        expect(JSONString("21:06:05.456+10:00")) { JSONSerializer.serialize(time) }
     }
 
     @Test fun `OffsetDateTime should return JSONString`() {
         val time = OffsetDateTime.of(2019, 4, 25, 21, 6, 5, 456000000, ZoneOffset.ofHours(10))
-        val expected = JSONString("2019-04-25T21:06:05.456+10:00")
-        assertEquals(expected, JSONSerializer.serialize(time))
+        expect(JSONString("2019-04-25T21:06:05.456+10:00")) { JSONSerializer.serialize(time) }
     }
 
     @Test fun `ZonedDateTime should return JSONString`() {
         val zdt = ZonedDateTime.of(2019, 4, 25, 21, 16, 23, 123000000, ZoneId.of("Australia/Sydney"))
-        val expected = JSONString("2019-04-25T21:16:23.123+10:00[Australia/Sydney]")
-        assertEquals(expected, JSONSerializer.serialize(zdt))
+        expect(JSONString("2019-04-25T21:16:23.123+10:00[Australia/Sydney]")) { JSONSerializer.serialize(zdt) }
     }
 
     @Test fun `Year should return JSONString`() {
         val year = Year.of(2019)
-        val expected = JSONString("2019")
-        assertEquals(expected, JSONSerializer.serialize(year))
+        expect(JSONString("2019")) { JSONSerializer.serialize(year) }
     }
 
     @Test fun `YearMonth should return JSONString`() {
         val year = YearMonth.of(2019, 4)
-        val expected = JSONString("2019-04")
-        assertEquals(expected, JSONSerializer.serialize(year))
+        expect(JSONString("2019-04")) { JSONSerializer.serialize(year) }
     }
 
     @Test fun `Duration should return JSONString`() {
         val duration = Duration.ofHours(2)
-        val expected = JSONString("PT2H")
-        assertEquals(expected, JSONSerializer.serialize(duration))
+        expect(JSONString("PT2H")) { JSONSerializer.serialize(duration) }
     }
 
     @Test fun `Period should return JSONString`() {
         val period = Period.ofMonths(3)
-        val expected = JSONString("P3M")
-        assertEquals(expected, JSONSerializer.serialize(period))
+        expect(JSONString("P3M")) { JSONSerializer.serialize(period) }
     }
 
     @Test fun `UUID should return JSONString`() {
         val uuidString = "12ce3730-2d97-11e7-aeed-67b0e6bf0ed7"
         val uuid = UUID.fromString(uuidString)
-        val expected = JSONString(uuidString)
-        assertEquals(expected, JSONSerializer.serialize(uuid))
+        expect(JSONString(uuidString)) { JSONSerializer.serialize(uuid) }
     }
 
     @Test fun `URI should return JSONString`() {
         val uriString = "http://pwall.net"
         val uri = URI(uriString)
-        val expected = JSONString(uriString)
-        assertEquals(expected, JSONSerializer.serialize(uri))
+        expect(JSONString(uriString)) { JSONSerializer.serialize(uri) }
     }
 
     @Test fun `URL should return JSONString`() {
         val urlString = "http://pwall.net"
         val url = URL(urlString)
-        val expected = JSONString(urlString)
-        assertEquals(expected, JSONSerializer.serialize(url))
+        expect(JSONString(urlString)) { JSONSerializer.serialize(url) }
     }
 
     @Test fun `BigInteger should return JSONString`() {
         val bigIntString = "12345678901234567890"
         val bigInteger = BigInteger(bigIntString)
-        val expected = JSONString(bigIntString)
-        assertEquals(expected, JSONSerializer.serialize(bigInteger))
+        expect(JSONString(bigIntString)) { JSONSerializer.serialize(bigInteger) }
     }
 
     @Test fun `BigDecimal should return JSONString`() {
         val bigDecString = "12345678901234567890.88888"
         val bigDecimal = BigDecimal(bigDecString)
-        val expected = JSONString(bigDecString)
-        assertEquals(expected, JSONSerializer.serialize(bigDecimal))
+        expect(JSONString(bigDecString)) { JSONSerializer.serialize(bigDecimal) }
     }
 
     @Test fun `BitSet should return JSONArray`() {
         val bitSet = BitSet(4)
         bitSet.set(1)
         bitSet.set(3)
-        val expected = JSONArray().addValue(1).addValue(3)
-        assertEquals(expected, JSONSerializer.serialize(bitSet))
+        expect(JSONArray().addValue(1).addValue(3)) { JSONSerializer.serialize(bitSet) }
     }
 
     @Test fun `Simple data class should return JSONObject`() {
         val obj = Dummy1("abc", 123)
-        val expected = JSONObject().putValue("field1", "abc").putValue("field2", 123)
-        assertEquals(expected, JSONSerializer.serialize(obj))
+        expect(JSONObject().putValue("field1", "abc").putValue("field2", 123)) { JSONSerializer.serialize(obj) }
     }
 
     @Test fun `Simple data class with extra property should return JSONObject`() {
         val obj = Dummy2("abc", 123)
         obj.extra = "qqqqq"
-        val expected = JSONObject().putValue("field1", "abc").putValue("field2", 123).putValue("extra", "qqqqq")
-        assertEquals(expected, JSONSerializer.serialize(obj))
+        expect(JSONObject().putValue("field1", "abc").putValue("field2", 123).putValue("extra", "qqqqq")) {
+            JSONSerializer.serialize(obj)
+        }
     }
 
     @Test fun `Derived class should return JSONObject`() {
@@ -423,29 +391,27 @@ class JSONSerializerTest {
         obj.field1 = "qwerty"
         obj.field2 = 98765
         obj.field3 = 0.012
-        val expected = JSONObject().putValue("field1", "qwerty").putValue("field2", 98765).putValue("field3", 0.012)
-        assertEquals(expected, JSONSerializer.serialize(obj))
+        expect(JSONObject().putValue("field1", "qwerty").putValue("field2", 98765).putValue("field3", 0.012)) {
+            JSONSerializer.serialize(obj)
+        }
     }
 
     @Test fun `Annotated class should return JSONObject using specified name`() {
         val obj = DummyAnno()
         obj.field1 = "qwerty"
         obj.field2 = 98765
-        val expected = JSONObject().putValue("field1", "qwerty").putValue("fieldX", 98765)
-        assertEquals(expected, JSONSerializer.serialize(obj))
+        expect(JSONObject().putValue("field1", "qwerty").putValue("fieldX", 98765)) { JSONSerializer.serialize(obj) }
     }
 
     @Test fun `Annotated data class should return JSONObject using specified name`() {
         val obj = DummyAnnoData("abc", 123)
-        val expected = JSONObject().putValue("field1", "abc").putValue("fieldX", 123)
-        assertEquals(expected, JSONSerializer.serialize(obj))
+        expect(JSONObject().putValue("field1", "abc").putValue("fieldX", 123)) { JSONSerializer.serialize(obj) }
     }
 
     @Test fun `Annotated data class with custom annotation should return JSONObject using specified name`() {
         val obj = DummyCustomAnnoData("abc", 123)
-        val expected = JSONObject().putValue("field1", "abc").putValue("fieldX", 123)
         val config = JSONConfig().addNameAnnotation(CustomName::class, "symbol")
-        assertEquals(expected, JSONSerializer.serialize(obj, config))
+        expect(JSONObject().putValue("field1", "abc").putValue("fieldX", 123)) { JSONSerializer.serialize(obj, config) }
     }
 
     @Test fun `Nested class should return nested JSONObject`() {
@@ -453,63 +419,77 @@ class JSONSerializerTest {
         val obj3 = Dummy3(obj1, "what?")
         val expected1 = JSONObject().putValue("field1", "asdfg").putValue("field2", 987)
         val expected = JSONObject().putJSON("dummy1", expected1).putValue("text", "what?")
-        assertEquals(expected, JSONSerializer.serialize(obj3))
+        expect(expected) { JSONSerializer.serialize(obj3) }
     }
 
     @Test fun `Class with @JSONIgnore should return nested JSONObject skipping field`() {
         val obj = Dummy5("alpha", "beta", "gamma")
-        val expected = JSONObject().putValue("field1", "alpha").putValue("field3", "gamma")
-        assertEquals(expected, JSONSerializer.serialize(obj))
+        expect(JSONObject().putValue("field1", "alpha").putValue("field3", "gamma")) { JSONSerializer.serialize(obj) }
     }
 
     @Test fun `Class with @custom ignore annotation should return nested JSONObject skipping field`() {
         val obj = Dummy6("alpha", "beta", "gamma")
-        val expected = JSONObject().putValue("field1", "alpha").putValue("field3", "gamma")
         val config = JSONConfig().addIgnoreAnnotation(CustomIgnore::class)
-        assertEquals(expected, JSONSerializer.serialize(obj, config))
+        expect(JSONObject().putValue("field1", "alpha").putValue("field3", "gamma")) {
+            JSONSerializer.serialize(obj, config)
+        }
     }
 
     @Test fun `Pair should return JSONArray`() {
         val pair = "xyz" to "abc"
-        val expected = JSONArray().addJSON(JSONString("xyz")).addJSON(JSONString("abc"))
-        assertEquals(expected, JSONSerializer.serialize(pair))
+        expect(JSONArray().addJSON(JSONString("xyz")).addJSON(JSONString("abc"))) { JSONSerializer.serialize(pair) }
     }
 
     @Test fun `Triple should return JSONArray`() {
         val triple = Triple("xyz","abc","def")
-        val expected = JSONArray().addJSON(JSONString("xyz")).addJSON(JSONString("abc")).addJSON(JSONString("def"))
-        assertEquals(expected, JSONSerializer.serialize(triple))
+        expect(JSONArray().addJSON(JSONString("xyz")).addJSON(JSONString("abc")).addJSON(JSONString("def"))) {
+            JSONSerializer.serialize(triple)
+        }
     }
 
     @Test fun `Heterogenous Triple should return JSONArray`() {
         val triple = Triple("xyz",88,"def")
-        val expected = JSONArray().addJSON(JSONString("xyz")).addJSON(JSONInt(88)).addJSON(JSONString("def"))
-        assertEquals(expected, JSONSerializer.serialize(triple))
+        expect(JSONArray().addJSON(JSONString("xyz")).addJSON(JSONInt(88)).addJSON(JSONString("def"))) {
+            JSONSerializer.serialize(triple)
+        }
     }
 
     @Test fun `object should return JSONObject()`() {
         val obj = DummyObject
-        val expected = JSONObject().putValue("field1", "abc")
-        assertEquals(expected, JSONSerializer.serialize(obj))
+        expect(JSONObject().putValue("field1", "abc")) { JSONSerializer.serialize(obj) }
     }
 
     @Test fun `nested object should return JSONObject()`() {
         val obj = NestedDummy()
         val nested = JSONObject().putValue("field1", "abc")
-        val expected = JSONObject().putJSON("obj", nested)
-        assertEquals(expected, JSONSerializer.serialize(obj))
+        expect(JSONObject().putJSON("obj", nested)) { JSONSerializer.serialize(obj) }
     }
 
     @Test fun `class with constant val should serialize correctly`() {
         val constClass = DummyWithVal()
-        val expected = JSONObject().putValue("field8", "blert")
-        assertEquals(expected, JSONSerializer.serialize(constClass))
+        expect(JSONObject().putValue("field8", "blert")) { JSONSerializer.serialize(constClass) }
     }
 
     @Test fun `java class should serialize correctly`() {
         val javaClass1 = JavaClass1(1234, "Hello!")
-        val expected = JSONObject().putValue("field1", 1234).putValue("field2", "Hello!")
-        assertEquals(expected, JSONSerializer.serialize(javaClass1))
+        expect(JSONObject().putValue("field1", 1234).putValue("field2", "Hello!")) {
+            JSONSerializer.serialize(javaClass1)
+        }
+    }
+
+    @Test fun `List derived class should serialize to JSONArray`() {
+        val obj = DummyList(listOf(LocalDate.of(2019, 10, 6), LocalDate.of(2019, 10, 5)))
+        expect(JSONArray().addValue("2019-10-06").addValue("2019-10-05")) { JSONSerializer.serialize(obj) }
+    }
+
+    @Test fun `Map derived class should serialize to JSONObject`() {
+        val obj = DummyMap(emptyMap()).apply {
+            put("aaa", LocalDate.of(2019, 10, 6))
+            put("bbb", LocalDate.of(2019, 10, 5))
+        }
+        expect(JSONObject().putValue("aaa", "2019-10-06").putValue("bbb", "2019-10-05")) {
+            JSONSerializer.serialize(obj)
+        }
     }
 
     private fun intEquals(a: Int, b: Int): Boolean {
@@ -521,11 +501,11 @@ class JSONSerializerTest {
     }
 
     private fun floatEquals(a: Float, b: Float): Boolean {
-        return Math.abs(a - b) < 0.0000001
+        return abs(a - b) < 0.0000001
     }
 
     private fun doubleEquals(a: Double, b: Double): Boolean {
-        return Math.abs(a - b) < 0.000000001
+        return abs(a - b) < 0.000000001
     }
 
 }
