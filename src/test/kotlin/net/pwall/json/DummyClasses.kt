@@ -27,6 +27,7 @@ package net.pwall.json
 
 import net.pwall.json.annotation.JSONIgnore
 import net.pwall.json.annotation.JSONName
+import java.time.LocalDate
 
 data class Dummy1(val field1: String, val field2: Int = 999)
 
@@ -149,3 +150,7 @@ class DummyWithVal {
     }
 
 }
+
+class DummyList(content: List<LocalDate>) : ArrayList<LocalDate>(content)
+
+class DummyMap(content: Map<String, LocalDate>) : HashMap<String, LocalDate>(content)
