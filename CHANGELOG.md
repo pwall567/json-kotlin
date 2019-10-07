@@ -2,8 +2,9 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [1.0] - 2019-10-08
 ### Changed
+- Updated version to 1.0
 - `JSONDeserializer`: improved deserialization, including defaults if types not specified
 
 ## [0.13] - 2019-09-22
