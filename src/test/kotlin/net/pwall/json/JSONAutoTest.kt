@@ -26,8 +26,8 @@
 package net.pwall.json
 
 import kotlin.reflect.full.starProjectedType
+import kotlin.test.expect
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 import java.lang.reflect.Type
 
@@ -39,27 +39,24 @@ class JSONAutoTest {
 
     @Test fun `JSONAuto should correctly stringify an object`() {
         val obj = Dummy1("abdef", 54321)
-        val expected = """{"field1":"abdef","field2":54321}"""
-        assertEquals(expected, JSONAuto.stringify(obj))
+        expect("""{"field1":"abdef","field2":54321}""") { JSONAuto.stringify(obj) }
     }
 
     @Test fun `JSONAuto should parse a string to create an object`() {
         val json = """{"field1":"abdef","field2":54321}"""
         val expected: Dummy1? = Dummy1("abdef", 54321)
-        assertEquals(expected, JSONAuto.parse(json))
+        expect(expected) { JSONAuto.parse(json) }
     }
 
     @Test fun `JSONAuto should parse a string to create an object with explicit type`() {
         val json = """{"field1":"abdef","field2":54321}"""
-        val expected = Dummy1("abdef", 54321)
-        assertEquals(expected, JSONAuto.parse(Dummy1::class.starProjectedType, json))
+        expect(Dummy1("abdef", 54321)) { JSONAuto.parse(Dummy1::class.starProjectedType, json) }
     }
 
     @Test fun `JSONAuto should parse List using Java Type`() {
         val json = """[{"field1":567,"field2":"abcdef"},{"field1":9999,"field2":"qwerty"}]"""
         val type: Type = JavaClass2::class.java.getField("field1").genericType
-        val expected = listOf(JavaClass1(567, "abcdef"), JavaClass1(9999, "qwerty"))
-        assertEquals(expected, JSONAuto.parse(type, json))
+        expect(listOf(JavaClass1(567, "abcdef"), JavaClass1(9999, "qwerty"))) { JSONAuto.parse(type, json) }
     }
 
 }

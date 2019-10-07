@@ -27,10 +27,10 @@ package net.pwall.json
 
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.starProjectedType
-import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.expect
+import kotlin.test.Test
 
 class JSONConfigTest {
 
@@ -38,7 +38,8 @@ class JSONConfigTest {
 
     @Test fun `add fromJSON mapping should return the function`() {
         val config = JSONConfig()
-        assertEquals(config.readBufferSize, 8192)
+        expect(8192) { config.readBufferSize }
+        expect(Charsets.UTF_8) { config.charset }
         assertNull(config.getFromJSONMapping(stringType))
         config.fromJSON { json -> json?.toString() }
         assertNotNull(config.getFromJSONMapping(stringType))
@@ -50,9 +51,8 @@ class JSONConfigTest {
                 throw JSONException("Must be JSONObject")
             Dummy1(json.getString("a"), json.getInt("b"))
         }
-        val expected = Dummy1("xyz", 888)
         val json = JSONObject().putValue("a", "xyz").putValue("b", 888)
-        assertEquals(expected, JSONDeserializer.deserialize(Dummy1::class.createType(), json, config))
+        expect(Dummy1("xyz", 888)) { JSONDeserializer.deserialize(Dummy1::class.createType(), json, config) }
     }
 
     @Test fun `fromJSON mapping should map nested class`() {
@@ -61,10 +61,11 @@ class JSONConfigTest {
                 throw JSONException("Must be JSONObject")
             Dummy1(json.getString("a"), json.getInt("b"))
         }
-        val expected = Dummy3(Dummy1("xyz", 888), "Hello!")
         val json1 = JSONObject().putValue("a", "xyz").putValue("b", 888)
         val json2 = JSONObject().putJSON("dummy1", json1).putValue("text", "Hello!")
-        assertEquals(expected, JSONDeserializer.deserialize(Dummy3::class.createType(), json2, config))
+        expect(Dummy3(Dummy1("xyz", 888), "Hello!")) {
+            JSONDeserializer.deserialize(Dummy3::class.createType(), json2, config)
+        }
     }
 
     @Test fun `add toJSON mapping should return the function`() {
@@ -78,8 +79,9 @@ class JSONConfigTest {
         val config = JSONConfig().toJSON<Dummy1> { obj ->
             obj?.let { JSONObject().putValue("a", it.field1).putValue("b", it.field2) }
         }
-        val expected = JSONObject().putValue("a", "xyz").putValue("b", 888)
-        assertEquals(expected, JSONSerializer.serialize(Dummy1("xyz", 888), config))
+        expect(JSONObject().putValue("a", "xyz").putValue("b", 888)) {
+            JSONSerializer.serialize(Dummy1("xyz", 888), config)
+        }
     }
 
     @Test fun `toJSON mapping should map nested class`() {
@@ -87,8 +89,9 @@ class JSONConfigTest {
             obj?.let { JSONObject().putValue("a", it.field1).putValue("b", it.field2) }
         }
         val dummy1 = JSONObject().putValue("a", "xyz").putValue("b", 888)
-        val expected = JSONObject().putJSON("dummy1", dummy1).putValue("text", "Hi there!")
-        assertEquals(expected, JSONSerializer.serialize(Dummy3(Dummy1("xyz", 888), "Hi there!"), config))
+        expect(JSONObject().putJSON("dummy1", dummy1).putValue("text", "Hi there!")) {
+            JSONSerializer.serialize(Dummy3(Dummy1("xyz", 888), "Hi there!"), config)
+        }
     }
 
     @Test fun `toJSON mapping should be transferred on combineMappings`() {
@@ -96,8 +99,9 @@ class JSONConfigTest {
             obj?.let { JSONObject().putValue("a", it.field1).putValue("b", it.field2) }
         }
         val config2 = JSONConfig().combineMappings(config)
-        val expected = JSONObject().putValue("a", "xyz").putValue("b", 888)
-        assertEquals(expected, JSONSerializer.serialize(Dummy1("xyz", 888), config2))
+        expect(JSONObject().putValue("a", "xyz").putValue("b", 888)) {
+            JSONSerializer.serialize(Dummy1("xyz", 888), config2)
+        }
     }
 
     @Test fun `toJSON mapping should be transferred on combineAll`() {
@@ -105,16 +109,18 @@ class JSONConfigTest {
             obj?.let { JSONObject().putValue("a", it.field1).putValue("b", it.field2) }
         }
         val config2 = JSONConfig().combineAll(config)
-        val expected = JSONObject().putValue("a", "xyz").putValue("b", 888)
-        assertEquals(expected, JSONSerializer.serialize(Dummy1("xyz", 888), config2))
+        expect(JSONObject().putValue("a", "xyz").putValue("b", 888)) {
+            JSONSerializer.serialize(Dummy1("xyz", 888), config2)
+        }
     }
 
     @Test fun `JSONName annotation should be transferred on combineAll`() {
         val obj = DummyCustomAnnoData("abc", 123)
-        val expected = JSONObject().putValue("field1", "abc").putValue("fieldX", 123)
         val config = JSONConfig().addNameAnnotation(CustomName::class, "symbol")
         val config2 = JSONConfig().combineAll(config)
-        assertEquals(expected, JSONSerializer.serialize(obj, config2))
+        expect(JSONObject().putValue("field1", "abc").putValue("fieldX", 123)) {
+            JSONSerializer.serialize(obj, config2)
+        }
     }
 
 }

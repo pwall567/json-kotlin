@@ -481,7 +481,7 @@ object JSONDeserializer {
         json.forEach { entry -> // JSONObject fields not used in constructor
             val member = findField(resultClass.members, entry.key, config) ?:
                     throw JSONException("Can't find property ${entry.key} in ${resultClass.simpleName}")
-            val value = deserialize(member.returnType, json[entry.key], config)
+            val value = deserialize(member.returnType, entry.value, config)
             if (member is KMutableProperty<*>) {
                 val wasAccessible = member.isAccessible
                 member.isAccessible = true
@@ -504,10 +504,9 @@ object JSONDeserializer {
     }
 
     private fun findField(members: Collection<KCallable<*>>, name: String, config: JSONConfig): KProperty<*>? {
-        for (member in members) {
+        for (member in members)
             if (member is KProperty<*> && (config.findNameFromAnnotation(member.annotations) ?: member.name) == name)
                     return member
-        }
         return null
     }
 

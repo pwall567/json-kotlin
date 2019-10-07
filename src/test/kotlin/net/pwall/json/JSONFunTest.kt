@@ -26,10 +26,9 @@
 package net.pwall.json
 
 import kotlin.reflect.full.starProjectedType
-import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.expect
+import kotlin.test.Test
 
 import java.lang.reflect.Type
 import kotlin.reflect.KTypeProjection
@@ -38,166 +37,141 @@ import kotlin.reflect.full.createType
 class JSONFunTest {
 
     @Test fun `makeJSON with asJSONValue should create the same JSONObject as explicit creation`() {
-        val expected = JSONObject().putValue("testString", "xyz").putValue("testInt", 12345)
-        assertEquals(expected, makeJSON("testString" to "xyz".asJSONValue(), "testInt" to 12345.asJSONValue()))
+        expect(JSONObject().putValue("testString", "xyz").putValue("testInt", 12345)) {
+            makeJSON("testString" to "xyz".asJSONValue(), "testInt" to 12345.asJSONValue())
+        }
     }
 
     @Test fun `makeJSON with isJSON should create the same JSONObject as explicit creation`() {
-        val expected = JSONObject().putValue("testString", "xyz").putValue("testInt", 12345)
-        assertEquals(expected, makeJSON("testString" isJSON "xyz", "testInt" isJSON 12345))
+        expect(JSONObject().putValue("testString", "xyz").putValue("testInt", 12345)) {
+            makeJSON("testString" isJSON "xyz", "testInt" isJSON 12345)
+        }
     }
 
     @Test fun `asJSONValue should correctly handle String`() {
         val testString = "testing..."
-        val expected = JSONString(testString)
-        assertEquals(expected, testString.asJSONValue())
+        expect(JSONString(testString)) { testString.asJSONValue() }
     }
 
     @Test fun `asJSONValue should correctly handle Char`() {
         val testChar = 'Q'
-        val expected = JSONString("Q")
-        assertEquals(expected, testChar.asJSONValue())
+        expect(JSONString("Q")) { testChar.asJSONValue() }
     }
 
     @Test fun `asJSONValue should correctly handle Int`() {
         val testInt = 987654321
-        val expected = JSONInt(testInt)
-        assertEquals(expected, testInt.asJSONValue())
+        expect(JSONInt(testInt)) { testInt.asJSONValue() }
     }
 
     @Test fun `asJSONValue should correctly handle Long`() {
         val testLong = 1234567890123456789
-        val expected = JSONLong(testLong)
-        assertEquals(expected, testLong.asJSONValue())
+        expect(JSONLong(testLong)) { testLong.asJSONValue() }
     }
 
     @Test fun `asJSONValue should correctly handle Short`() {
         val testShort: Short = 1234
-        val expected = JSONInt(testShort.toInt())
-        assertEquals(expected, testShort.asJSONValue())
+        expect(JSONInt(testShort.toInt())) { testShort.asJSONValue() }
     }
 
     @Test fun `asJSONValue should correctly handle Byte`() {
         val testByte: Byte = 123
-        val expected = JSONInt(testByte.toInt())
-        assertEquals(expected, testByte.asJSONValue())
+        expect(JSONInt(testByte.toInt())) { testByte.asJSONValue() }
     }
 
     @Test fun `asJSONValue should correctly handle Float`() {
         val testFloat = 3.14159F
-        val expected = JSONFloat(testFloat)
-        assertEquals(expected, testFloat.asJSONValue())
+        expect(JSONFloat(testFloat)) { testFloat.asJSONValue() }
     }
 
     @Test fun `asJSONValue should correctly handle Double`() {
         val testDouble = 3.14159265358979323846
-        val expected = JSONDouble(testDouble)
-        assertEquals(expected, testDouble.asJSONValue())
+        expect(JSONDouble(testDouble)) { testDouble.asJSONValue() }
     }
 
     @Test fun `asJSONValue should correctly handle Boolean`() {
         val testBoolean = true
-        val expected = JSONBoolean(testBoolean)
-        assertEquals(expected, testBoolean.asJSONValue())
+        expect(JSONBoolean(testBoolean)) { testBoolean.asJSONValue() }
     }
 
     @Test fun `isJSON should correctly handle String`() {
         val testString = "what next?"
-        val expected = Pair("testString", JSONString(testString))
-        assertEquals(expected, "testString" isJSON testString)
+        expect("testString" to JSONString(testString)) { "testString" isJSON testString }
     }
 
     @Test fun `isJSON should correctly handle Char`() {
         val testChar = 'Z'
-        val expected = Pair("testChar", JSONString("Z"))
-        assertEquals(expected, "testChar" isJSON testChar)
+        expect("testChar" to JSONString("Z")) { "testChar" isJSON testChar }
     }
 
     @Test fun `isJSON should correctly handle Int`() {
         val testInt = 987654321
-        val expected = Pair("testInt", JSONInt(testInt))
-        assertEquals(expected, "testInt" isJSON testInt)
+        expect("testInt" to JSONInt(testInt)) { "testInt" isJSON testInt }
     }
 
     @Test fun `isJSON should correctly handle Long`() {
         val testLong = 1234567890123456789
-        val expected = Pair("testLong", JSONLong(testLong))
-        assertEquals(expected, "testLong" isJSON testLong)
+        expect("testLong" to JSONLong(testLong)) { "testLong" isJSON testLong }
     }
 
     @Test fun `isJSON should correctly handle Short`() {
         val testShort: Short = 1234
-        val expected = Pair("testShort", JSONInt(testShort.toInt()))
-        assertEquals(expected, "testShort" isJSON testShort)
+        expect("testShort" to JSONInt(testShort.toInt())) { "testShort" isJSON testShort }
     }
 
     @Test fun `isJSON should correctly handle Byte`() {
         val testByte: Byte = 123
-        val expected = Pair("testByte", JSONInt(testByte.toInt()))
-        assertEquals(expected, "testByte" isJSON testByte)
+        expect("testByte" to JSONInt(testByte.toInt())) { "testByte" isJSON testByte }
     }
 
     @Test fun `isJSON should correctly handle Float`() {
         val testFloat = 3.14159F
-        val expected = Pair("testFloat", JSONFloat(testFloat))
-        assertEquals(expected, "testFloat" isJSON testFloat)
+        expect("testFloat" to JSONFloat(testFloat)) { "testFloat" isJSON testFloat }
     }
 
     @Test fun `isJSON should correctly handle Double`() {
         val testDouble = 3.14159265358979323846
-        val expected = Pair("testDouble", JSONDouble(testDouble))
-        assertEquals(expected, "testDouble" isJSON testDouble)
+        expect("testDouble" to JSONDouble(testDouble)) { "testDouble" isJSON testDouble }
     }
 
     @Test fun `isJSON should correctly handle Boolean`() {
         val testBoolean = true
-        val expected = Pair("testBoolean", JSONBoolean(testBoolean))
-        assertEquals(expected, "testBoolean" isJSON testBoolean)
+        expect("testBoolean" to JSONBoolean(testBoolean)) { "testBoolean" isJSON testBoolean }
     }
 
     @Test fun `parseJSON should correctly parse string`() {
         val json = """{"field1":"Hi there!","field2":888}"""
         val expected: Dummy1? = Dummy1("Hi there!", 888)
-        assertEquals(expected, json.parseJSON())
+        expect(expected) { json.parseJSON() }
     }
 
     @Test fun `parseJSON should correctly parse string using parameterised type`() {
         val json = """{"field1":"Hi there!","field2":888}"""
-        val expected = Dummy1("Hi there!", 888)
-        val parsed = json.parseJSON<Dummy1>()
-        assertEquals(expected, parsed)
+        expect(Dummy1("Hi there!", 888)) { json.parseJSON<Dummy1>() }
     }
 
     @Test fun `parseJSON should correctly parse string using explicit KClass`() {
         val json = """{"field1":"Hi there!","field2":888}"""
-        val expected = Dummy1("Hi there!", 888)
-        val parsed = json.parseJSON(Dummy1::class)
-        assertEquals(expected, parsed)
+        expect(Dummy1("Hi there!", 888)) { json.parseJSON(Dummy1::class) }
     }
 
     @Test fun `parseJSON should correctly parse string using explicit KType`() {
         val json = """{"field1":"Hi there!","field2":888}"""
-        val expected = Dummy1("Hi there!", 888)
-        val parsed = json.parseJSON(Dummy1::class.starProjectedType)
-        assertEquals(expected, parsed)
+        expect(Dummy1("Hi there!", 888)) { json.parseJSON(Dummy1::class.starProjectedType) }
     }
 
     @Test fun `stringify should work on any object`() {
         val dummy1 = Dummy1("Hi there!", 888)
-        val expected = """{"field1":"Hi there!","field2":888}"""
-        assertEquals(expected, dummy1.stringifyJSON())
+        expect("""{"field1":"Hi there!","field2":888}""") { dummy1.stringifyJSON() }
     }
 
     @Test fun `stringify should work on null`() {
         val dummy1 = null
-        val expected = "null"
-        assertEquals(expected, dummy1.stringifyJSON())
+        expect("null") { dummy1.stringifyJSON() }
     }
 
     @Test fun `asJSONValue should correctly handle arbitrary object`() {
         val dummy1 = Dummy1("Hi there!", 888)
-        val expected = makeJSON("field1" isJSON "Hi there!", "field2" isJSON 888)
-        assertEquals(expected, dummy1.asJSONValue())
+        expect(makeJSON("field1" isJSON "Hi there!", "field2" isJSON 888)) { dummy1.asJSONValue() }
     }
 
     @Test fun `asJSONValue should correctly handle null`() {
@@ -213,8 +187,7 @@ class JSONFunTest {
 
     @Test fun `toKType should convert simple class`() {
         val type: Type = JavaClass1::class.java
-        val expected = JavaClass1::class.starProjectedType
-        assertEquals(expected, type.toKType())
+        expect(JavaClass1::class.starProjectedType) { type.toKType() }
     }
 
     @Test fun `toKType should convert parameterized class`() {
@@ -222,7 +195,7 @@ class JSONFunTest {
         val type: Type = field.genericType
         val expected = java.util.List::class.createType(
                 listOf(KTypeProjection.invariant(JavaClass1::class.starProjectedType)))
-        assertEquals(expected, type.toKType())
+        expect(expected) { type.toKType() }
     }
 
     @Test fun `toKType should convert parameterized class with extends`() {
@@ -230,7 +203,7 @@ class JSONFunTest {
         val type: Type = field.genericType
         val expected = java.util.List::class.createType(
                 listOf(KTypeProjection.covariant(JavaClass1::class.starProjectedType)))
-        assertEquals(expected, type.toKType())
+        expect(expected) { type.toKType() }
     }
 
     @Test fun `toKType should convert parameterized class with super`() {
@@ -238,7 +211,7 @@ class JSONFunTest {
         val type: Type = field.genericType
         val expected = java.util.List::class.createType(
                 listOf(KTypeProjection.contravariant(JavaClass1::class.starProjectedType)))
-        assertEquals(expected, type.toKType())
+        expect(expected) { type.toKType() }
     }
 
     @Test fun `toKType should convert nested parameterized class`() {
@@ -247,7 +220,7 @@ class JSONFunTest {
         val expected = java.util.List::class.createType(
                 listOf(KTypeProjection.invariant(java.util.List::class.createType(
                         listOf(KTypeProjection.invariant(JavaClass1::class.starProjectedType))))))
-        assertEquals(expected, type.toKType())
+        expect(expected) { type.toKType() }
     }
 
 }
