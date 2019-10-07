@@ -25,6 +25,7 @@
 
 package net.pwall.json
 
+import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -512,6 +513,21 @@ class JSONSerializerTest {
         assertEquals(expected, JSONSerializer.serialize(javaClass1))
     }
 
+    @Test fun `List derived class should serialize to JSONArray`() {
+        val obj = DummyList(listOf(LocalDate.of(2019, 10, 6), LocalDate.of(2019, 10, 5)))
+        val expected = JSONArray().addValue("2019-10-06").addValue("2019-10-05")
+        assertEquals(expected, JSONSerializer.serialize(obj))
+    }
+
+    @Test fun `Map derived class should serialize to JSONObject`() {
+        val obj = DummyMap(emptyMap()).apply {
+            put("aaa", LocalDate.of(2019, 10, 6))
+            put("bbb", LocalDate.of(2019, 10, 5))
+        }
+        val expected = JSONObject().putValue("aaa", "2019-10-06").putValue("bbb", "2019-10-05")
+        assertEquals(expected, JSONSerializer.serialize(obj))
+    }
+
     private fun intEquals(a: Int, b: Int): Boolean {
         return a == b
     }
@@ -521,11 +537,11 @@ class JSONSerializerTest {
     }
 
     private fun floatEquals(a: Float, b: Float): Boolean {
-        return Math.abs(a - b) < 0.0000001
+        return abs(a - b) < 0.0000001
     }
 
     private fun doubleEquals(a: Double, b: Double): Boolean {
-        return Math.abs(a - b) < 0.000000001
+        return abs(a - b) < 0.000000001
     }
 
 }

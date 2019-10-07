@@ -55,7 +55,7 @@ class JSONConfig {
     private val nameAnnotations: MutableList<Pair<KClass<*>, KProperty.Getter<String>>> =
             arrayListOf(namePropertyPair(JSONName::class, "name"))
 
-    private val ignoreAnnotations: MutableList<KClass<*>> = arrayListOf(JSONIgnore::class)
+    private val ignoreAnnotations: MutableList<KClass<*>> = arrayListOf(JSONIgnore::class, Transient::class)
 
     /**
      * Get a `fromJSON` mapping function for the specified [KType].

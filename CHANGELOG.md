@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+### Changed
+- `JSONDeserializer`: improved deserialization, including defaults if types not specified
+
 ## [0.13] - 2019-09-22
 ### Changed
 - `JSONConfig`: added `charset`

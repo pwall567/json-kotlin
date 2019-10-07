@@ -36,6 +36,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlin.test.expect
+import kotlin.test.fail
 import kotlin.test.Test
 
 import java.lang.reflect.Type
@@ -297,7 +298,7 @@ class JSONDeserializerTest {
     @Test fun `JSONArray of boolean should return BooleanArray`() {
         val json = JSONArray.create().addValue(true).addValue(false).addValue(false)
         val expected = booleanArrayOf(true, false, false)
-        assertTrue(deepEquals(expected, JSONDeserializer.deserialize(BooleanArray::class, json)))
+        assertTrue(expected.contentEquals(JSONDeserializer.deserialize(BooleanArray::class, json) ?: fail()))
     }
 
     @Test fun `JSONArray of boolean should fail if entries not boolean`() {
@@ -308,31 +309,31 @@ class JSONDeserializerTest {
     @Test fun `JSONArray of number should return ByteArray`() {
         val json = JSONArray.create().addValue(1).addValue(2).addValue(3)
         val expected = byteArrayOf(1, 2, 3)
-        assertTrue(deepEquals(expected, JSONDeserializer.deserialize(ByteArray::class, json)))
+        assertTrue(expected.contentEquals(JSONDeserializer.deserialize(ByteArray::class, json) ?: fail()))
     }
 
     @Test fun `JSONArray of character should return CharArray`() {
         val json = JSONArray.create().addValue("a").addValue("b").addValue("c")
         val expected = charArrayOf('a', 'b', 'c')
-        assertTrue(deepEquals(expected, JSONDeserializer.deserialize(CharArray::class, json)))
+        assertTrue(expected.contentEquals(JSONDeserializer.deserialize(CharArray::class, json) ?: fail()))
     }
 
     @Test fun `JSONArray of number should return DoubleArray`() {
         val json = JSONArray.create().addValue(123).addValue(0).addValue(0.012)
         val expected = doubleArrayOf(123.0, 0.0, 0.012)
-        assertTrue(deepEquals(expected, JSONDeserializer.deserialize(DoubleArray::class, json)))
+        assertTrue(expected.contentEquals(JSONDeserializer.deserialize(DoubleArray::class, json) ?: fail()))
     }
 
     @Test fun `JSONArray of number should return FloatArray`() {
         val json = JSONArray.create().addValue(123).addValue(0).addValue(0.012)
         val expected = floatArrayOf(123.0F, 0.0F, 0.012F)
-        assertTrue(deepEquals(expected, JSONDeserializer.deserialize(FloatArray::class, json)))
+        assertTrue(expected.contentEquals(JSONDeserializer.deserialize(FloatArray::class, json) ?: fail()))
     }
 
     @Test fun `JSONArray of number should return IntArray`() {
         val json = JSONArray.create().addValue(12345).addValue(2468).addValue(321321)
         val expected = intArrayOf(12345, 2468, 321321)
-        assertTrue(deepEquals(expected, JSONDeserializer.deserialize(IntArray::class, json)))
+        assertTrue(expected.contentEquals(JSONDeserializer.deserialize(IntArray::class, json) ?: fail()))
     }
 
     @Test fun `JSONArray of number should fail if entries not number`() {
@@ -348,13 +349,13 @@ class JSONDeserializerTest {
     @Test fun `JSONArray of number should return LongArray`() {
         val json = JSONArray.create().addValue(123456789123456).addValue(0).addValue(321321L)
         val expected = longArrayOf(123456789123456, 0, 321321)
-        assertTrue(deepEquals(expected, JSONDeserializer.deserialize(LongArray::class, json)))
+        assertTrue(expected.contentEquals(JSONDeserializer.deserialize(LongArray::class, json) ?: fail()))
     }
 
     @Test fun `JSONArray of number should return ShortArray`() {
         val json = JSONArray.create().addValue(1234).addValue(0).addValue(321)
         val expected = shortArrayOf(1234, 0, 321)
-        assertTrue(deepEquals(expected, JSONDeserializer.deserialize(ShortArray::class, json)))
+        assertTrue(expected.contentEquals(JSONDeserializer.deserialize(ShortArray::class, json) ?: fail()))
     }
 
     private val stringType = String::class.starProjectedType
@@ -378,23 +379,19 @@ class JSONDeserializerTest {
     }
 
     @Test fun `JSONArray of JSONString should return ArrayList of String`() {
-        val arrayListStrings = ArrayList(listStrings)
-        expect(arrayListStrings) { JSONDeserializer.deserialize(arrayListStringType, jsonArrayString) }
+        expect(ArrayList(listStrings)) { JSONDeserializer.deserialize(arrayListStringType, jsonArrayString) }
     }
 
     @Test fun `JSONArray of JSONString should return LinkedList of String`() {
-        val linkedListStrings = LinkedList(listStrings)
-        expect(linkedListStrings) { JSONDeserializer.deserialize(linkedListStringType, jsonArrayString) }
+        expect(LinkedList(listStrings)) { JSONDeserializer.deserialize(linkedListStringType, jsonArrayString) }
     }
 
     @Test fun `JSONArray of JSONString should return HashSet of String`() {
-        val hashSetStrings = HashSet(listStrings)
-        expect(hashSetStrings) { JSONDeserializer.deserialize(hashSetStringType, jsonArrayString) }
+        expect(HashSet(listStrings)) { JSONDeserializer.deserialize(hashSetStringType, jsonArrayString) }
     }
 
     @Test fun `JSONArray of JSONString should return LinkedHashSet of String`() {
-        val linkedHashSetStrings = LinkedHashSet(listStrings)
-        expect(linkedHashSetStrings) { JSONDeserializer.deserialize(linkedHashSetStringType, jsonArrayString) }
+        expect(LinkedHashSet(listStrings)) { JSONDeserializer.deserialize(linkedHashSetStringType, jsonArrayString) }
     }
 
     private val mapStringInt = mapOf("abc" to 123, "def" to 456, "ghi" to 789)
@@ -453,7 +450,7 @@ class JSONDeserializerTest {
         val expected = Super()
         expected.field1 = "qqq"
         expected.field2 = 888
-        assertEquals(expected, JSONDeserializer.deserialize(Super::class, json))
+        expect(expected) { JSONDeserializer.deserialize(Super::class, json) }
     }
 
     @Test fun `JSONObject should return derived class with properties`() {
@@ -463,7 +460,7 @@ class JSONDeserializerTest {
         expected.field1 = "qqq"
         expected.field2 = 888
         expected.field3 = 12345.0
-        assertEquals(expected, JSONAuto.parse(Derived::class, str))
+        expect(expected) { JSONAuto.parse(Derived::class, str) }
     }
 
     @Test fun `JSONObject should return simple class with properties using name annotation`() {
@@ -471,20 +468,19 @@ class JSONDeserializerTest {
         val expected = DummyAnno()
         expected.field1 = "qqq"
         expected.field2 = 888
-        assertEquals(expected, JSONDeserializer.deserialize(DummyAnno::class, json))
+        expect(expected) { JSONDeserializer.deserialize(DummyAnno::class, json) }
     }
 
     @Test fun `JSONObject should return data class using name annotation`() {
         val json = JSONObject().putValue("field1", "qqq").putValue("fieldX", 888)
-        val expected = DummyAnnoData("qqq", 888)
-        assertEquals(expected, JSONDeserializer.deserialize(DummyAnnoData::class, json))
+        expect(DummyAnnoData("qqq", 888)) { JSONDeserializer.deserialize(DummyAnnoData::class, json) }
     }
 
     @Test fun `JSONObject should return data class using custom name annotation`() {
         val json = JSONObject().putValue("field1", "qqq").putValue("fieldX", 888)
         val expected = DummyCustomAnnoData("qqq", 888)
         val config = JSONConfig().addNameAnnotation(CustomName::class, "symbol")
-        assertEquals(expected, JSONDeserializer.deserialize(DummyCustomAnnoData::class, json, config))
+        expect(expected) { JSONDeserializer.deserialize(DummyCustomAnnoData::class, json, config) }
     }
 
     private val pairStringStringType = Pair::class.createType(listOf(stringTypeProjection, stringTypeProjection))
@@ -496,26 +492,22 @@ class JSONDeserializerTest {
 
     @Test fun `JSONArray should return Pair`() {
         val json = JSONArray().addValue("abc").addValue("def")
-        val expected = "abc" to "def"
-        assertEquals(expected, JSONDeserializer.deserialize(pairStringStringType, json))
+        expect("abc" to "def") { JSONDeserializer.deserialize(pairStringStringType, json) }
     }
 
     @Test fun `JSONArray should return Heterogenous Pair`() {
         val json = JSONArray().addValue("abc").addValue(88)
-        val expected = "abc" to 88
-        assertEquals(expected, JSONDeserializer.deserialize(pairStringIntType, json))
+        expect("abc" to 88) { JSONDeserializer.deserialize(pairStringIntType, json) }
     }
 
     @Test fun `JSONArray should return Triple`() {
         val json = JSONArray().addValue("abc").addValue("def").addValue("xyz")
-        val expected = Triple("abc", "def", "xyz")
-        assertEquals(expected, JSONDeserializer.deserialize(tripleStringStringStringType, json))
+        expect(Triple("abc", "def", "xyz")) { JSONDeserializer.deserialize(tripleStringStringStringType, json) }
     }
 
     @Test fun `JSONArray should return Heterogenous Triple`() {
         val json = JSONArray().addValue("abc").addValue(66).addValue("xyz")
-        val expected = Triple("abc", 66, "xyz")
-        assertEquals(expected, JSONDeserializer.deserialize(tripleStringIntStringType, json))
+        expect(Triple("abc", 66, "xyz")) { JSONDeserializer.deserialize(tripleStringIntStringType, json) }
     }
 
     @Test fun `null should return null for nullable String`() {
@@ -529,115 +521,132 @@ class JSONDeserializerTest {
 
     @Test fun `JSONObject should deserialize to object`() {
         val json = JSONObject().putValue("field1", "abc")
-        val expected = DummyObject
-        assertEquals(expected, JSONDeserializer.deserialize(DummyObject::class, json))
+        expect(DummyObject) { JSONDeserializer.deserialize(DummyObject::class, json) }
     }
 
     @Test fun `class with constant val should deserialize correctly`() {
         val json = JSONObject().putValue("field8", "blert")
-        val expected = DummyWithVal()
-        assertEquals(expected, JSONDeserializer.deserialize(DummyWithVal::class, json))
+        expect(DummyWithVal()) { JSONDeserializer.deserialize(DummyWithVal::class, json) }
     }
 
     @Test fun `java class should deserialize correctly`() {
         val json = JSONObject().putValue("field1", 1234).putValue("field2", "Hello!")
-        val expected = JavaClass1(1234, "Hello!")
-        assertEquals(expected, JSONDeserializer.deserialize(JavaClass1::class, json))
-    }
-
-    @Test fun `deserialize List should fail if no type parameter given`() {
-        val json = JSONArray().addValue("abc").addValue("def")
-        val except = assertFailsWith<JSONException> { JSONDeserializer.deserialize(List::class, json) }
-        assertEquals("Type parameter 0 not specified for class kotlin.collections.List", except.message)
+        expect(JavaClass1(1234, "Hello!")) { JSONDeserializer.deserialize(JavaClass1::class, json) }
     }
 
     @Test fun `deserialize List using Java Type should work correctly`() {
         val json = JSONArray().addJSON(JSONObject().putValue("field1", 567).putValue("field2", "abcdef")).
                 addJSON(JSONObject().putValue("field1", 9999).putValue("field2", "qwerty"))
         val type: Type = JavaClass2::class.java.getField("field1").genericType
-        val expected = listOf(JavaClass1(567, "abcdef"), JavaClass1(9999, "qwerty"))
-        assertEquals(expected, JSONDeserializer.deserialize(type, json))
+        expect(listOf(JavaClass1(567, "abcdef"), JavaClass1(9999, "qwerty"))) {
+            JSONDeserializer.deserialize(type, json)
+        }
     }
 
-    private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH,
-            Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND,
-            Calendar.MILLISECOND, Calendar.ZONE_OFFSET)
+    @Test fun `JSONArray should deserialize into List derived type`() {
+        val json = JSONArray().addValue("2019-10-06").addValue("2019-10-05")
+        expect(DummyList(listOf(LocalDate.of(2019, 10, 6), LocalDate.of(2019, 10, 5)))) {
+            JSONDeserializer.deserialize(DummyList::class, json)
+        }
+    }
+
+    @Test fun `JSONObject should deserialize into Map derived type`() {
+        val json = JSONObject().putValue("aaa", "2019-10-06").putValue("bbb", "2019-10-05")
+        val expected = DummyMap(emptyMap()).apply {
+            put("aaa", LocalDate.of(2019, 10, 6))
+            put("bbb", LocalDate.of(2019, 10, 5))
+        }
+        expect(expected) { JSONDeserializer.deserialize(DummyMap::class, json) }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    @Test fun `JSONArray should deserialize into Sequence`() {
+        val json = JSONArray().addValue("abcde").addValue("fghij")
+        val expected = sequenceOf("abcde", "fghij")
+        val stringSequenceType = Sequence::class.createType(listOf(stringTypeProjection))
+        assertTrue(sequenceEquals(expected, JSONDeserializer.deserialize(stringSequenceType, json) as Sequence<String>))
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    @Test fun `JSONArray should deserialize into Array`() {
+        val json = JSONArray().addValue("abcde").addValue("fghij")
+        val expected = arrayOf("abcde", "fghij")
+        val stringArrayType = Array<String>::class.createType(listOf(stringTypeProjection))
+        assertTrue(expected.contentEquals(JSONDeserializer.deserialize(stringArrayType, json) as Array<String>))
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    @Test fun `JSONArray should deserialize into nested Array`() {
+        val list1 = JSONArray().addValue("qwerty").addValue("asdfgh").addValue("zxcvbn")
+        val list2 = JSONArray().addValue("abcde").addValue("fghij")
+        val json = JSONArray().addJSON(list1).addJSON(list2)
+        val array1 = arrayOf("qwerty", "asdfgh", "zxcvbn")
+        val array2 = arrayOf("abcde", "fghij")
+        val expected = arrayOf(array1, array2)
+        val stringArrayType = Array<String>::class.createType(listOf(stringTypeProjection))
+        val stringArrayArrayType = Array<String>::class.createType(listOf(KTypeProjection.invariant(stringArrayType)))
+        val actual = JSONDeserializer.deserialize(stringArrayArrayType, json) as Array<Array<String>>
+        assertTrue(expected.contentDeepEquals(actual))
+    }
+
+    @Test fun `JSONString should deserialize to Any`() {
+        val json = JSONString("Hello!")
+        expect("Hello!") { JSONDeserializer.deserialize(Any::class, json) }
+    }
+
+    @Test fun `JSONBoolean should deserialize to Any`() {
+        val json1 = JSONBoolean.TRUE
+        val result1 = JSONDeserializer.deserialize(Any::class, json1)
+        assertTrue(result1 is Boolean && result1)
+        val json2 = JSONBoolean.FALSE
+        val result2 = JSONDeserializer.deserialize(Any::class, json2)
+        assertTrue(result2 is Boolean && !result2)
+    }
+
+    @Test fun `JSONInt should deserialize to Any`() {
+        val json = JSONInt(123456)
+        expect(123456) { JSONDeserializer.deserialize(Any::class, json) }
+    }
+
+    @Test fun `JSONLong should deserialize to Any`() {
+        val json = JSONLong(1234567890123456L)
+        expect(1234567890123456L) { JSONDeserializer.deserialize(Any::class, json) }
+    }
+
+    @Test fun `JSONFloat should deserialize to Any`() {
+        val json = JSONFloat(0.12345F)
+        expect(0.12345F) { JSONDeserializer.deserialize(Any::class, json) }
+    }
+
+    @Test fun `JSONDouble should deserialize to Any`() {
+        val json = JSONDouble(0.123456789)
+        expect(0.123456789) { JSONDeserializer.deserialize(Any::class, json) }
+    }
+
+    @Test fun `JSONZero should deserialize to Any`() {
+        val json = JSONZero()
+        expect(0) { JSONDeserializer.deserialize(Any::class, json) }
+    }
+
+    @Test fun `JSONArray should deserialize to Any`() {
+        val json = JSONArray().addValue("abcde").addValue("fghij")
+        expect(listOf("abcde", "fghij")) { JSONDeserializer.deserialize(Any::class, json) }
+    }
+
+    @Test fun `JSONObject should deserialize to Any`() {
+        val json = JSONObject().putValue("aaa", 1234).putValue("bbb", 5678)
+        val expected: Map<String, Int>? = mapOf("aaa" to 1234, "bbb" to 5678)
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    private fun <T>  sequenceEquals(seq1: Sequence<T>, seq2: Sequence<T>) = seq1.toList() == seq2.toList()
+
+    private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY,
+            Calendar.MINUTE, Calendar.SECOND, Calendar.MILLISECOND, Calendar.ZONE_OFFSET)
 
     private fun calendarEquals(a: Calendar, b: Calendar): Boolean {
         for (field in calendarFields)
             if (a.get(field) != b.get(field))
-                return false
-        return true
-    }
-
-    private fun deepEquals(a: BooleanArray, b: BooleanArray?): Boolean {
-        if (b == null || a.size != b.size)
-            return false
-        for (i in 0 until a.size)
-            if (a[i] != b[i])
-                return false
-        return true
-    }
-
-    private fun deepEquals(a: ByteArray, b: ByteArray?): Boolean {
-        if (b == null || a.size != b.size)
-            return false
-        for (i in 0 until a.size)
-            if (a[i] != b[i])
-                return false
-        return true
-    }
-
-    private fun deepEquals(a: CharArray, b: CharArray?): Boolean {
-        if (b == null || a.size != b.size)
-            return false
-        for (i in 0 until a.size)
-            if (a[i] != b[i])
-                return false
-        return true
-    }
-
-    private fun deepEquals(a: DoubleArray, b: DoubleArray?): Boolean {
-        if (b == null || a.size != b.size)
-            return false
-        for (i in 0 until a.size)
-            if (a[i] != b[i])
-                return false
-        return true
-    }
-
-    private fun deepEquals(a: FloatArray, b: FloatArray?): Boolean {
-        if (b == null || a.size != b.size)
-            return false
-        for (i in 0 until a.size)
-            if (a[i] != b[i])
-                return false
-        return true
-    }
-
-    private fun deepEquals(a: IntArray, b: IntArray?): Boolean {
-        if (b == null || a.size != b.size)
-            return false
-        for (i in 0 until a.size)
-            if (a[i] != b[i])
-                return false
-        return true
-    }
-
-    private fun deepEquals(a: LongArray, b: LongArray?): Boolean {
-        if (b == null || a.size != b.size)
-            return false
-        for (i in 0 until a.size)
-            if (a[i] != b[i])
-                return false
-        return true
-    }
-
-    private fun deepEquals(a: ShortArray, b: ShortArray?): Boolean {
-        if (b == null || a.size != b.size)
-            return false
-        for (i in 0 until a.size)
-            if (a[i] != b[i])
                 return false
         return true
     }
