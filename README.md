@@ -93,9 +93,9 @@ inferred; the `as` expression is needed because `KType` does not convey inferred
 
 ### Annotations
 
-When serializing or deserializing a Kotlin object object, the property name discovered by reflection will be used as the
-name in the JSON object.
-An alternative name may be specified if required, by the use the the `@JSONName` annotation:
+When serializing or deserializing a Kotlin  object, the property name discovered by reflection will be used as the name
+in the JSON object.
+An alternative name may be specified if required, by the use of the `@JSONName` annotation:
 ```kotlin
     data class Example(val abc: String, @JSONName("xyz") val def: Int)
 ```
@@ -106,8 +106,16 @@ serialisation:
     data class Example(val abc: String, @Ignore val def: Int)
 ```
 
+If you have classes that already contain contain annotations for the same purpose, you can tell `json-kotlin` to use
+those annotations by specifying them in a `JSONConfig`:
+```kotlin
+    val config = JSONConfig()
+    config.addNameAnnotation(MyName::class, "name")
+    config.addIgnoreAnnotation(MyIgnore::class)
+```
+(see the KDoc or source for more details).
 
-The `@JSONName` annotation can be used to specify the name to be used when 
+The `JSONConfig` may be supplied as an optional final argument on most `json-kotlin` function calls.
 
 ## More Detail
 
@@ -125,24 +133,24 @@ unit test classes.
 
 ## Dependency Specification
 
-The latest version of the library is 0.9, and it may be found the the Maven Central repository.
+The latest version of the library is 1.0, and it may be found the the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>0.9</version>
+      <version>1.0</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation "net.pwall.json:json-kotlin:0.9"
+    implementation "net.pwall.json:json-kotlin:1.0"
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:0.9")
+    implementation("net.pwall.json:json-kotlin:1.0")
 ```
 
 Peter Wall
-2019-07-18
+2019-10-08
