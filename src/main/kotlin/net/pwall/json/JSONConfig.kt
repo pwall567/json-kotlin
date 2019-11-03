@@ -28,9 +28,11 @@ package net.pwall.json
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
+import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.isSuperclassOf
+import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.isSupertypeOf
-import kotlin.reflect.full.starProjectedType
 
 import net.pwall.json.annotation.JSONIgnore
 import net.pwall.json.annotation.JSONName
@@ -48,9 +50,9 @@ class JSONConfig {
     /** Character set (for `json-ktor' and  `json-ktor-client' */
     var charset = defaultCharset
 
-    private val fromJSONMap: MutableMap<KType, (JSONValue?) -> Any?> = HashMap()
+    private val fromJSONMap: MutableMap<KType, FromJSONMapping> = LinkedHashMap()
 
-    private val toJSONMap: MutableMap<KType, (Any?) -> JSONValue?> = HashMap()
+    private val toJSONMap: MutableMap<KType, ToJSONMapping> = LinkedHashMap()
 
     private val nameAnnotations: MutableList<Pair<KClass<*>, KProperty.Getter<String>>> =
             arrayListOf(namePropertyPair(JSONName::class, "name"))
@@ -58,30 +60,79 @@ class JSONConfig {
     private val ignoreAnnotations: MutableList<KClass<*>> = arrayListOf(JSONIgnore::class, Transient::class)
 
     /**
-     * Get a `fromJSON` mapping function for the specified [KType].
+     * Find a `fromJSON` mapping function that will create the specified [KType], or the closest subtype of it.
      *
      * @param   type    the target type
      * @return          the mapping function, or `null` if not found
      */
-    fun getFromJSONMapping(type: KType): ((JSONValue?) -> Any?)? = fromJSONMap[type]
+    fun findFromJSONMapping(type: KType): FromJSONMapping? {
+        var best: Map.Entry<KType, FromJSONMapping>? = null
+        fromJSONMap.entries.forEach { entry ->
+            if (entry.key.isSubtypeOf(type) && best.let { it == null || it.key.isSubtypeOf(entry.key) })
+                best = entry
+        }
+        return best?.value
+    }
 
     /**
-     * Get a `toJSON` mapping function for the specified [KType].
+     * Find a `fromJSON` mapping function that will create the specified [KClass], or the closest subclass of it.
+     *
+     * @param   targetClass the target class
+     * @return              the mapping function, or `null` if not found
+     */
+    fun findFromJSONMapping(targetClass: KClass<*>): FromJSONMapping? {
+        var best: KClass<*>? = null
+        var nullable = false
+        var result: FromJSONMapping? = null
+        fromJSONMap.entries.forEach { entry ->
+            val classifier = entry.key.classifier as KClass<*>
+            if (classifier.isSubclassOf(targetClass) && best.let {
+                        it == null ||
+                                if (it == classifier) !nullable else it.isSubclassOf(classifier) }) {
+                best = classifier
+                nullable = entry.key.isMarkedNullable
+                result = entry.value
+            }
+        }
+        return result
+    }
+
+    /**
+     * Find a `toJSON` mapping function that will accept the specified [KType], or the closest supertype of it.
      *
      * @param   type    the source type
      * @return          the mapping function, or `null` if not found
      */
-    fun getToJSONMapping(type: KType): ((Any?) -> JSONValue?)? = toJSONMap[type]
+    fun findToJSONMapping(type: KType): ToJSONMapping? {
+        var best: Map.Entry<KType, ToJSONMapping>? = null
+        toJSONMap.entries.forEach { entry ->
+            if (entry.key.isSupertypeOf(type) && best.let { it == null || it.key.isSupertypeOf(entry.key) })
+                best = entry
+        }
+        return best?.value
+    }
 
     /**
-     * Find a `toJSON` mapping function that will accept the specified type, or any supertype of it.
+     * Find a `toJSON` mapping function that will accept the specified [KClass], or the closest superclass of it.
      *
-     * @param   type    the source type
-     * @return          the mapping function, or `null` if not found
+     * @param   sourceClass the source class
+     * @return              the mapping function, or `null` if not found
      */
-    fun findToJSONMapping(type: KType): ((Any?) -> JSONValue?)? {
-        val match = toJSONMap.keys.find { it.isSupertypeOf(type) } ?: return null
-        return toJSONMap[match]
+    fun findToJSONMapping(sourceClass: KClass<*>): ToJSONMapping? {
+        var best: KClass<*>? = null
+        var nullable = false
+        var result: ToJSONMapping? = null
+        toJSONMap.entries.forEach { entry ->
+            val classifier = entry.key.classifier as KClass<*>
+            if (classifier.isSuperclassOf(sourceClass) && best.let {
+                        it == null ||
+                                if (it == classifier) nullable else it.isSuperclassOf(classifier) }) {
+                best = classifier
+                nullable = entry.key.isMarkedNullable
+                result = entry.value
+            }
+        }
+        return result
     }
 
     /**
@@ -91,8 +142,31 @@ class JSONConfig {
      * @param   mapping the mapping function
      * @return          the `JSONConfig` object (for chaining)
      */
-    fun fromJSON(type: KType, mapping: (JSONValue?) -> Any?): JSONConfig {
+    fun fromJSON(type: KType, mapping: FromJSONMapping): JSONConfig {
         fromJSONMap[type] = mapping
+        return this
+    }
+
+    /**
+     * Add custom mapping from JSON to the specified type, using a constructor that takes a single [String] parameter.
+     *
+     * @param   type    the target type
+     * @return          the `JSONConfig` object (for chaining)
+     */
+    fun fromJSONString(type: KType): JSONConfig { // same for fromJSONInt? (no symmetrical equivalent)
+        fromJSONMap[type] = { json ->
+            when (json) {
+                null -> if (type.isMarkedNullable) null else throw JSONException("Can't deserialize null as $type")
+                is JSONString -> {
+                    val resultClass = type.classifier as? KClass<*> ?: throw JSONException("Can't deserialize $type")
+                    val constructor = resultClass.constructors.find {
+                        it.parameters.size == 1 && it.parameters[0].type == stringType
+                    }
+                    constructor?.call(json.toString()) ?: throw JSONException("Can't deserialize $type")
+                }
+                else -> throw JSONException("Can't deserialize ${json::class.simpleName} as $type")
+            }
+        }
         return this
     }
 
@@ -103,8 +177,19 @@ class JSONConfig {
      * @param   mapping the mapping function
      * @return          the `JSONConfig` object (for chaining)
      */
-    fun toJSON(type: KType, mapping: (Any?) -> JSONValue?): JSONConfig {
+    fun toJSON(type: KType, mapping: ToJSONMapping): JSONConfig {
         toJSONMap[type] = mapping
+        return this
+    }
+
+    /**
+     * Add custom mapping from a specified type to JSON using the `toString()` function to create a JSON string.
+     *
+     * @param   type    the source type
+     * @return          the `JSONConfig` object (for chaining)
+     */
+    fun toJSONString(type: KType): JSONConfig {
+        toJSONMap[type] = { obj -> obj?.let { JSONString(it.toString())} }
         return this
     }
 
@@ -115,8 +200,16 @@ class JSONConfig {
      * @param   T       the type to be mapped
      * @return          the `JSONConfig` object (for chaining)
      */
-    inline fun <reified T: Any> fromJSON(noinline mapping: (JSONValue?) -> T?) =
-            fromJSON(T::class.starProjectedType, mapping)
+    inline fun <reified T: Any> fromJSON(noinline mapping: (JSONValue?) -> T?): JSONConfig =
+            fromJSON(T::class.createType(nullable = false), mapping)
+
+    /**
+     * Add custom mapping from JSON to the inferred type, using a constructor that takes a single [String] parameter.
+     *
+     * @param   T       the type to be mapped
+     * @return          the `JSONConfig` object (for chaining)
+     */
+    inline fun <reified T: Any> fromJSONString(): JSONConfig = fromJSONString(T::class.createType(nullable = false))
 
     /**
      * Add custom mapping from an inferred type to JSON.
@@ -125,8 +218,16 @@ class JSONConfig {
      * @param   T       the type to be mapped
      * @return          the `JSONConfig` object (for chaining)
      */
-    inline fun <reified T: Any> toJSON(noinline mapping: (T?) -> JSONValue?) =
-            toJSON(T::class.starProjectedType) { mapping(it as T?) }
+    inline fun <reified T: Any> toJSON(noinline mapping: (T?) -> JSONValue?): JSONConfig =
+            toJSON(T::class.createType(nullable = true)) { mapping(it as T?) }
+
+    /**
+     * Add custom mapping from an inferred type to JSON using the `toString()` function to create a JSON string.
+     *
+     * @param   T       the type to be mapped
+     * @return          the `JSONConfig` object (for chaining)
+     */
+    inline fun <reified T: Any> toJSONString(): JSONConfig = toJSONString(T::class.createType(nullable = true))
 
     /**
      * Add an annotation specification to the list of annotations that specify the name to be used when serializing or
@@ -151,12 +252,12 @@ class JSONConfig {
     private fun <T: Annotation> findAnnotationStringProperty(annotationClass: KClass<T>, argumentName: String):
             KProperty<String> {
         annotationClass.members.forEach {
-            if (it is KProperty<*> && it.name == argumentName && it.returnType == String::class.starProjectedType) {
+            if (it is KProperty<*> && it.name == argumentName && it.returnType == stringType) {
                 return it as KProperty<String>
             }
         }
         throw IllegalArgumentException(
-                "Annotation class ${annotationClass.simpleName} does not have a String property $argumentName")
+                "Annotation class ${annotationClass.simpleName} does not have a String property \"$argumentName\"")
     }
 
     /**
@@ -233,6 +334,8 @@ class JSONConfig {
     }
 
     companion object {
+
+        val stringType = String::class.createType()
 
         const val defaultBufferSize = DEFAULT_BUFFER_SIZE
 

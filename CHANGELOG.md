@@ -2,6 +2,19 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [1.1] - 2019-11-03
+### Changed
+- Updated version to 1.0
+- `JSONConfig`: improved selection of custom serialization and deserialization functions
+- `JSONConfig`: added shortcut  custom serialization / deserialization functions using `toString()` and constructor
+  taking `String` parameter
+- `JSONDeserializer`: changed to use new custom serialization and deserialization functions
+- `JSONSerializer`: changed to use new custom serialization and deserialization functions
+- Several: added more KDoc
+
+### Added
+- `JSONJava`: to access Kotlin serialization and deserialization from Java
+
 ## [1.0] - 2019-10-08
 ### Changed
 - Updated version to 1.0

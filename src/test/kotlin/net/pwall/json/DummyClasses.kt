@@ -25,9 +25,10 @@
 
 package net.pwall.json
 
+import java.time.LocalDate
+
 import net.pwall.json.annotation.JSONIgnore
 import net.pwall.json.annotation.JSONName
-import java.time.LocalDate
 
 data class Dummy1(val field1: String, val field2: Int = 999)
 
@@ -68,6 +69,7 @@ data class DummyFromJSON(val int1: Int) {
 
 }
 
+@Suppress("unused")
 enum class DummyEnum { ALPHA, BETA, GAMMA }
 
 open class Super {
@@ -119,6 +121,7 @@ data class DummyAnnoData(val field1: String, @JSONName("fieldX") val field2: Int
 
 @Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.RUNTIME)
+@Suppress("unused")
 annotation class CustomName(val symbol: String)
 
 data class DummyCustomAnnoData(val field1: String, @CustomName("fieldX") val field2: Int)
@@ -127,12 +130,14 @@ interface DummyInterface
 
 object DummyObject : DummyInterface {
 
+    @Suppress("unused")
     val field1: String = "abc"
 
 }
 
 class NestedDummy {
 
+    @Suppress("unused")
     val obj = DummyObject
 
 }
@@ -154,3 +159,19 @@ class DummyWithVal {
 class DummyList(content: List<LocalDate>) : ArrayList<LocalDate>(content)
 
 class DummyMap(content: Map<String, LocalDate>) : HashMap<String, LocalDate>(content)
+
+open class DummyA
+
+open class DummyB : DummyA()
+
+open class DummyC : DummyB()
+
+class DummyD : DummyC()
+
+data class Dummy9(val str: String) {
+
+    override fun toString(): String {
+        return str
+    }
+
+}
