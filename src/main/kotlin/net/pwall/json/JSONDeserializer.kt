@@ -80,7 +80,7 @@ object JSONDeserializer {
      * @return              the converted object
      */
     fun deserialize(resultType: KType, json: JSONValue?, config: JSONConfig = JSONConfig.defaultConfig): Any? {
-        config.getFromJSONMapping(resultType)?.let { return it(json) }
+        config.findFromJSONMapping(resultType)?.let { return it(json) }
         if (json == null) {
             if (!resultType.isMarkedNullable)
                 throw JSONException("Can't deserialize null as $resultType")
@@ -95,10 +95,13 @@ object JSONDeserializer {
      *
      * @param   resultClass the target class
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @param   T           the target class
      * @return              the converted object
      */
+    @Suppress("UNCHECKED_CAST")
     fun <T: Any> deserialize(resultClass: KClass<T>, json: JSONValue?,
             config: JSONConfig = JSONConfig.defaultConfig): T? {
+        config.findFromJSONMapping(resultClass)?.let { return it(json) as T }
         if (json == null)
             return null
         return deserialize(resultClass, emptyList(), json, config)
@@ -109,10 +112,13 @@ object JSONDeserializer {
      *
      * @param   resultClass the target class
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @param   T           the target class
      * @return              the converted object
      */
+    @Suppress("UNCHECKED_CAST")
     fun <T: Any> deserializeNonNull(resultClass: KClass<T>, json: JSONValue?,
             config: JSONConfig = JSONConfig.defaultConfig): T {
+        config.findFromJSONMapping(resultClass)?.let { return it(json) as T }
         if (json == null)
             throw JSONException("Can't deserialize null as ${resultClass.simpleName}")
         return deserialize(resultClass, emptyList(), json, config)
@@ -147,6 +153,7 @@ object JSONDeserializer {
      * @param   types       the [KTypeProjection]s
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
      * @param   config      an optional [JSONConfig]
+     * @param   T           the target class
      * @return              the converted object
      */
     @Suppress("UNCHECKED_CAST")
@@ -565,6 +572,13 @@ object JSONDeserializer {
     private fun KFunction<*>.hasSingleParameter(paramClass: KClass<*>) =
             parameters.size == 1 && parameters[0].type.classifier == paramClass
 
+    /**
+     * Deserialize a parsed [JSONValue] to a specified [KClass].
+     *
+     * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @param   T           the target class
+     * @return              the converted object
+     */
     inline fun <reified T: Any> deserialize(json: JSONValue): T? = deserialize(T::class, json)
 
 }

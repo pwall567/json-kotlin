@@ -35,7 +35,20 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.WildcardType
 
+/**
+ * Type alias for `JSONInt` to make it closer to Kotlin standard class names.
+ */
 typealias JSONInt = JSONInteger
+
+/**
+ * Type alias to simplify the definition of `fromJSON` mapping functions.
+ */
+typealias FromJSONMapping = (JSONValue?) -> Any?
+
+/**
+ * Type alias to simplify the definition of `toJSON` mapping functions.
+ */
+typealias ToJSONMapping = (Any?) -> JSONValue?
 
 /**
  * Convert a [CharSequence] ([String], [StringBuilder] etc.) to a [JSONValue].
@@ -224,6 +237,7 @@ fun CharSequence.parseJSON(resultType: KType, config: JSONConfig = JSONConfig.de
  * @receiver            the JSON in string form
  * @param   resultClass the target class
  * @param   config      an optional [JSONConfig] to customise the conversion
+ * @param   T           the target class
  * @return              the converted object
  */
 fun <T: Any> CharSequence.parseJSON(resultClass: KClass<T>, config: JSONConfig = JSONConfig.defaultConfig): T? =
@@ -234,6 +248,7 @@ fun <T: Any> CharSequence.parseJSON(resultClass: KClass<T>, config: JSONConfig =
  *
  * @receiver        the JSON in string form
  * @param   config  an optional [JSONConfig] to customise the conversion
+ * @param   T           the target class
  * @return          the converted object
  */
 inline fun <reified T: Any> CharSequence.parseJSON(config: JSONConfig = JSONConfig.defaultConfig): T? =
@@ -266,11 +281,12 @@ fun targetKType(mainClass: KClass<*>, vararg paramClasses: KClass<*>, nullable: 
  * This function is not complete, but with any luck it will cover the great majority of usages.
  *
  * @receiver    the Java [Type] to be converted
+ * @param       nullable    `true` if the [KType] is to be nullable
  * @return      the resulting Kotlin [KType]
  * @throws      JSONException if the [Type] can not be converted
  */
-fun Type.toKType(): KType = when (this) {
-    is Class<*> -> this.kotlin.starProjectedType
+fun Type.toKType(nullable: Boolean = false): KType = when (this) {
+    is Class<*> -> this.kotlin.createType(nullable = nullable)
     is ParameterizedType -> (this.rawType as Class<*>).kotlin.createType(this.actualTypeArguments.map {
         when (it) {
             is WildcardType ->
@@ -279,6 +295,6 @@ fun Type.toKType(): KType = when (this) {
                 else
                     KTypeProjection.contravariant((it.lowerBounds[0] as Class<*>).kotlin.starProjectedType)
             else -> KTypeProjection.invariant(it.toKType())
-        } })
+        } }, nullable)
     else -> throw JSONException("Can't handle type: $this")
 }

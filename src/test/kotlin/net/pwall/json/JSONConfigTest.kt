@@ -26,23 +26,26 @@
 package net.pwall.json
 
 import kotlin.reflect.full.createType
-import kotlin.reflect.full.starProjectedType
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.expect
 import kotlin.test.Test
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class JSONConfigTest {
 
-    private val stringType = String::class.starProjectedType
+    private val stringType = String::class.createType()
 
     @Test fun `add fromJSON mapping should return the function`() {
         val config = JSONConfig()
         expect(8192) { config.readBufferSize }
         expect(Charsets.UTF_8) { config.charset }
-        assertNull(config.getFromJSONMapping(stringType))
+        assertNull(config.findFromJSONMapping(stringType))
+        assertNull(config.findFromJSONMapping(String::class))
         config.fromJSON { json -> json?.toString() }
-        assertNotNull(config.getFromJSONMapping(stringType))
+        assertNotNull(config.findFromJSONMapping(stringType))
+        assertNotNull(config.findFromJSONMapping(String::class))
     }
 
     @Test fun `fromJSON mapping should map simple data class`() {
@@ -70,9 +73,11 @@ class JSONConfigTest {
 
     @Test fun `add toJSON mapping should return the function`() {
         val config = JSONConfig()
-        assertNull(config.getToJSONMapping(stringType))
+        assertNull(config.findToJSONMapping(stringType))
+        assertNull(config.findToJSONMapping(String::class))
         config.toJSON<String> { str -> JSONString(str ?: throw JSONException("String expected")) }
-        assertNotNull(config.getToJSONMapping(stringType))
+        assertNotNull(config.findToJSONMapping(stringType))
+        assertNotNull(config.findToJSONMapping(String::class))
     }
 
     @Test fun `toJSON mapping should map simple data class`() {
@@ -121,6 +126,85 @@ class JSONConfigTest {
         expect(JSONObject().putValue("field1", "abc").putValue("fieldX", 123)) {
             JSONSerializer.serialize(obj, config2)
         }
+    }
+
+    @Test fun `toJSON mapping of nullable type should be selected correctly`() {
+        val config = JSONConfig().toJSON(Dummy1::class.createType(nullable = true)) { JSONString("A") }
+        expect(JSONString("A")) { JSONSerializer.serialize(Dummy1("X", 0), config) }
+    }
+
+    @Test fun `toJSON mapping of non-nullable type should be selected correctly`() {
+        val config = JSONConfig().toJSON(Dummy1::class.createType(nullable = false)) { JSONString("A") }
+        expect(JSONString("A")) { JSONSerializer.serialize(Dummy1("X", 0), config) }
+    }
+
+    @Test fun `toJSON mapping should select correct function among derived classes`() {
+        val config = JSONConfig().toJSON<DummyA> { JSONString("A") }.toJSON<DummyB> { JSONString("B") }.
+                toJSON<DummyC> { JSONString("C") }.toJSON<DummyD> { JSONString("D") }
+        expect(JSONString("A")) { JSONSerializer.serialize(DummyA(), config)}
+        expect(JSONString("B")) { JSONSerializer.serialize(DummyB(), config)}
+        expect(JSONString("C")) { JSONSerializer.serialize(DummyC(), config)}
+        expect(JSONString("D")) { JSONSerializer.serialize(DummyD(), config)}
+    }
+
+    @Test fun `toJSON mapping should select correct function when order is reversed`() {
+        val config = JSONConfig().toJSON<DummyD> { JSONString("D") }.toJSON<DummyC> { JSONString("C") }.
+                toJSON<DummyB> { JSONString("B") }.toJSON<DummyA> { JSONString("A") }
+        expect(JSONString("A")) { JSONSerializer.serialize(DummyA(), config)}
+        expect(JSONString("B")) { JSONSerializer.serialize(DummyB(), config)}
+        expect(JSONString("C")) { JSONSerializer.serialize(DummyC(), config)}
+        expect(JSONString("D")) { JSONSerializer.serialize(DummyD(), config)}
+    }
+
+    @Test fun `toJSON mapping should select correct function when exact match not present`() {
+        val config = JSONConfig().toJSON<DummyA> { JSONString("A") }.toJSON<DummyB> { JSONString("B") }.
+                toJSON<DummyC> { JSONString("C") }
+        expect(JSONString("A")) { JSONSerializer.serialize(DummyA(), config)}
+        expect(JSONString("B")) { JSONSerializer.serialize(DummyB(), config)}
+        expect(JSONString("C")) { JSONSerializer.serialize(DummyC(), config)}
+        expect(JSONString("C")) { JSONSerializer.serialize(DummyD(), config)}
+    }
+
+    @Test fun `fromJSON mapping should select correct function among derived classes`() {
+        val config = JSONConfig().fromJSON { if (it == JSONString("A")) DummyA() else fail() }.
+                fromJSON { if (it == JSONString("B")) DummyB() else fail() }.
+                fromJSON { if (it == JSONString("C")) DummyC() else fail() }.
+                fromJSON { if (it == JSONString("D")) DummyD() else fail() }
+        assertTrue(JSONDeserializer.deserialize(DummyA::class.createType(), JSONString("A"), config) is DummyA)
+        assertTrue(JSONDeserializer.deserialize(DummyB::class.createType(), JSONString("B"), config) is DummyB)
+        assertTrue(JSONDeserializer.deserialize(DummyC::class.createType(), JSONString("C"), config) is DummyC)
+        assertTrue(JSONDeserializer.deserialize(DummyD::class.createType(), JSONString("D"), config) is DummyD)
+    }
+
+    @Test fun `fromJSON mapping should select correct function when order is reversed`() {
+        val config = JSONConfig().fromJSON { if (it == JSONString("D")) DummyD() else fail() }.
+                fromJSON { if (it == JSONString("C")) DummyC() else fail() }.
+                fromJSON { if (it == JSONString("B")) DummyB() else fail() }.
+                fromJSON { if (it == JSONString("A")) DummyA() else fail() }
+        assertTrue(JSONDeserializer.deserialize(DummyA::class.createType(), JSONString("A"), config) is DummyA)
+        assertTrue(JSONDeserializer.deserialize(DummyB::class.createType(), JSONString("B"), config) is DummyB)
+        assertTrue(JSONDeserializer.deserialize(DummyC::class.createType(), JSONString("C"), config) is DummyC)
+        assertTrue(JSONDeserializer.deserialize(DummyD::class.createType(), JSONString("D"), config) is DummyD)
+    }
+
+    @Test fun `fromJSON mapping should select correct function when exact match not present`() {
+        val config = JSONConfig().fromJSON { if (it == JSONString("B")) DummyB() else fail() }.
+                fromJSON { if (it == JSONString("C")) DummyC() else fail() }.
+                fromJSON { if (it == JSONString("D")) DummyD() else fail() }
+        assertTrue(JSONDeserializer.deserialize(DummyA::class.createType(), JSONString("B"), config) is DummyB)
+        assertTrue(JSONDeserializer.deserialize(DummyB::class.createType(), JSONString("B"), config) is DummyB)
+        assertTrue(JSONDeserializer.deserialize(DummyC::class.createType(), JSONString("C"), config) is DummyC)
+        assertTrue(JSONDeserializer.deserialize(DummyD::class.createType(), JSONString("D"), config) is DummyD)
+    }
+
+    @Test fun `toJSON mapping with JSONConfig toJSONString should use toString`() {
+        val config = JSONConfig().toJSONString<Dummy9>()
+        expect(JSONString("abcdef")) { JSONSerializer.serialize(Dummy9("abcdef"), config) }
+    }
+
+    @Test fun `fromJSON mapping with JSONConfig fromJSONString should use String constructor`() {
+        val config = JSONConfig().fromJSONString<Dummy9>()
+        expect(Dummy9("abcdef")) { JSONDeserializer.deserialize(JSONString("abcdef"), config) }
     }
 
 }

@@ -32,7 +32,6 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.staticProperties
 import kotlin.reflect.jvm.isAccessible
 
@@ -70,7 +69,7 @@ object JSONSerializer {
         if (obj == null)
             return null
 
-        config.findToJSONMapping(obj::class.starProjectedType)?.let { return it(obj) }
+        config.findToJSONMapping(obj::class)?.let { return it(obj) }
 
         when (obj) {
 

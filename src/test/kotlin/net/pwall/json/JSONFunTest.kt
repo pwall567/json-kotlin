@@ -25,14 +25,14 @@
 
 package net.pwall.json
 
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.full.createType
 import kotlin.reflect.full.starProjectedType
 import kotlin.test.assertNull
 import kotlin.test.expect
 import kotlin.test.Test
 
 import java.lang.reflect.Type
-import kotlin.reflect.KTypeProjection
-import kotlin.reflect.full.createType
 
 class JSONFunTest {
 

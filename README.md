@@ -93,7 +93,7 @@ inferred; the `as` expression is needed because `KType` does not convey inferred
 
 ### Annotations
 
-When serializing or deserializing a Kotlin  object, the property name discovered by reflection will be used as the name
+When serializing or deserializing a Kotlin object, the property name discovered by reflection will be used as the name
 in the JSON object.
 An alternative name may be specified if required, by the use of the `@JSONName` annotation:
 ```kotlin
@@ -116,6 +116,18 @@ those annotations by specifying them in a `JSONConfig`:
 (see the KDoc or source for more details).
 
 The `JSONConfig` may be supplied as an optional final argument on most `json-kotlin` function calls.
+
+## Mixed Kotlin and Java
+
+If you need to serialize or deserialize a Kotlin class from Java, the `JSONJava` class provides this capability while
+still retaining all the Kotlin functionality, like Kotlin-specific classes and nullability checking:
+```java
+    String json = JSONJava.stringify(example);
+```
+Or:
+```Java
+    Example example = JSONJava.parse(Example.class, json);
+```
 
 ## More Detail
 
