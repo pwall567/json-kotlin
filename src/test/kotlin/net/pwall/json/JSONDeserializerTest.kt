@@ -785,6 +785,21 @@ class JSONDeserializerTest {
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
 
+    @Test fun `sealed class should deserialize to correct subclass`() {
+        val json = JSONObject().apply {
+            putValue("class", "Const")
+            putValue("number", 2.0)
+        }
+        expect (Const(2.0)) { JSONDeserializer.deserialize<Expr>(json) }
+    }
+
+    @Test fun `sealed class should deserialize to correct object subclass`() {
+        val json = JSONObject().apply {
+            putValue("class", "NotANumber")
+        }
+        expect (NotANumber) { JSONDeserializer.deserialize<Expr>(json) }
+    }
+
     private fun <T>  sequenceEquals(seq1: Sequence<T>, seq2: Sequence<T>) = seq1.toList() == seq2.toList()
 
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY,

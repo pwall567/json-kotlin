@@ -591,6 +591,21 @@ class JSONSerializerTest {
         expect(expected) { JSONSerializer.serialize(obj) }
     }
 
+    @Test fun `sealed class should serialize with extra member to indicate derived class`() {
+        val expected = JSONObject().apply {
+            putValue("class", "Const")
+            putValue("number", 2.0)
+        }
+        expect(expected) { JSONSerializer.serialize(Const(2.0)) }
+    }
+
+    @Test fun `sealed class object should serialize correctly`() {
+        val expected = JSONObject().apply {
+            putValue("class", "NotANumber")
+        }
+        expect(expected) { JSONSerializer.serialize(NotANumber) }
+    }
+
     private fun intEquals(a: Int, b: Int): Boolean {
         return a == b
     }

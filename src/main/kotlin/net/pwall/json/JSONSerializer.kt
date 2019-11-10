@@ -140,6 +140,9 @@ object JSONSerializer {
 
         val result = JSONObject()
         val objClass = obj::class
+        if (objClass.isSealedSubclass()) {
+            result["class"] = JSONString(objClass.simpleName)
+        }
         if (objClass.isData && objClass.constructors.isNotEmpty()) {
             // data classes will be a frequent use of serialization, so optimise for them
             val constructor = objClass.constructors.first()
@@ -169,6 +172,19 @@ object JSONSerializer {
             }
         }
         return result
+    }
+
+    private fun KClass<*>.isSealedSubclass(): Boolean {
+        supertypes.forEach {
+            (it.classifier as? KClass<*>)?.let { a ->
+                if (a.isSealed)
+                    return true
+                if (a != Any::class)
+                    if (a.isSealedSubclass())
+                        return true
+            }
+        }
+        return false
     }
 
     private fun invokeGetter(member: KProperty<*>, annotations: List<Annotation>?, obj: Any, result: JSONObject,

@@ -453,6 +453,17 @@ object JSONDeserializer {
                 return call(deserializeMap(LinkedHashMap(json.size), parameters[0].type.arguments, json, config))
             }
 
+            if (resultClass.isSealed) {
+                val subClassName = json["class"] as? JSONString ?:
+                        throw JSONException("Can't find class name for sealed class")
+                resultClass.sealedSubclasses.find { it.simpleName == subClassName.toString() }?.let {
+                    val newObject = JSONObject().apply {
+                        json.forEach { key: String -> if (key != "class") put(key, json[key]) }
+                    }
+                    return deserializeObject(it, types, newObject, config)
+                }
+            }
+
             resultClass.objectInstance?.let { return setRemainingFields(resultClass, it, json, config) }
 
             if (resultClass.isSuperclassOf(Map::class))
