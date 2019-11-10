@@ -112,11 +112,11 @@ public class JSONJava {
 
     @SuppressWarnings("unchecked")
     public static <T> void addToJSONMapping(JSONConfig config, Class<T> javaClass, ToJSONMapping<T> mapping) {
-        config.toJSON(JSONFunKt.toKType(javaClass, true), (ToJSONMapping<Object>)mapping);
+        config.toJSON(JSONFunKt.toKType(javaClass, false), (ToJSONMapping<Object>)mapping);
     }
 
     public static void addToJSONMapping(JSONConfig config, Type javaType, ToJSONMapping<Object> mapping) {
-        config.toJSON(JSONFunKt.toKType(javaType, true), mapping);
+        config.toJSON(JSONFunKt.toKType(javaType, false), mapping);
     }
 
     public static <T> void addFromJSONMapping(JSONConfig config, Class<T> javaClass, FromJSONMapping<T> mapping) {

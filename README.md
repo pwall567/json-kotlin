@@ -4,8 +4,7 @@ JSON serialization and deserialization for Kotlin
 
 ## Background
 
-This library provides JSON serialization and deserialization functionality for Kotlin using the pre-existing `jsonutil`
-Java library.
+This library provides JSON serialization and deserialization functionality for Kotlin.
 It uses Kotlin reflection to serialize and deserialize arbitrary objects, and it includes code to handle most of the
 Kotlin standard library classes.
 
@@ -112,20 +111,46 @@ those annotations by specifying them in a `JSONConfig`:
     val config = JSONConfig()
     config.addNameAnnotation(MyName::class, "name")
     config.addIgnoreAnnotation(MyIgnore::class)
+    val json = example.stringifyJSON(config)
 ```
-(see the KDoc or source for more details).
 
-The `JSONConfig` may be supplied as an optional final argument on most `json-kotlin` function calls.
+The `JSONConfig` may be supplied as an optional final argument on most `json-kotlin` function calls (see the KDoc or
+source for more details).
+
+### Custom Serialization
+
+The `JSONConfig` is also used to specify custom serialization:
+```kotlin
+    val config = JSONConfig().apply {
+        toJSON<Example> { obj ->
+            obj?.let {
+                JSONObject().apply {
+                    putValue("custom1", it.abc)
+                    putValue("custom2", it.def)
+                }
+            }
+        }
+    }
+```
+Or deserialization:
+```kotlin
+    val config = JSONConfig().apply {
+        fromJSON { json ->
+            require(json is JSONObject) { "Must be JSONObject" }
+            Example(json.getString("custom1"), json.getInt("custom2"))
+        }
+    }
+```
 
 ## Mixed Kotlin and Java
 
 If you need to serialize or deserialize a Kotlin class from Java, the `JSONJava` class provides this capability while
 still retaining all the Kotlin functionality, like Kotlin-specific classes and nullability checking:
-```java
+```
     String json = JSONJava.stringify(example);
 ```
 Or:
-```Java
+```
     Example example = JSONJava.parse(Example.class, json);
 ```
 

@@ -133,18 +133,28 @@ object JSONDeserializer {
      * @return              the converted object
      */
     fun deserialize(javaType: Type, json: JSONValue?, config: JSONConfig = JSONConfig.defaultConfig): Any? =
-            deserialize(javaType.toKType(), json, config)
+            deserialize(javaType.toKType(nullable = true), json, config)
 
     /**
-     * Deserialize a parsed [JSONValue] to an unspecified type.  Strings will be converted to `String`, numbers to
-     * `Int`, `Long` or `Double`, arrays to `ArrayList<Any?>` and objects to `LinkedHashMap<String, Any?>`.
+     * Deserialize a parsed [JSONValue] to an unspecified([Any]) type.  Strings will be converted to `String`, numbers
+     * to `Int`, `Long` or `Double`, arrays to `ArrayList<Any?>` and objects to `LinkedHashMap<String, Any?>`.
      *
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
      * @param   config      an optional [JSONConfig]
      * @return              the converted object
      */
-    fun deserialize(json: JSONValue?, config: JSONConfig = JSONConfig.defaultConfig): Any? =
+    fun deserializeAny(json: JSONValue?, config: JSONConfig = JSONConfig.defaultConfig): Any? =
             deserialize(anyQType, json, config)
+
+    /**
+     * Deserialize a parsed [JSONValue] to a specified [KClass].
+     *
+     * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @param   T           the target class
+     * @return              the converted object
+     */
+    inline fun <reified T: Any> deserialize(json: JSONValue, config: JSONConfig = JSONConfig.defaultConfig): T? =
+            deserialize(T::class, json, config)
 
     /**
      * Deserialize a parsed [JSONValue] to a parameterized [KClass], with the specified [KTypeProjection]s.
@@ -571,14 +581,5 @@ object JSONDeserializer {
 
     private fun KFunction<*>.hasSingleParameter(paramClass: KClass<*>) =
             parameters.size == 1 && parameters[0].type.classifier == paramClass
-
-    /**
-     * Deserialize a parsed [JSONValue] to a specified [KClass].
-     *
-     * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
-     * @param   T           the target class
-     * @return              the converted object
-     */
-    inline fun <reified T: Any> deserialize(json: JSONValue): T? = deserialize(T::class, json)
 
 }

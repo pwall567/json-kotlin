@@ -81,6 +81,12 @@
       <artifactId>kotlin-test-junit</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>net.pwall.json</groupId>
+      <artifactId>json-kotlin-test-classes</artifactId>
+      <version>0.1</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

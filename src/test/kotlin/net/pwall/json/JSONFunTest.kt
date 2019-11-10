@@ -37,15 +37,19 @@ import java.lang.reflect.Type
 class JSONFunTest {
 
     @Test fun `makeJSON with asJSONValue should create the same JSONObject as explicit creation`() {
-        expect(JSONObject().putValue("testString", "xyz").putValue("testInt", 12345)) {
-            makeJSON("testString" to "xyz".asJSONValue(), "testInt" to 12345.asJSONValue())
+        val expected = JSONObject().apply {
+            putValue("testString", "xyz")
+            putValue("testInt", 12345)
         }
+        expect(expected) { makeJSON("testString" to "xyz".asJSONValue(), "testInt" to 12345.asJSONValue()) }
     }
 
     @Test fun `makeJSON with isJSON should create the same JSONObject as explicit creation`() {
-        expect(JSONObject().putValue("testString", "xyz").putValue("testInt", 12345)) {
-            makeJSON("testString" isJSON "xyz", "testInt" isJSON 12345)
+        val expected = JSONObject().apply {
+            putValue("testString", "xyz")
+            putValue("testInt", 12345)
         }
+        expect(expected) { makeJSON("testString" isJSON "xyz", "testInt" isJSON 12345) }
     }
 
     @Test fun `asJSONValue should correctly handle String`() {
@@ -161,7 +165,11 @@ class JSONFunTest {
 
     @Test fun `stringify should work on any object`() {
         val dummy1 = Dummy1("Hi there!", 888)
-        expect("""{"field1":"Hi there!","field2":888}""") { dummy1.stringifyJSON() }
+        val expected = JSONObject().apply {
+            putValue("field1", "Hi there!")
+            putValue("field2", 888)
+        }
+        expect(expected) { JSON.parse(dummy1.stringifyJSON()) }
     }
 
     @Test fun `stringify should work on null`() {
@@ -181,7 +189,10 @@ class JSONFunTest {
 
     @Test fun `targetKType should create correct type`() {
         val listStrings = listOf("abc", "def")
-        val jsonArrayString = JSONArray().addValue("abc").addValue("def")
+        val jsonArrayString = JSONArray().apply {
+            addValue("abc")
+            addValue("def")
+        }
         expect(listStrings) { JSONDeserializer.deserialize(targetKType(List::class, String::class), jsonArrayString) }
     }
 
