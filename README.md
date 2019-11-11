@@ -170,24 +170,24 @@ unit test classes.
 
 ## Dependency Specification
 
-The latest version of the library is 1.1, and it may be found the the Maven Central repository.
+The latest version of the library is 1.2, and it may be found the the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>1.1</version>
+      <version>1.2</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation "net.pwall.json:json-kotlin:1.1"
+    implementation "net.pwall.json:json-kotlin:1.2"
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:1.1")
+    implementation("net.pwall.json:json-kotlin:1.2")
 ```
 
 Peter Wall
-2019-11-03
+2019-11-11

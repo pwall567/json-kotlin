@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [1.2] - 2019-11-11
 ### Changed
 - `JSONSerializer`: Added serialization of sealed classes
 - `JSONDeserializer`: Added deserialization of sealed classes
