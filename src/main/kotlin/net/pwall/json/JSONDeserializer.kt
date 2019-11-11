@@ -453,15 +453,14 @@ object JSONDeserializer {
                 return call(deserializeMap(LinkedHashMap(json.size), parameters[0].type.arguments, json, config))
             }
 
+            val jsonCopy = JSONObject(json)
+
             if (resultClass.isSealed) {
-                val subClassName = json["class"] as? JSONString ?:
-                        throw JSONException("Can't find class name for sealed class")
-                resultClass.sealedSubclasses.find { it.simpleName == subClassName.toString() }?.let {
-                    val newObject = JSONObject().apply {
-                        json.forEach { key: String -> if (key != "class") put(key, json[key]) }
-                    }
-                    return deserializeObject(it, types, newObject, config)
-                }
+                val subClassName = (jsonCopy.remove("class") as? JSONString)?.toString() ?:
+                        throw JSONException("No class name for sealed class")
+                val subClass = resultClass.sealedSubclasses.find { it.simpleName == subClassName } ?:
+                        throw JSONException("Can't find named subclass for sealed class")
+                return deserializeObject(subClass, types, jsonCopy, config)
             }
 
             resultClass.objectInstance?.let { return setRemainingFields(resultClass, it, json, config) }
@@ -471,7 +470,6 @@ object JSONDeserializer {
 
             findBestConstructor(resultClass.constructors, json, config)?.let { constructor ->
                 val argMap = HashMap<KParameter, Any?>()
-                val jsonCopy = HashMap<String, JSONValue?>(json)
                 constructor.parameters.forEach { parameter ->
                     val paramName = findParameterName(parameter, config)
                     jsonCopy[paramName]?.let {
