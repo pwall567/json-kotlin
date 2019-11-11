@@ -2,6 +2,12 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [1.2] - 2019-11-11
+### Changed
+- `JSONSerializer`: Added serialization of sealed classes
+- `JSONDeserializer`: Added deserialization of sealed classes
+- Tests: switched to use of external repository (to avoid compilation order issues)
+
 ## [1.1] - 2019-11-03
 ### Changed
 - Updated version to 1.0

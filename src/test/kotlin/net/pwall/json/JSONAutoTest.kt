@@ -34,12 +34,18 @@ import java.lang.reflect.Type
 /**
  * Tests for [JSONAuto].  These tests are somewhat rudimentary because [JSONAuto] simply delegates requests to
  * [JSONSerializer] and [JSONDeserializer], and those classes are extensively tested separately.
+ *
+ * @author  Peter Wall
  */
 class JSONAutoTest {
 
     @Test fun `JSONAuto should correctly stringify an object`() {
         val obj = Dummy1("abdef", 54321)
-        expect("""{"field1":"abdef","field2":54321}""") { JSONAuto.stringify(obj) }
+        val expected = JSONObject().apply {
+            putValue("field1", "abdef")
+            putValue("field2", 54321)
+        }
+        expect(expected) { JSON.parse(JSONAuto.stringify(obj)) }
     }
 
     @Test fun `JSONAuto should parse a string to create an object`() {

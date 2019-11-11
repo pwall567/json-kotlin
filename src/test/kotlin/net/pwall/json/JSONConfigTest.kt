@@ -54,7 +54,10 @@ class JSONConfigTest {
                 throw JSONException("Must be JSONObject")
             Dummy1(json.getString("a"), json.getInt("b"))
         }
-        val json = JSONObject().putValue("a", "xyz").putValue("b", 888)
+        val json = JSONObject().apply {
+            putValue("a", "xyz")
+            putValue("b", 888)
+        }
         expect(Dummy1("xyz", 888)) { JSONDeserializer.deserialize(Dummy1::class.createType(), json, config) }
     }
 
@@ -64,8 +67,14 @@ class JSONConfigTest {
                 throw JSONException("Must be JSONObject")
             Dummy1(json.getString("a"), json.getInt("b"))
         }
-        val json1 = JSONObject().putValue("a", "xyz").putValue("b", 888)
-        val json2 = JSONObject().putJSON("dummy1", json1).putValue("text", "Hello!")
+        val json1 = JSONObject().apply {
+            putValue("a", "xyz")
+            putValue("b", 888)
+        }
+        val json2 = JSONObject().apply {
+            put("dummy1", json1)
+            putValue("text", "Hello!")
+        }
         expect(Dummy3(Dummy1("xyz", 888), "Hello!")) {
             JSONDeserializer.deserialize(Dummy3::class.createType(), json2, config)
         }
@@ -82,50 +91,83 @@ class JSONConfigTest {
 
     @Test fun `toJSON mapping should map simple data class`() {
         val config = JSONConfig().toJSON<Dummy1> { obj ->
-            obj?.let { JSONObject().putValue("a", it.field1).putValue("b", it.field2) }
+            obj?.let {
+                JSONObject().apply {
+                    putValue("a", it.field1)
+                    putValue("b", it.field2)
+                }
+            }
         }
-        expect(JSONObject().putValue("a", "xyz").putValue("b", 888)) {
-            JSONSerializer.serialize(Dummy1("xyz", 888), config)
+        val expected = JSONObject().apply {
+            putValue("a", "xyz")
+            putValue("b", 888)
         }
+        expect(expected) { JSONSerializer.serialize(Dummy1("xyz", 888), config) }
     }
 
     @Test fun `toJSON mapping should map nested class`() {
         val config = JSONConfig().toJSON<Dummy1> { obj ->
-            obj?.let { JSONObject().putValue("a", it.field1).putValue("b", it.field2) }
+            obj?.let {
+                JSONObject().apply {
+                    putValue("a", it.field1)
+                    putValue("b", it.field2)
+                }
+            }
         }
-        val dummy1 = JSONObject().putValue("a", "xyz").putValue("b", 888)
-        expect(JSONObject().putJSON("dummy1", dummy1).putValue("text", "Hi there!")) {
-            JSONSerializer.serialize(Dummy3(Dummy1("xyz", 888), "Hi there!"), config)
+        val dummy1 = JSONObject().apply {
+            putValue("a", "xyz")
+            putValue("b", 888)
         }
+        val expected = JSONObject().apply {
+            putJSON("dummy1", dummy1)
+            putValue("text", "Hi there!")
+        }
+        expect(expected) { JSONSerializer.serialize(Dummy3(Dummy1("xyz", 888), "Hi there!"), config) }
     }
 
     @Test fun `toJSON mapping should be transferred on combineMappings`() {
         val config = JSONConfig().toJSON<Dummy1> { obj ->
-            obj?.let { JSONObject().putValue("a", it.field1).putValue("b", it.field2) }
+            obj?.let {
+                JSONObject().apply {
+                    putValue("a", it.field1)
+                    putValue("b", it.field2)
+                }
+            }
         }
         val config2 = JSONConfig().combineMappings(config)
-        expect(JSONObject().putValue("a", "xyz").putValue("b", 888)) {
-            JSONSerializer.serialize(Dummy1("xyz", 888), config2)
+        val expected = JSONObject().apply {
+            putValue("a", "xyz")
+            putValue("b", 888)
         }
+        expect(expected) { JSONSerializer.serialize(Dummy1("xyz", 888), config2) }
     }
 
     @Test fun `toJSON mapping should be transferred on combineAll`() {
         val config = JSONConfig().toJSON<Dummy1> { obj ->
-            obj?.let { JSONObject().putValue("a", it.field1).putValue("b", it.field2) }
+            obj?.let {
+                JSONObject().apply {
+                    putValue("a", it.field1)
+                    putValue("b", it.field2)
+                }
+            }
         }
         val config2 = JSONConfig().combineAll(config)
-        expect(JSONObject().putValue("a", "xyz").putValue("b", 888)) {
-            JSONSerializer.serialize(Dummy1("xyz", 888), config2)
+        val expected = JSONObject().apply {
+            putValue("a", "xyz")
+            putValue("b", 888)
         }
+        expect(expected) { JSONSerializer.serialize(Dummy1("xyz", 888), config2) }
     }
 
     @Test fun `JSONName annotation should be transferred on combineAll`() {
-        val obj = DummyCustomAnnoData("abc", 123)
+        val obj = DummyWithCustomNameAnnotation("abc", 123)
         val config = JSONConfig().addNameAnnotation(CustomName::class, "symbol")
         val config2 = JSONConfig().combineAll(config)
-        expect(JSONObject().putValue("field1", "abc").putValue("fieldX", 123)) {
-            JSONSerializer.serialize(obj, config2)
+        val expected = JSONObject().apply {
+            putValue("field1", "abc")
+            putValue("fieldX", 123)
         }
+        expect(expected) { JSONSerializer.serialize(obj, config2) }
     }
 
     @Test fun `toJSON mapping of nullable type should be selected correctly`() {
@@ -139,8 +181,12 @@ class JSONConfigTest {
     }
 
     @Test fun `toJSON mapping should select correct function among derived classes`() {
-        val config = JSONConfig().toJSON<DummyA> { JSONString("A") }.toJSON<DummyB> { JSONString("B") }.
-                toJSON<DummyC> { JSONString("C") }.toJSON<DummyD> { JSONString("D") }
+        val config = JSONConfig().apply {
+            toJSON<DummyA> { JSONString("A") }
+            toJSON<DummyB> { JSONString("B") }
+            toJSON<DummyC> { JSONString("C") }
+            toJSON<DummyD> { JSONString("D") }
+        }
         expect(JSONString("A")) { JSONSerializer.serialize(DummyA(), config)}
         expect(JSONString("B")) { JSONSerializer.serialize(DummyB(), config)}
         expect(JSONString("C")) { JSONSerializer.serialize(DummyC(), config)}
@@ -148,8 +194,12 @@ class JSONConfigTest {
     }
 
     @Test fun `toJSON mapping should select correct function when order is reversed`() {
-        val config = JSONConfig().toJSON<DummyD> { JSONString("D") }.toJSON<DummyC> { JSONString("C") }.
-                toJSON<DummyB> { JSONString("B") }.toJSON<DummyA> { JSONString("A") }
+        val config = JSONConfig().apply {
+            toJSON<DummyD> { JSONString("D") }
+            toJSON<DummyC> { JSONString("C") }
+            toJSON<DummyB> { JSONString("B") }
+            toJSON<DummyA> { JSONString("A") }
+        }
         expect(JSONString("A")) { JSONSerializer.serialize(DummyA(), config)}
         expect(JSONString("B")) { JSONSerializer.serialize(DummyB(), config)}
         expect(JSONString("C")) { JSONSerializer.serialize(DummyC(), config)}
@@ -157,8 +207,11 @@ class JSONConfigTest {
     }
 
     @Test fun `toJSON mapping should select correct function when exact match not present`() {
-        val config = JSONConfig().toJSON<DummyA> { JSONString("A") }.toJSON<DummyB> { JSONString("B") }.
-                toJSON<DummyC> { JSONString("C") }
+        val config = JSONConfig().apply {
+            toJSON<DummyA> { JSONString("A") }
+            toJSON<DummyB> { JSONString("B") }
+            toJSON<DummyC> { JSONString("C") }
+        }
         expect(JSONString("A")) { JSONSerializer.serialize(DummyA(), config)}
         expect(JSONString("B")) { JSONSerializer.serialize(DummyB(), config)}
         expect(JSONString("C")) { JSONSerializer.serialize(DummyC(), config)}
@@ -166,10 +219,12 @@ class JSONConfigTest {
     }
 
     @Test fun `fromJSON mapping should select correct function among derived classes`() {
-        val config = JSONConfig().fromJSON { if (it == JSONString("A")) DummyA() else fail() }.
-                fromJSON { if (it == JSONString("B")) DummyB() else fail() }.
-                fromJSON { if (it == JSONString("C")) DummyC() else fail() }.
-                fromJSON { if (it == JSONString("D")) DummyD() else fail() }
+        val config = JSONConfig().apply {
+            fromJSON { if (it == JSONString("A")) DummyA() else fail() }
+            fromJSON { if (it == JSONString("B")) DummyB() else fail() }
+            fromJSON { if (it == JSONString("C")) DummyC() else fail() }
+            fromJSON { if (it == JSONString("D")) DummyD() else fail() }
+        }
         assertTrue(JSONDeserializer.deserialize(DummyA::class.createType(), JSONString("A"), config) is DummyA)
         assertTrue(JSONDeserializer.deserialize(DummyB::class.createType(), JSONString("B"), config) is DummyB)
         assertTrue(JSONDeserializer.deserialize(DummyC::class.createType(), JSONString("C"), config) is DummyC)
@@ -177,10 +232,12 @@ class JSONConfigTest {
     }
 
     @Test fun `fromJSON mapping should select correct function when order is reversed`() {
-        val config = JSONConfig().fromJSON { if (it == JSONString("D")) DummyD() else fail() }.
-                fromJSON { if (it == JSONString("C")) DummyC() else fail() }.
-                fromJSON { if (it == JSONString("B")) DummyB() else fail() }.
-                fromJSON { if (it == JSONString("A")) DummyA() else fail() }
+        val config = JSONConfig().apply {
+            fromJSON { if (it == JSONString("D")) DummyD() else fail() }
+            fromJSON { if (it == JSONString("C")) DummyC() else fail() }
+            fromJSON { if (it == JSONString("B")) DummyB() else fail() }
+            fromJSON { if (it == JSONString("A")) DummyA() else fail() }
+        }
         assertTrue(JSONDeserializer.deserialize(DummyA::class.createType(), JSONString("A"), config) is DummyA)
         assertTrue(JSONDeserializer.deserialize(DummyB::class.createType(), JSONString("B"), config) is DummyB)
         assertTrue(JSONDeserializer.deserialize(DummyC::class.createType(), JSONString("C"), config) is DummyC)
@@ -188,9 +245,11 @@ class JSONConfigTest {
     }
 
     @Test fun `fromJSON mapping should select correct function when exact match not present`() {
-        val config = JSONConfig().fromJSON { if (it == JSONString("B")) DummyB() else fail() }.
-                fromJSON { if (it == JSONString("C")) DummyC() else fail() }.
-                fromJSON { if (it == JSONString("D")) DummyD() else fail() }
+        val config = JSONConfig().apply {
+            fromJSON { if (it == JSONString("B")) DummyB() else fail() }
+            fromJSON { if (it == JSONString("C")) DummyC() else fail() }
+            fromJSON { if (it == JSONString("D")) DummyD() else fail() }
+        }
         assertTrue(JSONDeserializer.deserialize(DummyA::class.createType(), JSONString("B"), config) is DummyB)
         assertTrue(JSONDeserializer.deserialize(DummyB::class.createType(), JSONString("B"), config) is DummyB)
         assertTrue(JSONDeserializer.deserialize(DummyC::class.createType(), JSONString("C"), config) is DummyC)
@@ -204,7 +263,50 @@ class JSONConfigTest {
 
     @Test fun `fromJSON mapping with JSONConfig fromJSONString should use String constructor`() {
         val config = JSONConfig().fromJSONString<Dummy9>()
-        expect(Dummy9("abcdef")) { JSONDeserializer.deserialize(JSONString("abcdef"), config) }
+        expect(Dummy9("abcdef")) { JSONDeserializer.deserialize<Dummy9>(JSONString("abcdef"), config) }
+    }
+
+    @Test fun `multiple JSONConfig mappings using apply should work correctly`() {
+        val config = JSONConfig().apply {
+            toJSON<Dummy1> { obj ->
+                obj?.let {
+                    JSONObject().apply {
+                        putValue("a", it.field1)
+                        putValue("b", it.field2)
+                    }
+                }
+            }
+            fromJSON { json ->
+                require(json is JSONObject) { "Must be JSONObject" }
+                Dummy1(json.getString("a"), json.getInt("b"))
+            }
+            toJSON<Dummy3> { obj ->
+                obj?.let {
+                    JSONObject().let { json ->
+                        json["dummy1"] = JSONSerializer.serialize(it.dummy1, this)
+                        json.putValue("text", it.text)
+                    }
+                }
+            }
+            fromJSON { json ->
+                require(json is JSONObject) { "Must be JSONObject" }
+                Dummy3(JSONDeserializer.deserialize(json.getObject("dummy1"), this) ?: fail(), json.getString("text"))
+            }
+        }
+        val json1 = JSONObject().apply {
+            putValue("a", "xyz")
+            putValue("b", 888)
+        }
+        val dummy1 = Dummy1("xyz", 888)
+        expect(json1) { JSONSerializer.serialize(dummy1, config) }
+        expect(dummy1) { JSONDeserializer.deserialize<Dummy1>(json1, config) }
+        val json3 = JSONObject().apply {
+            put("dummy1", json1)
+            putValue("text", "excellent")
+        }
+        val dummy3 = Dummy3(dummy1, "excellent")
+        expect(json3) { JSONSerializer.serialize(dummy3, config) }
+        expect(dummy3) { JSONDeserializer.deserialize<Dummy3>(json3, config) }
     }
 
 }
