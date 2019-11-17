@@ -49,10 +49,12 @@ class JSONConfigTest {
     }
 
     @Test fun `fromJSON mapping should map simple data class`() {
-        val config = JSONConfig().fromJSON { json ->
-            if (json !is JSONObject)
-                throw JSONException("Must be JSONObject")
-            Dummy1(json.getString("a"), json.getInt("b"))
+        val config = JSONConfig().apply {
+            fromJSON { json ->
+                if (json !is JSONObject)
+                    throw JSONException("Must be JSONObject")
+                Dummy1(json.getString("a"), json.getInt("b"))
+            }
         }
         val json = JSONObject().apply {
             putValue("a", "xyz")
@@ -62,10 +64,12 @@ class JSONConfigTest {
     }
 
     @Test fun `fromJSON mapping should map nested class`() {
-        val config = JSONConfig().fromJSON { json ->
-            if (json !is JSONObject)
-                throw JSONException("Must be JSONObject")
-            Dummy1(json.getString("a"), json.getInt("b"))
+        val config = JSONConfig().apply {
+            fromJSON { json ->
+                if (json !is JSONObject)
+                    throw JSONException("Must be JSONObject")
+                Dummy1(json.getString("a"), json.getInt("b"))
+            }
         }
         val json1 = JSONObject().apply {
             putValue("a", "xyz")
@@ -90,11 +94,13 @@ class JSONConfigTest {
     }
 
     @Test fun `toJSON mapping should map simple data class`() {
-        val config = JSONConfig().toJSON<Dummy1> { obj ->
-            obj?.let {
-                JSONObject().apply {
-                    putValue("a", it.field1)
-                    putValue("b", it.field2)
+        val config = JSONConfig().apply {
+            toJSON<Dummy1> { obj ->
+                obj?.let {
+                    JSONObject().apply {
+                        putValue("a", it.field1)
+                        putValue("b", it.field2)
+                    }
                 }
             }
         }
@@ -106,11 +112,13 @@ class JSONConfigTest {
     }
 
     @Test fun `toJSON mapping should map nested class`() {
-        val config = JSONConfig().toJSON<Dummy1> { obj ->
-            obj?.let {
-                JSONObject().apply {
-                    putValue("a", it.field1)
-                    putValue("b", it.field2)
+        val config = JSONConfig().apply {
+            toJSON<Dummy1> { obj ->
+                obj?.let {
+                    JSONObject().apply {
+                        putValue("a", it.field1)
+                        putValue("b", it.field2)
+                    }
                 }
             }
         }
@@ -126,15 +134,19 @@ class JSONConfigTest {
     }
 
     @Test fun `toJSON mapping should be transferred on combineMappings`() {
-        val config = JSONConfig().toJSON<Dummy1> { obj ->
-            obj?.let {
-                JSONObject().apply {
-                    putValue("a", it.field1)
-                    putValue("b", it.field2)
+        val config = JSONConfig().apply {
+            toJSON<Dummy1> { obj ->
+                obj?.let {
+                    JSONObject().apply {
+                        putValue("a", it.field1)
+                        putValue("b", it.field2)
+                    }
                 }
             }
         }
-        val config2 = JSONConfig().combineMappings(config)
+        val config2 = JSONConfig().apply {
+            combineMappings(config)
+        }
         val expected = JSONObject().apply {
             putValue("a", "xyz")
             putValue("b", 888)
@@ -143,15 +155,19 @@ class JSONConfigTest {
     }
 
     @Test fun `toJSON mapping should be transferred on combineAll`() {
-        val config = JSONConfig().toJSON<Dummy1> { obj ->
-            obj?.let {
-                JSONObject().apply {
-                    putValue("a", it.field1)
-                    putValue("b", it.field2)
+        val config = JSONConfig().apply {
+            toJSON<Dummy1> { obj ->
+                obj?.let {
+                    JSONObject().apply {
+                        putValue("a", it.field1)
+                        putValue("b", it.field2)
+                    }
                 }
             }
         }
-        val config2 = JSONConfig().combineAll(config)
+        val config2 = JSONConfig().apply {
+            combineAll(config)
+        }
         val expected = JSONObject().apply {
             putValue("a", "xyz")
             putValue("b", 888)
@@ -161,8 +177,12 @@ class JSONConfigTest {
 
     @Test fun `JSONName annotation should be transferred on combineAll`() {
         val obj = DummyWithCustomNameAnnotation("abc", 123)
-        val config = JSONConfig().addNameAnnotation(CustomName::class, "symbol")
-        val config2 = JSONConfig().combineAll(config)
+        val config = JSONConfig().apply {
+            addNameAnnotation(CustomName::class, "symbol")
+        }
+        val config2 = JSONConfig().apply {
+            combineAll(config)
+        }
         val expected = JSONObject().apply {
             putValue("field1", "abc")
             putValue("fieldX", 123)
@@ -171,12 +191,16 @@ class JSONConfigTest {
     }
 
     @Test fun `toJSON mapping of nullable type should be selected correctly`() {
-        val config = JSONConfig().toJSON(Dummy1::class.createType(nullable = true)) { JSONString("A") }
+        val config = JSONConfig().apply {
+            toJSON(Dummy1::class.createType(nullable = true)) { JSONString("A") }
+        }
         expect(JSONString("A")) { JSONSerializer.serialize(Dummy1("X", 0), config) }
     }
 
     @Test fun `toJSON mapping of non-nullable type should be selected correctly`() {
-        val config = JSONConfig().toJSON(Dummy1::class.createType(nullable = false)) { JSONString("A") }
+        val config = JSONConfig().apply {
+            toJSON(Dummy1::class.createType(nullable = false)) { JSONString("A") }
+        }
         expect(JSONString("A")) { JSONSerializer.serialize(Dummy1("X", 0), config) }
     }
 
@@ -257,12 +281,16 @@ class JSONConfigTest {
     }
 
     @Test fun `toJSON mapping with JSONConfig toJSONString should use toString`() {
-        val config = JSONConfig().toJSONString<Dummy9>()
+        val config = JSONConfig().apply {
+            toJSONString<Dummy9>()
+        }
         expect(JSONString("abcdef")) { JSONSerializer.serialize(Dummy9("abcdef"), config) }
     }
 
     @Test fun `fromJSON mapping with JSONConfig fromJSONString should use String constructor`() {
-        val config = JSONConfig().fromJSONString<Dummy9>()
+        val config = JSONConfig().apply {
+            fromJSONString<Dummy9>()
+        }
         expect(Dummy9("abcdef")) { JSONDeserializer.deserialize<Dummy9>(JSONString("abcdef"), config) }
     }
 

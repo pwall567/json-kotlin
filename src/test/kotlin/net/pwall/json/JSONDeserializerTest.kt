@@ -572,7 +572,9 @@ class JSONDeserializerTest {
             putValue("fieldX", 888)
         }
         val expected = DummyWithCustomNameAnnotation("qqq", 888)
-        val config = JSONConfig().addNameAnnotation(CustomName::class, "symbol")
+        val config = JSONConfig().apply {
+            addNameAnnotation(CustomName::class, "symbol")
+        }
         expect(expected) { JSONDeserializer.deserialize(DummyWithCustomNameAnnotation::class, json, config) }
     }
 
@@ -798,6 +800,17 @@ class JSONDeserializerTest {
             putValue("class", "NotANumber")
         }
         expect (NotANumber) { JSONDeserializer.deserialize<Expr>(json) }
+    }
+
+    @Test fun `sealed class should deserialize with custom discriminator`() {
+        val config = JSONConfig().apply {
+            sealedClassDiscriminator = "?"
+        }
+        val json = JSONObject().apply {
+            putValue("?", "Const")
+            putValue("number", 2.0)
+        }
+        expect (Const(2.0)) { JSONDeserializer.deserialize<Expr>(json, config) }
     }
 
     private fun <T>  sequenceEquals(seq1: Sequence<T>, seq2: Sequence<T>) = seq1.toList() == seq2.toList()

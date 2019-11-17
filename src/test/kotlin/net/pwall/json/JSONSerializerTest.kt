@@ -475,7 +475,9 @@ class JSONSerializerTest {
 
     @Test fun `Annotated data class with custom annotation should return JSONObject using specified name`() {
         val obj = DummyWithCustomNameAnnotation("abc", 123)
-        val config = JSONConfig().addNameAnnotation(CustomName::class, "symbol")
+        val config = JSONConfig().apply {
+            addNameAnnotation(CustomName::class, "symbol")
+        }
         val expected = JSONObject().apply {
             putValue("field1", "abc")
             putValue("fieldX", 123)
@@ -508,7 +510,9 @@ class JSONSerializerTest {
 
     @Test fun `Class with @custom ignore annotation should return nested JSONObject skipping field`() {
         val obj = DummyWithCustomIgnore("alpha", "beta", "gamma")
-        val config = JSONConfig().addIgnoreAnnotation(CustomIgnore::class)
+        val config = JSONConfig().apply {
+            addIgnoreAnnotation(CustomIgnore::class)
+        }
         val expected = JSONObject().apply {
             putValue("field1", "alpha")
             putValue("field3", "gamma")
@@ -604,6 +608,17 @@ class JSONSerializerTest {
             putValue("class", "NotANumber")
         }
         expect(expected) { JSONSerializer.serialize(NotANumber) }
+    }
+
+    @Test fun `sealed class should serialize with custom discriminator`() {
+        val config = JSONConfig().apply {
+            sealedClassDiscriminator = "?"
+        }
+        val expected = JSONObject().apply {
+            putValue("?", "Const")
+            putValue("number", 2.0)
+        }
+        expect(expected) { JSONSerializer.serialize(Const(2.0), config) }
     }
 
     private fun intEquals(a: Int, b: Int): Boolean {
