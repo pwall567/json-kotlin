@@ -456,7 +456,7 @@ object JSONDeserializer {
             val jsonCopy = JSONObject(json)
 
             if (resultClass.isSealed) {
-                val subClassName = (jsonCopy.remove("class") as? JSONString)?.toString() ?:
+                val subClassName = (jsonCopy.remove(config.sealedClassDiscriminator) as? JSONString)?.toString() ?:
                         throw JSONException("No class name for sealed class")
                 val subClass = resultClass.sealedSubclasses.find { it.simpleName == subClassName } ?:
                         throw JSONException("Can't find named subclass for sealed class")

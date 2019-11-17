@@ -142,7 +142,7 @@ object JSONSerializer {
         val objClass = obj::class
 
         if (objClass.isSealedSubclass())
-            result["class"] = JSONString(objClass.simpleName)
+            result[config.sealedClassDiscriminator] = JSONString(objClass.simpleName)
 
         if (objClass.isData && objClass.constructors.isNotEmpty()) {
             // data classes will be a frequent use of serialization, so optimise for them

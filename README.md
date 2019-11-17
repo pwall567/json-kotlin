@@ -88,6 +88,29 @@ The type may be specified as a `KType`:
 (The last form is generally only needed when deserializing parameterized types and the parameter types can not be
 inferred; the `as` expression is needed because `KType` does not convey inferred type information.)
 
+## Sealed Classes
+
+The library will handle Kotlin sealed classes, by adding a discriminator property to the JSON object to allow the
+deserialization to select the correct derived class.
+The Kotlin documentation on sealed classes uses the following example:
+```kotlin
+    sealed class Expr
+    data class Const(val number: Double) : Expr()
+    data class Sum(val e1: Expr, val e2: Expr) : Expr()
+    object NotANumber : Expr()
+```
+
+A `Const` instance from the example will serialize as:
+```json
+{"class":"Const","number":1.234}
+```
+and the `NotANumber` object will serialize as:
+```json
+{"class":"NotANumber"}
+```
+The discriminator property name (default "class") may be modified by setting the `sealedClassDiscriminator` property of
+a `JSONConfig` object (see Customization below).
+
 ## Customization
 
 ### Annotations
@@ -108,9 +131,10 @@ serialisation:
 If you have classes that already contain contain annotations for the same purpose, you can tell `json-kotlin` to use
 those annotations by specifying them in a `JSONConfig`:
 ```kotlin
-    val config = JSONConfig()
-    config.addNameAnnotation(MyName::class, "name")
-    config.addIgnoreAnnotation(MyIgnore::class)
+    val config = JSONConfig().apply {
+        addNameAnnotation(MyName::class, "name")
+        addIgnoreAnnotation(MyIgnore::class)
+    }
     val json = example.stringifyJSON(config)
 ```
 
@@ -142,6 +166,10 @@ Or deserialization:
     }
 ```
 
+The `toJSON` function must supply a lambda will the signature `(Any?) -> JSONValue?` and the `fromJSON` function must
+supply a lambda with the signature `(JSONValue?) -> Any?`.
+`JSONValue` is the interface implemented by each node in the `jsonutil` library (see below).
+
 ## Mixed Kotlin and Java
 
 If you need to serialize or deserialize a Kotlin class from Java, the `JSONJava` class provides this capability while
@@ -170,24 +198,34 @@ unit test classes.
 
 ## Dependency Specification
 
-The latest version of the library is 1.2, and it may be found the the Maven Central repository.
+The latest version of the library is 2.0, and it may be found the the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>1.2</version>
+      <version>2.0</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation "net.pwall.json:json-kotlin:1.2"
+    implementation "net.pwall.json:json-kotlin:2.0"
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:1.2")
+    implementation("net.pwall.json:json-kotlin:2.0")
 ```
 
+## Breaking change
+
+Version 2.0 introduced a change to `JSONConfig` which makes it incompatible with earlier versions - the functions to add
+information to the `JSONConfig` object (e.g. serialization and deserialization mappings) no longer return the object
+itself for chaining purposes.
+The recommended approach to perform repeat actions such as this is to use the Kotlin `apply {}` function.
+
+If there is anyone affected by this change (unlikely, I know!) version 1.2 is still available.
+
 Peter Wall
-2019-11-11
+
+2019-11-17

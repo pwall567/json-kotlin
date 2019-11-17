@@ -2,6 +2,12 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [2.0] - 2019-11-17
+### Changed
+- `JSONConfig`: Sealed class discriminator property may now be specified
+- `JSONConfig`: Modifying functions that used to return `this` for chaining no longer do so (breaking change)
+
+
 ## [1.2] - 2019-11-11
 ### Changed
 - `JSONSerializer`: Added serialization of sealed classes

@@ -44,8 +44,20 @@ import net.pwall.json.annotation.JSONName
  */
 class JSONConfig {
 
-    /** Read buffer size (for `json-ktor`) */
+    /** Name of property to store sealed class subclass name as discriminator */
+    var sealedClassDiscriminator = defaultSealedClassDiscriminator
+        set(newValue) {
+            if (newValue.isNotEmpty()) field = newValue else throw JSONException("Sealed class discriminator invalid")
+        }
+
+    /** Read buffer size (for `json-ktor`), arbitrarily limited to multiple of 16, not greater than 256K */
     var readBufferSize = defaultBufferSize
+        set (newValue) {
+            if ((newValue and 15) == 0 && newValue <= 256 * 1024)
+                field = newValue
+            else
+                throw JSONException("Reda buffer size invalid - $newValue")
+        }
 
     /** Character set (for `json-ktor' and  `json-ktor-client' */
     var charset = defaultCharset
@@ -140,20 +152,17 @@ class JSONConfig {
      *
      * @param   type    the target type
      * @param   mapping the mapping function
-     * @return          the `JSONConfig` object (for chaining)
      */
-    fun fromJSON(type: KType, mapping: FromJSONMapping): JSONConfig {
+    fun fromJSON(type: KType, mapping: FromJSONMapping) {
         fromJSONMap[type] = mapping
-        return this
     }
 
     /**
      * Add custom mapping from JSON to the specified type, using a constructor that takes a single [String] parameter.
      *
      * @param   type    the target type
-     * @return          the `JSONConfig` object (for chaining)
      */
-    fun fromJSONString(type: KType): JSONConfig { // same for fromJSONInt? (no symmetrical equivalent)
+    fun fromJSONString(type: KType) {
         fromJSONMap[type] = { json ->
             when (json) {
                 null -> if (type.isMarkedNullable) null else throw JSONException("Can't deserialize null as $type")
@@ -167,7 +176,6 @@ class JSONConfig {
                 else -> throw JSONException("Can't deserialize ${json::class.simpleName} as $type")
             }
         }
-        return this
     }
 
     /**
@@ -175,22 +183,18 @@ class JSONConfig {
      *
      * @param   type    the source type
      * @param   mapping the mapping function
-     * @return          the `JSONConfig` object (for chaining)
      */
-    fun toJSON(type: KType, mapping: ToJSONMapping): JSONConfig {
+    fun toJSON(type: KType, mapping: ToJSONMapping) {
         toJSONMap[type] = mapping
-        return this
     }
 
     /**
      * Add custom mapping from a specified type to JSON using the `toString()` function to create a JSON string.
      *
      * @param   type    the source type
-     * @return          the `JSONConfig` object (for chaining)
      */
-    fun toJSONString(type: KType): JSONConfig {
+    fun toJSONString(type: KType) {
         toJSONMap[type] = { obj -> obj?.let { JSONString(it.toString())} }
-        return this
     }
 
     /**
@@ -198,36 +202,38 @@ class JSONConfig {
      *
      * @param   mapping the mapping function
      * @param   T       the type to be mapped
-     * @return          the `JSONConfig` object (for chaining)
      */
-    inline fun <reified T: Any> fromJSON(noinline mapping: (JSONValue?) -> T?): JSONConfig =
-            fromJSON(T::class.createType(nullable = false), mapping)
+    inline fun <reified T: Any> fromJSON(noinline mapping: (JSONValue?) -> T?) {
+        fromJSON(T::class.createType(nullable = false), mapping)
+    }
 
     /**
      * Add custom mapping from JSON to the inferred type, using a constructor that takes a single [String] parameter.
      *
      * @param   T       the type to be mapped
-     * @return          the `JSONConfig` object (for chaining)
      */
-    inline fun <reified T: Any> fromJSONString(): JSONConfig = fromJSONString(T::class.createType(nullable = false))
+    inline fun <reified T: Any> fromJSONString() {
+        fromJSONString(T::class.createType(nullable = false))
+    }
 
     /**
      * Add custom mapping from an inferred type to JSON.
      *
      * @param   mapping the mapping function
      * @param   T       the type to be mapped
-     * @return          the `JSONConfig` object (for chaining)
      */
-    inline fun <reified T: Any> toJSON(noinline mapping: (T?) -> JSONValue?): JSONConfig =
-            toJSON(T::class.createType(nullable = true)) { mapping(it as T?) }
+    inline fun <reified T: Any> toJSON(noinline mapping: (T?) -> JSONValue?) {
+        toJSON(T::class.createType(nullable = true)) { mapping(it as T?) }
+    }
 
     /**
      * Add custom mapping from an inferred type to JSON using the `toString()` function to create a JSON string.
      *
      * @param   T       the type to be mapped
-     * @return          the `JSONConfig` object (for chaining)
      */
-    inline fun <reified T: Any> toJSONString(): JSONConfig = toJSONString(T::class.createType(nullable = true))
+    inline fun <reified T: Any> toJSONString() {
+        toJSONString(T::class.createType(nullable = true))
+    }
 
     /**
      * Add an annotation specification to the list of annotations that specify the name to be used when serializing or
@@ -236,11 +242,9 @@ class JSONConfig {
      * @param   nameAnnotationClass the annotation class to specify the name
      * @param   argumentName        the name of the argument to the annotation that holds the name
      * @param   T                   the annotation class
-     * @return                      the `JSONConfig` object (for chaining)
      */
-    fun <T: Annotation> addNameAnnotation(nameAnnotationClass: KClass<T>, argumentName: String): JSONConfig {
+    fun <T: Annotation> addNameAnnotation(nameAnnotationClass: KClass<T>, argumentName: String) {
         nameAnnotations.add(namePropertyPair(nameAnnotationClass, argumentName))
-        return this
     }
 
     private fun <T: Annotation> namePropertyPair(nameAnnotationClass: KClass<T>, argumentName: String):
@@ -282,11 +286,9 @@ class JSONConfig {
      *
      * @param   ignoreAnnotationClass   the annotation class
      * @param   T                       the annotation class
-     * @return                          the `JSONConfig` object (for chaining)
      */
-    fun <T: Annotation> addIgnoreAnnotation(ignoreAnnotationClass: KClass<T>): JSONConfig {
+    fun <T: Annotation> addIgnoreAnnotation(ignoreAnnotationClass: KClass<T>) {
         ignoreAnnotations.add(ignoreAnnotationClass)
-        return this
     }
 
     /**
@@ -309,33 +311,32 @@ class JSONConfig {
      * Combine another `JSONConfig` into this one.
      *
      * @param   config  the other `JSONConfig`
-     * @return          the `JSONConfig` object (for chaining)
      */
-    fun combineAll(config: JSONConfig): JSONConfig {
+    fun combineAll(config: JSONConfig) {
+        sealedClassDiscriminator = config.sealedClassDiscriminator
         readBufferSize = config.readBufferSize
         charset = config.charset
         fromJSONMap.putAll(config.fromJSONMap)
         toJSONMap.putAll(config.toJSONMap)
         nameAnnotations.addAll(config.nameAnnotations)
         ignoreAnnotations.addAll(config.ignoreAnnotations)
-        return this
     }
 
     /**
      * Combine custom mappings from another `JSONConfig` into this one.
      *
      * @param   config  the other `JSONConfig`
-     * @return          the `JSONConfig` object (for chaining)
      */
-    fun combineMappings(config: JSONConfig): JSONConfig {
+    fun combineMappings(config: JSONConfig) {
         fromJSONMap.putAll(config.fromJSONMap)
         toJSONMap.putAll(config.toJSONMap)
-        return this
     }
 
     companion object {
 
         val stringType = String::class.createType()
+
+        const val defaultSealedClassDiscriminator = "class"
 
         const val defaultBufferSize = DEFAULT_BUFFER_SIZE
 
