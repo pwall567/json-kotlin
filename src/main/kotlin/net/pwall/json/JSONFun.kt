@@ -248,11 +248,91 @@ fun <T: Any> CharSequence.parseJSON(resultClass: KClass<T>, config: JSONConfig =
  *
  * @receiver        the JSON in string form
  * @param   config  an optional [JSONConfig] to customise the conversion
- * @param   T           the target class
+ * @param   T       the target class
  * @return          the converted object
  */
 inline fun <reified T: Any> CharSequence.parseJSON(config: JSONConfig = JSONConfig.defaultConfig): T? =
         JSONAuto.parse(this, config)
+
+/**
+ * Deserialize JSON from string ([CharSequence]) to a [List] of the specified [KClass].
+ *
+ * @receiver            the JSON in string form
+ * @param   itemClass   the item class of the target [List]
+ * @param   config      an optional [JSONConfig] to customise the conversion
+ * @param   T           the target item class
+ * @return              the converted [List]
+ */
+@Suppress("UNCHECKED_CAST")
+fun <T: Any> CharSequence.parseListJSON(itemClass: KClass<T>, config: JSONConfig = JSONConfig.defaultConfig): List<T>? =
+        parseJSON(targetKType(List::class, itemClass, nullable = true), config) as List<T>?
+
+/**
+ * Deserialize JSON from string ([CharSequence]) to a [Set] of the specified [KClass].
+ *
+ * @receiver            the JSON in string form
+ * @param   itemClass   the item class of the target [Set]
+ * @param   config      an optional [JSONConfig] to customise the conversion
+ * @param   T           the target item class
+ * @return              the converted [Set]
+ */
+@Suppress("UNCHECKED_CAST")
+fun <T: Any> CharSequence.parseSetJSON(itemClass: KClass<T>, config: JSONConfig = JSONConfig.defaultConfig): Set<T>? =
+        parseJSON(targetKType(Set::class, itemClass, nullable = true), config) as Set<T>?
+
+/**
+ * Deserialize JSON from string ([CharSequence]) to a [Map] of the specified key and value [KClass]es.
+ *
+ * @receiver            the JSON in string form
+ * @param   keyClass    the key class of the target [Map]
+ * @param   valueClass  the value class of the target [Map]
+ * @param   config      an optional [JSONConfig] to customise the conversion
+ * @param   K           the target key class
+ * @param   V           the target value class
+ * @return              the converted [Map]
+ */
+@Suppress("UNCHECKED_CAST")
+fun <K: Any, V: Any> CharSequence.parseMapJSON(keyClass: KClass<K>, valueClass: KClass<V>,
+        config: JSONConfig = JSONConfig.defaultConfig): Map<K, V>? =
+                parseJSON(targetKType(Map::class, keyClass, valueClass, nullable = true), config) as Map<K, V>?
+
+/**
+ * Deserialize JSON from string ([CharSequence]) to a [List] of the specified [KClass].
+ *
+ * @receiver            the JSON in string form
+ * @param   itemType    the item type of the target [List]
+ * @param   config      an optional [JSONConfig] to customise the conversion
+ * @return              the converted [List]
+ */
+@Suppress("UNCHECKED_CAST")
+fun CharSequence.parseListJSON(itemType: KType, config: JSONConfig = JSONConfig.defaultConfig): List<*>? =
+        parseJSON(targetKType(List::class, itemType, nullable = true), config) as List<*>?
+
+/**
+ * Deserialize JSON from string ([CharSequence]) to a [Set] of the specified [KClass].
+ *
+ * @receiver            the JSON in string form
+ * @param   itemType    the item type of the target [Set]
+ * @param   config      an optional [JSONConfig] to customise the conversion
+ * @return              the converted [Set]
+ */
+@Suppress("UNCHECKED_CAST")
+fun CharSequence.parseSetJSON(itemType: KType, config: JSONConfig = JSONConfig.defaultConfig): Set<*>? =
+        parseJSON(targetKType(Set::class, itemType, nullable = true), config) as Set<*>?
+
+/**
+ * Deserialize JSON from string ([CharSequence]) to a [Map] of the specified key and value [KClass]es.
+ *
+ * @receiver            the JSON in string form
+ * @param   keyType     the key type of the target [Map]
+ * @param   valueType   the value type of the target [Map]
+ * @param   config      an optional [JSONConfig] to customise the conversion
+ * @return              the converted [Map]
+ */
+@Suppress("UNCHECKED_CAST")
+fun CharSequence.parseMapJSON(keyType: KType, valueType: KType,
+        config: JSONConfig = JSONConfig.defaultConfig): Map<*, *>? =
+                parseJSON(targetKType(Map::class, keyType, valueType, nullable = true), config) as Map<*, *>?
 
 /**
  * Stringify any object to JSON.
@@ -264,7 +344,7 @@ inline fun <reified T: Any> CharSequence.parseJSON(config: JSONConfig = JSONConf
 fun Any?.stringifyJSON(config: JSONConfig = JSONConfig.defaultConfig): String = JSONAuto.stringify(this, config)
 
 /**
- * Helper method to create a [KType] for a parameterised type.
+ * Helper method to create a [KType] for a parameterised type, for use as the target type of a deserialization.
  *
  * @param   mainClass       the parameterised class
  * @param   paramClasses    the parameter classes
@@ -272,7 +352,18 @@ fun Any?.stringifyJSON(config: JSONConfig = JSONConfig.defaultConfig): String = 
  * @return                  the [KType]
  */
 fun targetKType(mainClass: KClass<*>, vararg paramClasses: KClass<*>, nullable: Boolean = false): KType =
-        mainClass.createType(paramClasses.asList().map { KTypeProjection.invariant(it.starProjectedType) }, nullable)
+        mainClass.createType(paramClasses.map { KTypeProjection.covariant(it.starProjectedType) }, nullable)
+
+/**
+ * Helper method to create a [KType] for a parameterised type, for use as the target type of a deserialization.
+ *
+ * @param   mainClass       the parameterised class
+ * @param   paramTypes      the parameter types
+ * @param   nullable        `true` if the [KType] is to be nullable
+ * @return                  the [KType]
+ */
+fun targetKType(mainClass: KClass<*>, vararg paramTypes: KType, nullable: Boolean = false): KType =
+        mainClass.createType(paramTypes.map { KTypeProjection.covariant(it) }, nullable)
 
 /**
  * Convert a Java [Type] to a Kotlin [KType].  This allows Java [Type]s to be used as the target type of a
