@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+### Changed
+- `JSONFun`: added new `targetKType` that takes nested `KType`
+- `JSONFun`: added `CharSequence.parseListJSON()`, `CharSequence.parseSetJSON()` and `CharSequence.parseMapJSON()`
+
 ## [2.0] - 2019-11-17
 ### Changed
 - `JSONConfig`: Sealed class discriminator property may now be specified
