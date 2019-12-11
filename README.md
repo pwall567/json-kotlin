@@ -84,9 +84,20 @@ The type may be specified as a `KType`:
 ```kotlin
     val example = json.parseJSON(Example::class.starProjectedType) as Example
 ```
-
-(The last form is generally only needed when deserializing parameterized types and the parameter types can not be
+(This form is generally only needed when deserializing parameterized types and the parameter types can not be
 inferred; the `as` expression is needed because `KType` does not convey inferred type information.)
+
+Because of the limitations caused by [type erasure](https://kotlinlang.org/docs/reference/generics.html#type-erasure),
+when deserializing parameterized types (like generic collections), the above forms will not convey sufficient
+information.
+For these cases, the `JSONDelegate` class provides a valuable mechanism:
+```kotlin
+    val listExample: List<Example> by JSONDelegate(jsonList)
+```
+or:
+```kotlin
+    val listExample by JSONDelegate<List<Example>>(jsonList)
+```
 
 ## Sealed Classes
 
@@ -198,23 +209,23 @@ unit test classes.
 
 ## Dependency Specification
 
-The latest version of the library is 2.0, and it may be found the the Maven Central repository.
+The latest version of the library is 2.1, and it may be found the the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>2.0</version>
+      <version>2.1</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation "net.pwall.json:json-kotlin:2.0"
+    implementation "net.pwall.json:json-kotlin:2.1"
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:2.0")
+    implementation("net.pwall.json:json-kotlin:2.1")
 ```
 
 ## Breaking change
@@ -228,4 +239,4 @@ If there is anyone affected by this change (unlikely, I know!) version 1.2 is st
 
 Peter Wall
 
-2019-11-17
+2019-12-11

@@ -2,10 +2,13 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [2.1] - 2019-12-11
 ### Changed
 - `JSONFun`: added new `targetKType` that takes nested `KType`
 - `JSONFun`: added `CharSequence.parseListJSON()`, `CharSequence.parseSetJSON()` and `CharSequence.parseMapJSON()`
+
+### Added
+- `JSONDelegate`: delegate class to assist in deserializing parameterized classes.
 
 ## [2.0] - 2019-11-17
 ### Changed
