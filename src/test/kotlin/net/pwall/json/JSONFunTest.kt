@@ -2,7 +2,7 @@
  * @(#) JSONFunTest.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019 Peter Wall
+ * Copyright (c) 2019, 2020 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -219,7 +219,7 @@ class JSONFunTest {
         val field = JavaClass2::class.java.getField("field1")
         val type: Type = field.genericType
         val expected = java.util.List::class.createType(
-                listOf(KTypeProjection.invariant(JavaClass1::class.starProjectedType)))
+                listOf(KTypeProjection.invariant(JavaClass1::class.createType(nullable = true))))
         expect(expected) { type.toKType() }
     }
 
@@ -227,7 +227,7 @@ class JSONFunTest {
         val field = JavaClass2::class.java.getField("field2")
         val type: Type = field.genericType
         val expected = java.util.List::class.createType(
-                listOf(KTypeProjection.covariant(JavaClass1::class.starProjectedType)))
+                listOf(KTypeProjection.covariant(JavaClass1::class.createType(nullable = true))))
         expect(expected) { type.toKType() }
     }
 
@@ -235,7 +235,7 @@ class JSONFunTest {
         val field = JavaClass2::class.java.getField("field3")
         val type: Type = field.genericType
         val expected = java.util.List::class.createType(
-                listOf(KTypeProjection.contravariant(JavaClass1::class.starProjectedType)))
+                listOf(KTypeProjection.contravariant(JavaClass1::class.createType(nullable = true))))
         expect(expected) { type.toKType() }
     }
 
@@ -244,56 +244,19 @@ class JSONFunTest {
         val type: Type = field.genericType
         val expected = java.util.List::class.createType(
                 listOf(KTypeProjection.invariant(java.util.List::class.createType(
-                        listOf(KTypeProjection.invariant(JavaClass1::class.starProjectedType))))))
+                        listOf(KTypeProjection.invariant(JavaClass1::class.createType(nullable = true))),
+                        nullable = true))))
         expect(expected) { type.toKType() }
     }
 
-    @Test fun `parseListJSON should convert List of String`() {
-        val json = """["abc","def","ghi"]"""
-        val expected = listOf("abc", "def", "ghi")
-        expect (expected) { json.parseListJSON(String::class) }
-    }
-
-    @Test fun `parseListJSON should convert List of complex object`() {
-        val json = """[{"field1":"abcdef","field2":987},{"field1":"hello","field2":88}]"""
-        val expected = listOf(Dummy1("abcdef", 987), Dummy1("hello", 88))
-        expect (expected) { json.parseListJSON(Dummy1::class) }
-    }
-
-    @Test fun `parseSetJSON should convert Set of String`() {
-        val json = """["abc","def","ghi"]"""
-        val expected = setOf("abc", "def", "ghi")
-        expect (expected) { json.parseSetJSON(String::class) }
-    }
-
-    @Test fun `parseMapJSON should convert Map of String to object`() {
-        val json = """{"AAA":{"field1":"abcdef","field2":987},"BBB":{"field1":"hello","field2":88}}"""
-        val expected = mapOf("AAA" to Dummy1("abcdef", 987), "BBB" to Dummy1("hello", 88))
-        expect (expected) { json.parseMapJSON(String::class, Dummy1::class) }
-    }
-
-    @Test fun `parseListJSON should convert List of String using KType`() {
-        val json = """["abc","def","ghi"]"""
-        val expected = listOf("abc", "def", "ghi")
-        expect (expected) { json.parseListJSON(String::class.starProjectedType) }
-    }
-
-    @Test fun `parseListJSON should convert List of List of String using KType`() {
-        val json = """[["abc","def","ghi"],["jkl","mno","pqr"]]"""
-        val expected = listOf(listOf("abc", "def", "ghi"), listOf("jkl", "mno", "pqr"))
-        expect (expected) { json.parseListJSON(targetKType(List::class, String::class)) }
-    }
-
-    @Test fun `parseSetJSON should convert Set of String using KType`() {
-        val json = """["abc","def","ghi"]"""
-        val expected = setOf("abc", "def", "ghi")
-        expect (expected) { json.parseSetJSON(String::class.starProjectedType) }
-    }
-
-    @Test fun `parseMapJSON should convert Map of String to object using KType`() {
-        val json = """{"AAA":{"field1":"abcdef","field2":987},"BBB":{"field1":"hello","field2":88}}"""
-        val expected = mapOf("AAA" to Dummy1("abcdef", 987), "BBB" to Dummy1("hello", 88))
-        expect (expected) { json.parseMapJSON(String::class.starProjectedType, Dummy1::class.starProjectedType) }
+    @Test fun `toKType should convert nested parameterized class with extends`() {
+        val field = JavaClass2::class.java.getField("field5")
+        val type: Type = field.genericType
+        val expected = java.util.List::class.createType(
+                listOf(KTypeProjection.invariant(java.util.List::class.createType(
+                        listOf(KTypeProjection.covariant(JavaClass1::class.createType(nullable = true))),
+                        nullable = true))))
+        expect(expected) { type.toKType() }
     }
 
 }

@@ -2,7 +2,7 @@
  * @(#) JSONDeserializer.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019 Peter Wall
+ * Copyright (c) 2019, 2020 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -147,14 +147,14 @@ object JSONDeserializer {
             deserialize(anyQType, json, config)
 
     /**
-     * Deserialize a parsed [JSONValue] to a specified [KClass].
+     * Deserialize a parsed [JSONValue] to the inferred [KType].
      *
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
      * @param   T           the target class
      * @return              the converted object
      */
     inline fun <reified T: Any> deserialize(json: JSONValue, config: JSONConfig = JSONConfig.defaultConfig): T? =
-            deserialize(T::class, json, config)
+            deserialize(JSONTypeRef.create<T>().refType, json, config) as T?
 
     /**
      * Deserialize a parsed [JSONValue] to a parameterized [KClass], with the specified [KTypeProjection]s.

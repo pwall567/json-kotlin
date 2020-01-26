@@ -2,7 +2,7 @@
  * @(#) JSONAuto.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019 Peter Wall
+ * Copyright (c) 2019, 2020 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,14 +65,14 @@ object JSONAuto {
             JSONDeserializer.deserialize(resultClass, JSON.parse(str), config)
 
     /**
-     * Deserialize JSON from string ([CharSequence]) to a the inferred [KClass].
+     * Deserialize JSON from string ([CharSequence]) to the inferred [KType].
      *
      * @param   str         the JSON in string form
      * @param   config      an optional [JSONConfig] to customise the conversion
      * @return              the converted object
      */
     inline fun <reified T: Any> parse(str: CharSequence, config: JSONConfig = JSONConfig.defaultConfig): T? =
-            parse(T::class, str, config)
+            parse(JSONTypeRef.create<T>().refType, str, config) as T?
 
     /**
      * Deserialize JSON from string ([CharSequence]) to a specified Java [Type].
