@@ -44,6 +44,8 @@ import kotlin.reflect.full.staticFunctions
 import kotlin.reflect.jvm.isAccessible
 
 import java.lang.reflect.Type
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -195,7 +197,7 @@ object JSONDeserializer {
 
             is JSONString -> return deserializeString(resultClass, json.toString())
 
-            is Number -> {
+            is JSONNumberValue -> {
 
                 when (resultClass) {
 
@@ -215,6 +217,11 @@ object JSONDeserializer {
                     Byte::class -> if (json is JSONInt || json is JSONZero)
                         return json.toByte() as T
 
+                    BigInteger::class -> if (json is JSONLong || json is JSONInt || json is JSONZero)
+                        return json.toBigInteger() as T
+
+                    BigDecimal::class -> return json.toBigDecimal() as T
+
                 }
 
                 if (resultClass.isSuperclassOf(Number::class)) {
@@ -224,6 +231,7 @@ object JSONDeserializer {
                         is JSONLong -> return json.toLong() as T
                         is JSONFloat -> return json.toFloat() as T
                         is JSONDouble -> return json.toDouble() as T
+                        is JSONDecimal -> return json.toBigDecimal() as T
                     }
                 }
 
@@ -307,7 +315,7 @@ object JSONDeserializer {
             resultClass.staticFunctions.find { it.name == "valueOf" }?.let { return it.call(str) as T }
 
         // does the target class have a public constructor that takes String?
-        // (e.g. StringBuilder, BigInteger, ... )
+        // (e.g. StringBuilder, URL, ... )
 
         resultClass.constructors.find { it.hasSingleParameter(String::class) }?.apply { return call(str) }
 

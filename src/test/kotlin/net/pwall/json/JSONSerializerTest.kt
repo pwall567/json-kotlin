@@ -2,7 +2,7 @@
  * @(#) JSONSerializerTest.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019 Peter Wall
+ * Copyright (c) 2019, 2020 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -397,16 +397,34 @@ class JSONSerializerTest {
         expect(JSONString(urlString)) { JSONSerializer.serialize(url) }
     }
 
-    @Test fun `BigInteger should return JSONString`() {
-        val bigIntString = "12345678901234567890"
-        val bigInteger = BigInteger(bigIntString)
-        expect(JSONString(bigIntString)) { JSONSerializer.serialize(bigInteger) }
+    @Test fun `BigInteger should return JSONLong`() {
+        val bigIntLong = 123456789012345678L
+        val bigInteger = BigInteger.valueOf(bigIntLong)
+        expect(JSONLong(bigIntLong)) { JSONSerializer.serialize(bigInteger) }
     }
 
-    @Test fun `BigDecimal should return JSONString`() {
+    @Test fun `BigInteger should return JSONString when config option selected`() {
+        val bigIntString = "123456789012345678"
+        val bigInteger = BigInteger(bigIntString)
+        val config = JSONConfig().apply {
+            bigIntegerString = true
+        }
+        expect(JSONString(bigIntString)) { JSONSerializer.serialize(bigInteger, config) }
+    }
+
+    @Test fun `BigDecimal should return JSONDecimal`() {
         val bigDecString = "12345678901234567890.88888"
         val bigDecimal = BigDecimal(bigDecString)
-        expect(JSONString(bigDecString)) { JSONSerializer.serialize(bigDecimal) }
+        expect(JSONDecimal(bigDecString)) { JSONSerializer.serialize(bigDecimal) }
+    }
+
+    @Test fun `BigDecimal should return JSONString when config option selected`() {
+        val bigDecString = "12345678901234567890.88888"
+        val bigDecimal = BigDecimal(bigDecString)
+        val config = JSONConfig().apply {
+            bigDecimalString = true
+        }
+        expect(JSONString(bigDecString)) { JSONSerializer.serialize(bigDecimal, config) }
     }
 
     @Test fun `BitSet should return JSONArray`() {

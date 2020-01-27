@@ -2,7 +2,7 @@
  * @(#) JSONFun.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019 Peter Wall
+ * Copyright (c) 2019, 2020 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,8 @@ import kotlin.reflect.full.starProjectedType
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.WildcardType
+import java.math.BigDecimal
+import java.math.BigInteger
 
 /**
  * Type alias for `JSONInt` to make it closer to Kotlin standard class names.
@@ -49,6 +51,20 @@ typealias FromJSONMapping = (JSONValue?) -> Any?
  * Type alias to simplify the definition of `toJSON` mapping functions.
  */
 typealias ToJSONMapping = (Any?) -> JSONValue?
+
+/**
+ * More Kotlin-like conversion function name.
+ *
+ * @return  the value as a [BigInteger]
+ */
+fun JSONNumberValue.toBigInteger(): BigInteger = bigIntegerValue()
+
+/**
+ * More Kotlin-like conversion function name.
+ *
+ * @return  the value as a [BigDecimal]
+ */
+fun JSONNumberValue.toBigDecimal(): BigDecimal = bigDecimalValue()
 
 /**
  * Convert a [CharSequence] ([String], [StringBuilder] etc.) to a [JSONValue].

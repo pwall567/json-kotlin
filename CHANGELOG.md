@@ -2,6 +2,16 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [3.0] - 2020-01-27
+### Added
+- `JSONTypeRef`: implementation of the [TypeReference](https://gafter.blogspot.com/2006/12/super-type-tokens.html)
+pattern
+### Changed
+- `JSONAuto`, `JSONDeserializer`: changed to use `JSONTypeRef`
+- `JSONFun`: improved `toKType`
+- `JSONConfig`: added switches to select handling of `BigInteger` and `BigDecimal`
+- Several: switched to version 3.0 of `jsonutil` - improved handling of decimal fractions (`JSONDecimal`)
+
 ## [2.1] - 2019-12-11
 ### Changed
 - `JSONFun`: added new `targetKType` that takes nested `KType`

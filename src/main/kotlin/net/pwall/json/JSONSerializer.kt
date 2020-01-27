@@ -2,7 +2,7 @@
  * @(#) JSONSerializer.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019 Peter Wall
+ * Copyright (c) 2019, 2020 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -79,7 +79,7 @@ object JSONSerializer {
 
             is Char -> return JSONString(StringBuilder().append(obj))
 
-            is Number -> return serializeNumber(obj)
+            is Number -> return serializeNumber(obj, config)
 
             is Boolean -> return if (obj) JSONBoolean.TRUE else JSONBoolean.FALSE
 
@@ -209,7 +209,7 @@ object JSONSerializer {
         }
     }
 
-    private fun serializeNumber(number: Number): JSONValue = when (number) {
+    private fun serializeNumber(number: Number, config: JSONConfig): JSONValue = when (number) {
 
         is Int -> JSONInt(number)
 
@@ -221,8 +221,9 @@ object JSONSerializer {
 
         is Float -> JSONFloat(number)
 
-        is BigInteger,
-        is BigDecimal -> JSONString(number.toString())
+        is BigInteger -> if (config.bigIntegerString) JSONString(number.toString()) else JSONLong(number.toLong())
+
+        is BigDecimal -> if (config.bigDecimalString) JSONString(number.toString()) else JSONDecimal(number)
 
         else -> JSONDouble(number.toDouble())
 
