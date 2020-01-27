@@ -2,7 +2,7 @@
  * @(#) JSONConfig.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019 Peter Wall
+ * Copyright (c) 2019, 2020 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,11 +56,17 @@ class JSONConfig {
             if ((newValue and 15) == 0 && newValue <= 256 * 1024)
                 field = newValue
             else
-                throw JSONException("Reda buffer size invalid - $newValue")
+                throw JSONException("Read buffer size invalid - $newValue")
         }
 
-    /** Character set (for `json-ktor' and  `json-ktor-client' */
+    /** Character set (for `json-ktor` and  `json-ktor-client`) */
     var charset = defaultCharset
+
+    /** Switch to control how `BigInteger` is serialized / deserialized: `true` -> string, `false` -> number */
+    var bigIntegerString = defaultBigIntegerString
+
+    /** Switch to control how `BigDecimal` is serialized / deserialized: `true` -> string, `false` -> number */
+    var bigDecimalString = defaultBigDecimalString
 
     private val fromJSONMap: MutableMap<KType, FromJSONMapping> = LinkedHashMap()
 
@@ -339,6 +345,10 @@ class JSONConfig {
         const val defaultSealedClassDiscriminator = "class"
 
         const val defaultBufferSize = DEFAULT_BUFFER_SIZE
+
+        const val defaultBigIntegerString = false
+
+        const val defaultBigDecimalString = false
 
         val defaultCharset = Charsets.UTF_8
 

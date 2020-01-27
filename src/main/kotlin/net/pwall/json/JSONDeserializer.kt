@@ -2,7 +2,7 @@
  * @(#) JSONDeserializer.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019 Peter Wall
+ * Copyright (c) 2019, 2020 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,8 @@ import kotlin.reflect.full.staticFunctions
 import kotlin.reflect.jvm.isAccessible
 
 import java.lang.reflect.Type
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -147,14 +149,14 @@ object JSONDeserializer {
             deserialize(anyQType, json, config)
 
     /**
-     * Deserialize a parsed [JSONValue] to a specified [KClass].
+     * Deserialize a parsed [JSONValue] to the inferred [KType].
      *
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
      * @param   T           the target class
      * @return              the converted object
      */
     inline fun <reified T: Any> deserialize(json: JSONValue, config: JSONConfig = JSONConfig.defaultConfig): T? =
-            deserialize(T::class, json, config)
+            deserialize(JSONTypeRef.create<T>().refType, json, config) as T?
 
     /**
      * Deserialize a parsed [JSONValue] to a parameterized [KClass], with the specified [KTypeProjection]s.
@@ -195,7 +197,7 @@ object JSONDeserializer {
 
             is JSONString -> return deserializeString(resultClass, json.toString())
 
-            is Number -> {
+            is JSONNumberValue -> {
 
                 when (resultClass) {
 
@@ -215,6 +217,11 @@ object JSONDeserializer {
                     Byte::class -> if (json is JSONInt || json is JSONZero)
                         return json.toByte() as T
 
+                    BigInteger::class -> if (json is JSONLong || json is JSONInt || json is JSONZero)
+                        return json.toBigInteger() as T
+
+                    BigDecimal::class -> return json.toBigDecimal() as T
+
                 }
 
                 if (resultClass.isSuperclassOf(Number::class)) {
@@ -224,6 +231,7 @@ object JSONDeserializer {
                         is JSONLong -> return json.toLong() as T
                         is JSONFloat -> return json.toFloat() as T
                         is JSONDouble -> return json.toDouble() as T
+                        is JSONDecimal -> return json.toBigDecimal() as T
                     }
                 }
 
@@ -307,7 +315,7 @@ object JSONDeserializer {
             resultClass.staticFunctions.find { it.name == "valueOf" }?.let { return it.call(str) as T }
 
         // does the target class have a public constructor that takes String?
-        // (e.g. StringBuilder, BigInteger, ... )
+        // (e.g. StringBuilder, URL, ... )
 
         resultClass.constructors.find { it.hasSingleParameter(String::class) }?.apply { return call(str) }
 

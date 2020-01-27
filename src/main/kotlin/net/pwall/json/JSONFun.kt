@@ -2,7 +2,7 @@
  * @(#) JSONFun.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019 Peter Wall
+ * Copyright (c) 2019, 2020 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,8 @@ import kotlin.reflect.full.starProjectedType
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.WildcardType
+import java.math.BigDecimal
+import java.math.BigInteger
 
 /**
  * Type alias for `JSONInt` to make it closer to Kotlin standard class names.
@@ -49,6 +51,20 @@ typealias FromJSONMapping = (JSONValue?) -> Any?
  * Type alias to simplify the definition of `toJSON` mapping functions.
  */
 typealias ToJSONMapping = (Any?) -> JSONValue?
+
+/**
+ * More Kotlin-like conversion function name.
+ *
+ * @return  the value as a [BigInteger]
+ */
+fun JSONNumberValue.toBigInteger(): BigInteger = bigIntegerValue()
+
+/**
+ * More Kotlin-like conversion function name.
+ *
+ * @return  the value as a [BigDecimal]
+ */
+fun JSONNumberValue.toBigDecimal(): BigDecimal = bigDecimalValue()
 
 /**
  * Convert a [CharSequence] ([String], [StringBuilder] etc.) to a [JSONValue].
@@ -255,86 +271,6 @@ inline fun <reified T: Any> CharSequence.parseJSON(config: JSONConfig = JSONConf
         JSONAuto.parse(this, config)
 
 /**
- * Deserialize JSON from string ([CharSequence]) to a [List] of the specified [KClass].
- *
- * @receiver            the JSON in string form
- * @param   itemClass   the item class of the target [List]
- * @param   config      an optional [JSONConfig] to customise the conversion
- * @param   T           the target item class
- * @return              the converted [List]
- */
-@Suppress("UNCHECKED_CAST")
-fun <T: Any> CharSequence.parseListJSON(itemClass: KClass<T>, config: JSONConfig = JSONConfig.defaultConfig): List<T>? =
-        parseJSON(targetKType(List::class, itemClass, nullable = true), config) as List<T>?
-
-/**
- * Deserialize JSON from string ([CharSequence]) to a [Set] of the specified [KClass].
- *
- * @receiver            the JSON in string form
- * @param   itemClass   the item class of the target [Set]
- * @param   config      an optional [JSONConfig] to customise the conversion
- * @param   T           the target item class
- * @return              the converted [Set]
- */
-@Suppress("UNCHECKED_CAST")
-fun <T: Any> CharSequence.parseSetJSON(itemClass: KClass<T>, config: JSONConfig = JSONConfig.defaultConfig): Set<T>? =
-        parseJSON(targetKType(Set::class, itemClass, nullable = true), config) as Set<T>?
-
-/**
- * Deserialize JSON from string ([CharSequence]) to a [Map] of the specified key and value [KClass]es.
- *
- * @receiver            the JSON in string form
- * @param   keyClass    the key class of the target [Map]
- * @param   valueClass  the value class of the target [Map]
- * @param   config      an optional [JSONConfig] to customise the conversion
- * @param   K           the target key class
- * @param   V           the target value class
- * @return              the converted [Map]
- */
-@Suppress("UNCHECKED_CAST")
-fun <K: Any, V: Any> CharSequence.parseMapJSON(keyClass: KClass<K>, valueClass: KClass<V>,
-        config: JSONConfig = JSONConfig.defaultConfig): Map<K, V>? =
-                parseJSON(targetKType(Map::class, keyClass, valueClass, nullable = true), config) as Map<K, V>?
-
-/**
- * Deserialize JSON from string ([CharSequence]) to a [List] of the specified [KClass].
- *
- * @receiver            the JSON in string form
- * @param   itemType    the item type of the target [List]
- * @param   config      an optional [JSONConfig] to customise the conversion
- * @return              the converted [List]
- */
-@Suppress("UNCHECKED_CAST")
-fun CharSequence.parseListJSON(itemType: KType, config: JSONConfig = JSONConfig.defaultConfig): List<*>? =
-        parseJSON(targetKType(List::class, itemType, nullable = true), config) as List<*>?
-
-/**
- * Deserialize JSON from string ([CharSequence]) to a [Set] of the specified [KClass].
- *
- * @receiver            the JSON in string form
- * @param   itemType    the item type of the target [Set]
- * @param   config      an optional [JSONConfig] to customise the conversion
- * @return              the converted [Set]
- */
-@Suppress("UNCHECKED_CAST")
-fun CharSequence.parseSetJSON(itemType: KType, config: JSONConfig = JSONConfig.defaultConfig): Set<*>? =
-        parseJSON(targetKType(Set::class, itemType, nullable = true), config) as Set<*>?
-
-/**
- * Deserialize JSON from string ([CharSequence]) to a [Map] of the specified key and value [KClass]es.
- *
- * @receiver            the JSON in string form
- * @param   keyType     the key type of the target [Map]
- * @param   valueType   the value type of the target [Map]
- * @param   config      an optional [JSONConfig] to customise the conversion
- * @return              the converted [Map]
- */
-@Suppress("UNCHECKED_CAST")
-fun CharSequence.parseMapJSON(keyType: KType, valueType: KType,
-        config: JSONConfig = JSONConfig.defaultConfig): Map<*, *>? =
-                parseJSON(targetKType(Map::class, keyType, valueType, nullable = true), config) as Map<*, *>?
-
-/**
  * Stringify any object to JSON.
  *
  * @receiver        the object to be converted to JSON (`null` will be converted to `"null"`).
@@ -382,10 +318,10 @@ fun Type.toKType(nullable: Boolean = false): KType = when (this) {
         when (it) {
             is WildcardType ->
                 if (it.lowerBounds?.firstOrNull() == null)
-                    KTypeProjection.covariant((it.upperBounds[0] as Class<*>).kotlin.starProjectedType)
+                    KTypeProjection.covariant(it.upperBounds[0].toKType(true))
                 else
-                    KTypeProjection.contravariant((it.lowerBounds[0] as Class<*>).kotlin.starProjectedType)
-            else -> KTypeProjection.invariant(it.toKType())
+                    KTypeProjection.contravariant(it.lowerBounds[0].toKType(true))
+            else -> KTypeProjection.invariant(it.toKType(true))
         } }, nullable)
     else -> throw JSONException("Can't handle type: $this")
 }

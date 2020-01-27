@@ -2,7 +2,7 @@
  * @(#) JSONDeserializerTest.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019 Peter Wall
+ * Copyright (c) 2019, 2020 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,7 @@ import kotlin.test.fail
 import kotlin.test.Test
 
 import java.lang.reflect.Type
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.URI
 import java.net.URL
@@ -264,10 +265,45 @@ class JSONDeserializerTest {
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
 
-    @Test fun `JSONString should return BigInteger (etc)`() {
+    @Test fun `JSONString should return BigInteger`() {
         val str = "123456789"
         val json = JSONString(str)
         val expected: BigInteger? = BigInteger(str)
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONLong should return BigInteger`() {
+        val value = 123456789012345678
+        val json = JSONLong(value)
+        val expected: BigInteger? = BigInteger.valueOf(value)
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONInt should return BigInteger`() {
+        val value = 12345678
+        val json = JSONInt(value)
+        val expected: BigInteger? = BigInteger.valueOf(value.toLong())
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONString should return BigDecimal`() {
+        val str = "123456789.77777"
+        val json = JSONString(str)
+        val expected: BigDecimal? = BigDecimal(str)
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONDecimal should return BigDecimal`() {
+        val str = "123456789.77777"
+        val json = JSONDecimal(str)
+        val expected: BigDecimal? = BigDecimal(str)
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONDouble should return BigDecimal`() {
+        val value = 1234.5
+        val json = JSONDouble(value)
+        val expected: BigDecimal? = BigDecimal(value)
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
 

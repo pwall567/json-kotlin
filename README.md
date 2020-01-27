@@ -88,7 +88,7 @@ The type may be specified as a `KType`:
 inferred; the `as` expression is needed because `KType` does not convey inferred type information.)
 
 Because of the limitations caused by [type erasure](https://kotlinlang.org/docs/reference/generics.html#type-erasure),
-when deserializing parameterized types (like generic collections), the above forms will not convey sufficient
+when deserializing parameterized types (like generic collections), the above forms will not always convey sufficient
 information.
 For these cases, the `JSONDelegate` class provides a valuable mechanism:
 ```kotlin
@@ -209,23 +209,23 @@ unit test classes.
 
 ## Dependency Specification
 
-The latest version of the library is 2.1, and it may be found the the Maven Central repository.
+The latest version of the library is 3.0, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>2.1</version>
+      <version>3.0</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation "net.pwall.json:json-kotlin:2.1"
+    implementation 'net.pwall.json:json-kotlin:3.0'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:2.1")
+    implementation("net.pwall.json:json-kotlin:3.0")
 ```
 
 ## Breaking change
@@ -239,4 +239,4 @@ If there is anyone affected by this change (unlikely, I know!) version 1.2 is st
 
 Peter Wall
 
-2019-12-11
+2020-01-27
