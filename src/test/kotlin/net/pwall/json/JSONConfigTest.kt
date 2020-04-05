@@ -2,7 +2,7 @@
  * @(#) JSONConfigTest.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019 Peter Wall
+ * Copyright (c) 2019, 2020 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -188,6 +188,22 @@ class JSONConfigTest {
             putValue("fieldX", 123)
         }
         expect(expected) { JSONSerializer.serialize(obj, config2) }
+    }
+
+    @Test fun `Switch settings should be transferred on combineAll`() {
+        val config = JSONConfig().apply {
+            bigIntegerString = true
+            bigDecimalString = true
+            includeNulls = true
+            allowExtra = true
+        }
+        val config2 = JSONConfig().apply {
+            combineAll(config)
+        }
+        expect(true) { config2.bigIntegerString }
+        expect(true) { config2.bigDecimalString }
+        expect(true) { config2.includeNulls }
+        expect(true) { config2.allowExtra }
     }
 
     @Test fun `toJSON mapping of nullable type should be selected correctly`() {

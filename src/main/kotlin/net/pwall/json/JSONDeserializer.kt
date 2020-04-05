@@ -513,25 +513,30 @@ object JSONDeserializer {
     private fun <T: Any> setRemainingFields(resultClass: KClass<T>, instance: T, json: Map<String, JSONValue?>,
             config: JSONConfig): T {
         json.forEach { entry -> // JSONObject fields not used in constructor
-            val member = findField(resultClass.members, entry.key, config) ?:
-                    throw JSONException("Can't find property ${entry.key} in ${resultClass.simpleName}")
-            val value = deserialize(member.returnType, entry.value, config)
-            if (member is KMutableProperty<*>) {
-                val wasAccessible = member.isAccessible
-                member.isAccessible = true
-                try {
-                    member.setter.call(instance, value)
+            val member = findField(resultClass.members, entry.key, config)
+            if (member != null) {
+                val value = deserialize(member.returnType, entry.value, config)
+                if (member is KMutableProperty<*>) {
+                    val wasAccessible = member.isAccessible
+                    member.isAccessible = true
+                    try {
+                        member.setter.call(instance, value)
+                    }
+                    catch (e: Exception) {
+                        throw JSONException("Error setting property ${entry.key} in ${resultClass.simpleName}", e)
+                    }
+                    finally {
+                        member.isAccessible = wasAccessible
+                    }
                 }
-                catch (e: Exception) {
-                    throw JSONException("Error setting property ${entry.key} in ${resultClass.simpleName}", e)
-                }
-                finally {
-                    member.isAccessible = wasAccessible
+                else {
+                    if (member.getter.call(instance) != value)
+                        throw JSONException("Can't set property ${entry.key} in ${resultClass.simpleName}")
                 }
             }
             else {
-                if (member.getter.call(instance) != value)
-                    throw JSONException("Can't set property ${entry.key} in ${resultClass.simpleName}")
+                if (!(config.allowExtra || config.hasAllowExtraPropertiesAnnotation(resultClass.annotations)))
+                    throw JSONException("Can't find property ${entry.key} in ${resultClass.simpleName}")
             }
         }
         return instance

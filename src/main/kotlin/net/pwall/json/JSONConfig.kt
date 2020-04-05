@@ -25,6 +25,7 @@
 
 package net.pwall.json
 
+import net.pwall.json.annotation.JSONAllowExtra
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
@@ -35,6 +36,8 @@ import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.isSupertypeOf
 
 import net.pwall.json.annotation.JSONIgnore
+import net.pwall.json.annotation.JSONIncludeAllProperties
+import net.pwall.json.annotation.JSONIncludeIfNull
 import net.pwall.json.annotation.JSONName
 
 /**
@@ -68,6 +71,12 @@ class JSONConfig {
     /** Switch to control how `BigDecimal` is serialized / deserialized: `true` -> string, `false` -> number */
     var bigDecimalString = defaultBigDecimalString
 
+    /** Switch to control whether null fields in objects are output as "null": `true` -> yes, `false` -> no */
+    var includeNulls = defaultIncludeNulls
+
+    /** Switch to control whether extra fields are allowed on deserialization: `true` -> yes, `false` -> no */
+    var allowExtra = defaultAllowExtra
+
     private val fromJSONMap: MutableMap<KType, FromJSONMapping> = LinkedHashMap()
 
     private val toJSONMap: MutableMap<KType, ToJSONMapping> = LinkedHashMap()
@@ -76,6 +85,12 @@ class JSONConfig {
             arrayListOf(namePropertyPair(JSONName::class, "name"))
 
     private val ignoreAnnotations: MutableList<KClass<*>> = arrayListOf(JSONIgnore::class, Transient::class)
+
+    private val includeIfNullAnnotations: MutableList<KClass<*>> = arrayListOf(JSONIncludeIfNull::class)
+
+    private val includeAllPropertiesAnnotations: MutableList<KClass<*>> = arrayListOf(JSONIncludeAllProperties::class)
+
+    private val allowExtraPropertiesAnnotations: MutableList<KClass<*>> = arrayListOf(JSONAllowExtra::class)
 
     /**
      * Find a `fromJSON` mapping function that will create the specified [KType], or the closest subtype of it.
@@ -303,8 +318,79 @@ class JSONConfig {
      * @param   annotations the [Annotation]s (from the parameter, or the property, or both)
      * @return              `true` if an "ignore" annotation appears in the supplied list
      */
-    fun hasIgnoreAnnotation(annotations: List<Annotation>?): Boolean {
-        ignoreAnnotations.forEach { entry ->
+    fun hasIgnoreAnnotation(annotations: List<Annotation>?) = hasBooleanAnnotation(ignoreAnnotations, annotations)
+
+    /**
+     * Add an annotation specification to the list of annotations that specify that the property is to be included when
+     * serializing or deserializing even if `null`.
+     *
+     * @param   includeIfNullAnnotationClass    the annotation class
+     * @param   T                               the annotation class
+     */
+    fun <T: Annotation> addIncludeIfNullAnnotation(includeIfNullAnnotationClass: KClass<T>) {
+        includeIfNullAnnotations.add(includeIfNullAnnotationClass)
+    }
+
+    /**
+     * Test whether a property has an annotation to indicate that it is to be included when serializing or deserializing
+     * even if `null`.
+     *
+     * @param   annotations the [Annotation]s (from the parameter, or the property, or both)
+     * @return              `true` if an "include if null" annotation appears in the supplied list
+     */
+    fun hasIncludeIfNullAnnotation(annotations: List<Annotation>?) =
+            hasBooleanAnnotation(includeIfNullAnnotations, annotations)
+
+    /**
+     * Add an annotation specification to the list of annotations that specify that all properties in a class are to be
+     * included when serializing even if `null`.
+     *
+     * @param   ignoreAllPropertiesAnnotationClass  the annotation class
+     * @param   T                                   the annotation class
+     */
+    fun <T: Annotation> addIncludeAllPropertiesAnnotation(ignoreAllPropertiesAnnotationClass: KClass<T>) {
+        includeAllPropertiesAnnotations.add(ignoreAllPropertiesAnnotationClass)
+    }
+
+    /**
+     * Test whether a property has an annotation to indicate that it is to be included when serializing even if `null`.
+     *
+     * @param   annotations the [Annotation]s (from the class)
+     * @return              `true` if an "include all properties" annotation appears in the supplied list
+     */
+    fun hasIncludeAllPropertiesAnnotation(annotations: List<Annotation>?) =
+            hasBooleanAnnotation(includeAllPropertiesAnnotations, annotations)
+
+    /**
+     * Add an annotation specification to the list of annotations that specify that extra properties in a class are to
+     * be ignored when deserializing.
+     *
+     * @param   allowExtraPropertiesAnnotationClass the annotation class
+     * @param   T                                   the annotation class
+     */
+    fun <T: Annotation> addAllowExtraPropertiesAnnotation(allowExtraPropertiesAnnotationClass: KClass<T>) {
+        allowExtraPropertiesAnnotations.add(allowExtraPropertiesAnnotationClass)
+    }
+
+    /**
+     * Test whether a property has an annotation to indicate that extra properties in a class are to be ignored when
+     * deserializing.
+     *
+     * @param   annotations the [Annotation]s (from the class)
+     * @return              `true` if an "allow extra properties" annotation appears in the supplied list
+     */
+    fun hasAllowExtraPropertiesAnnotation(annotations: List<Annotation>?) =
+            hasBooleanAnnotation(allowExtraPropertiesAnnotations, annotations)
+
+    /**
+     * Test whether a property has a boolean annotation matching the specified list.
+     *
+     * @param   annotationList  the list of pre-configured annotation classes.
+     * @param   annotations     the [Annotation]s (from the parameter, or the property, or both)
+     * @return                  `true` if an "ignore" annotation appears in the supplied list
+     */
+    private fun hasBooleanAnnotation(annotationList: List<KClass<*>>, annotations: List<Annotation>?): Boolean {
+        annotationList.forEach { entry ->
             annotations?.forEach {
                 if (it::class.isSubclassOf(entry))
                     return true
@@ -322,10 +408,17 @@ class JSONConfig {
         sealedClassDiscriminator = config.sealedClassDiscriminator
         readBufferSize = config.readBufferSize
         charset = config.charset
+        bigIntegerString = config.bigIntegerString
+        bigDecimalString = config.bigDecimalString
+        includeNulls = config.includeNulls
+        allowExtra = config.allowExtra
         fromJSONMap.putAll(config.fromJSONMap)
         toJSONMap.putAll(config.toJSONMap)
         nameAnnotations.addAll(config.nameAnnotations)
         ignoreAnnotations.addAll(config.ignoreAnnotations)
+        includeIfNullAnnotations.addAll(config.includeIfNullAnnotations)
+        includeAllPropertiesAnnotations.addAll(config.includeAllPropertiesAnnotations)
+        allowExtraPropertiesAnnotations.addAll(config.allowExtraPropertiesAnnotations)
     }
 
     /**
@@ -349,6 +442,10 @@ class JSONConfig {
         const val defaultBigIntegerString = false
 
         const val defaultBigDecimalString = false
+
+        const val defaultIncludeNulls = false
+
+        const val defaultAllowExtra = false
 
         val defaultCharset = Charsets.UTF_8
 

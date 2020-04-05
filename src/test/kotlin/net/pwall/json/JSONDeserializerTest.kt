@@ -828,14 +828,14 @@ class JSONDeserializerTest {
             putValue("class", "Const")
             putValue("number", 2.0)
         }
-        expect (Const(2.0)) { JSONDeserializer.deserialize<Expr>(json) }
+        expect(Const(2.0)) { JSONDeserializer.deserialize<Expr>(json) }
     }
 
     @Test fun `sealed class should deserialize to correct object subclass`() {
         val json = JSONObject().apply {
             putValue("class", "NotANumber")
         }
-        expect (NotANumber) { JSONDeserializer.deserialize<Expr>(json) }
+        expect(NotANumber) { JSONDeserializer.deserialize<Expr>(json) }
     }
 
     @Test fun `sealed class should deserialize with custom discriminator`() {
@@ -846,7 +846,42 @@ class JSONDeserializerTest {
             putValue("?", "Const")
             putValue("number", 2.0)
         }
-        expect (Const(2.0)) { JSONDeserializer.deserialize<Expr>(json, config) }
+        expect(Const(2.0)) { JSONDeserializer.deserialize<Expr>(json, config) }
+    }
+
+    @Test fun `class should ignore additional fields when allowExtra set in config`() {
+        val config = JSONConfig().apply {
+            allowExtra = true
+        }
+        val json = JSONObject().apply {
+            putValue("field1", "Hello")
+            putValue("field2", 123)
+            putValue("extra", "allow")
+        }
+        expect(Dummy1("Hello", 123)) { JSONDeserializer.deserialize<Dummy1>(json, config) }
+    }
+
+    @Test fun `class annotated with @JSONAllowExtra should ignore additional fields`() {
+        val json = JSONObject().apply {
+            putValue("field1", "Hello")
+            putValue("field2", 123)
+            putValue("extra", "allow")
+        }
+        expect(DummyWithAllowExtra("Hello", 123)) { JSONDeserializer.deserialize<DummyWithAllowExtra>(json) }
+    }
+
+    @Test fun `class annotated with custom allow extra should ignore additional fields`() {
+        val config = JSONConfig().apply {
+            addAllowExtraPropertiesAnnotation(CustomAllowExtraProperties::class)
+        }
+        val json = JSONObject().apply {
+            putValue("field1", "Hi")
+            putValue("field2", 123)
+            putValue("extra", "allow")
+        }
+        expect(DummyWithCustomAllowExtra("Hi", 123)) {
+            JSONDeserializer.deserialize<DummyWithCustomAllowExtra>(json, config)
+        }
     }
 
     private fun <T>  sequenceEquals(seq1: Sequence<T>, seq2: Sequence<T>) = seq1.toList() == seq2.toList()
