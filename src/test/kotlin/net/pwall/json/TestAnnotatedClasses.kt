@@ -25,6 +25,7 @@
 
 package net.pwall.json
 
+import net.pwall.json.annotation.JSONAllowExtra
 import net.pwall.json.annotation.JSONIgnore
 import net.pwall.json.annotation.JSONIncludeAllProperties
 import net.pwall.json.annotation.JSONIncludeIfNull
@@ -81,3 +82,13 @@ annotation class CustomIncludeAllProperties
 
 @CustomIncludeAllProperties
 data class DummyWithCustomIncludeAllProperties(val field1: String, val field2: String?, val field3: String)
+
+@JSONAllowExtra
+data class DummyWithAllowExtra(val field1: String, val field2: Int)
+
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class CustomAllowExtraProperties
+
+@CustomAllowExtraProperties
+data class DummyWithCustomAllowExtra(val field1: String, val field2: Int)

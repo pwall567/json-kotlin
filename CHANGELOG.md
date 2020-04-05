@@ -2,13 +2,16 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [3.1] - 2020-04-05
 ### Changed
 - `JSONConfig`, `JSONSerializer`: added `includeNulls` switch
 - `JSONConfig`, `JSONSerializer`: added annotations to specify that null properties are to be included
+- `JSONConfig`, `JSONDeserializer`: added `allowExtra` switch
+- `JSONConfig`, `JSONDeserializer`: added annotations to specify that extra properties are to be ignored
 ### Added
 - `JSONIncludeIfNull`: Annotation class
 - `JSONIncludeAllProperties`: Annotation class
+- `JSONAllowExtra`: Annotation class
 
 ## [3.0] - 2020-01-27
 ### Added

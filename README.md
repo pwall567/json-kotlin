@@ -126,6 +126,8 @@ a `JSONConfig` object (see Customization below).
 
 ### Annotations
 
+#### Change the name used for a property
+
 When serializing or deserializing a Kotlin object, the property name discovered by reflection will be used as the name
 in the JSON object.
 An alternative name may be specified if required, by the use of the `@JSONName` annotation:
@@ -133,15 +135,19 @@ An alternative name may be specified if required, by the use of the `@JSONName` 
     data class Example(val abc: String, @JSONName("xyz") val def: Int)
 ```
 
+#### Ignore a property on serialization
+
 If it is not necessary (or desirable) to output a particular field, the `@JSONIgnore` annotation may be used to prevent
 serialisation:
 ```kotlin
     data class Example(val abc: String, @Ignore val def: Int)
 ```
 
+#### Include properties when null
+
 If a property is `null`, the default behaviour when serializing is to omit the property from the output object.
-If this is not desired, the property may be annotated with the `@JSONIncludeIfNull` annotation to indicate that it is to
-be included even if `null`:
+If this behaviour is not desired, the property may be annotated with the `@JSONIncludeIfNull` annotation to indicate
+that it is to be included even if `null`:
 ```kotlin
     data class Example(@JSONIncludeIfNull val abc: String?, val def: Int)
 ```
@@ -162,6 +168,26 @@ And to specify that all properties in all classes are to be output if null, the 
     val json = example.stringifyJSON(config)
 ```
 
+#### Allow extra properties in a class to be ignored
+
+The default behaviour when extra properties are found during deserialization is to throw an exception.
+To allow (and ignore) any extra properties, the `@JSONAllowExtra` annotation may be added to the class:
+```kotlin
+    @JSONAllowExtra
+    data class Example(val abc: String, val def: Int)
+```
+
+To allow (and ignore) extra properties throughout the deserialization process, the `allowExtra` flag may be set in the
+`JSONConfig`:
+```kotlin
+    val config = JSONConfig().apply {
+        allowExtra = true
+    }
+    val json = example.stringifyJSON(config)
+```
+
+#### Using existing tags from other software
+
 If you have classes that already contain contain annotations for the above purposes, you can tell `json-kotlin` to use
 those annotations by specifying them in a `JSONConfig`:
 ```kotlin
@@ -170,6 +196,7 @@ those annotations by specifying them in a `JSONConfig`:
         addIgnoreAnnotation(MyIgnore::class)
         addIncludeIfNullAnnotation(MyIncludeIfNull::class)
         addIncludeAllPropertiesAnnotation(MyIncludeAllProperties::class)
+        addAllowExtraPropertiesAnnotation(MyAllowExtraProperties::class)
     }
     val json = example.stringifyJSON(config)
 ```
@@ -234,23 +261,23 @@ unit test classes.
 
 ## Dependency Specification
 
-The latest version of the library is 3.0, and it may be obtained from the Maven Central repository.
+The latest version of the library is 3.1, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>3.0</version>
+      <version>3.1</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin:3.0'
+    implementation 'net.pwall.json:json-kotlin:3.1'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:3.0")
+    implementation("net.pwall.json:json-kotlin:3.1")
 ```
 
 ## Breaking change
@@ -264,4 +291,4 @@ If there is anyone affected by this change (unlikely, I know!) version 1.2 is st
 
 Peter Wall
 
-2020-01-27
+2020-04-05
