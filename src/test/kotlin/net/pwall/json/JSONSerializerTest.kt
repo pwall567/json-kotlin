@@ -458,6 +458,30 @@ class JSONSerializerTest {
         expect(expected) { JSONSerializer.serialize(obj) }
     }
 
+    @Test fun `Simple data class with optional field should omit null field`() {
+        val obj = Dummy2("abc", 123)
+        obj.extra = null
+        val expected = JSONObject().apply {
+            putValue("field1", "abc")
+            putValue("field2", 123)
+        }
+        expect(expected) { JSONSerializer.serialize(obj) }
+    }
+
+    @Test fun `Simple data class with optional field should include null field when config set`() {
+        val obj = Dummy2("abc", 123)
+        obj.extra = null
+        val expected = JSONObject().apply {
+            putValue("field1", "abc")
+            putValue("field2", 123)
+            putNull("extra")
+        }
+        val config = JSONConfig().apply {
+            includeNulls = true
+        }
+        expect(expected) { JSONSerializer.serialize(obj, config) }
+    }
+
     @Test fun `Derived class should return JSONObject`() {
         val obj = Derived()
         obj.field1 = "qwerty"
@@ -526,13 +550,59 @@ class JSONSerializerTest {
         expect(expected) { JSONSerializer.serialize(obj) }
     }
 
-    @Test fun `Class with @custom ignore annotation should return nested JSONObject skipping field`() {
+    @Test fun `Class with custom ignore annotation should return nested JSONObject skipping field`() {
         val obj = DummyWithCustomIgnore("alpha", "beta", "gamma")
         val config = JSONConfig().apply {
             addIgnoreAnnotation(CustomIgnore::class)
         }
         val expected = JSONObject().apply {
             putValue("field1", "alpha")
+            putValue("field3", "gamma")
+        }
+        expect(expected) { JSONSerializer.serialize(obj, config) }
+    }
+
+    @Test fun `Class with @JSONIncludeIfNull should include null field`() {
+        val obj = DummyWithIncludeIfNull("alpha", null, "gamma")
+        val expected = JSONObject().apply {
+            putValue("field1", "alpha")
+            putNull("field2")
+            putValue("field3", "gamma")
+        }
+        expect(expected) { JSONSerializer.serialize(obj) }
+    }
+
+    @Test fun `Class with custom include if null annotation should include null field`() {
+        val obj = DummyWithCustomIncludeIfNull("alpha", null, "gamma")
+        val config = JSONConfig().apply {
+            addIncludeIfNullAnnotation(CustomIncludeIfNull::class)
+        }
+        val expected = JSONObject().apply {
+            putValue("field1", "alpha")
+            putNull("field2")
+            putValue("field3", "gamma")
+        }
+        expect(expected) { JSONSerializer.serialize(obj, config) }
+    }
+
+    @Test fun `Class with @JSONIncludeAllProperties should include null field`() {
+        val obj = DummyWithIncludeAllProperties("alpha", null, "gamma")
+        val expected = JSONObject().apply {
+            putValue("field1", "alpha")
+            putNull("field2")
+            putValue("field3", "gamma")
+        }
+        expect(expected) { JSONSerializer.serialize(obj) }
+    }
+
+    @Test fun `Class with custom include all properties annotation should include null field`() {
+        val obj = DummyWithCustomIncludeAllProperties("alpha", null, "gamma")
+        val config = JSONConfig().apply {
+            addIncludeAllPropertiesAnnotation(CustomIncludeAllProperties::class)
+        }
+        val expected = JSONObject().apply {
+            putValue("field1", "alpha")
+            putNull("field2")
             putValue("field3", "gamma")
         }
         expect(expected) { JSONSerializer.serialize(obj, config) }

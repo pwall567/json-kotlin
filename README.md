@@ -139,12 +139,37 @@ serialisation:
     data class Example(val abc: String, @Ignore val def: Int)
 ```
 
-If you have classes that already contain contain annotations for the same purpose, you can tell `json-kotlin` to use
+If a property is `null`, the default behaviour when serializing is to omit the property from the output object.
+If this is not desired, the property may be annotated with the `@JSONIncludeIfNull` annotation to indicate that it is to
+be included even if `null`:
+```kotlin
+    data class Example(@JSONIncludeIfNull val abc: String?, val def: Int)
+```
+
+To indicate that all properties in a class are to be included in the output even if null, the
+`@JSONIncludeAllProperties` may be used on the class:
+```kotlin
+    @JSONIncludeAllProperties
+    data class Example(val abc: String?, val def: Int)
+```
+
+And to specify that all properties in all classes are to be output if null, the `includeNulls` flag may be set in the
+`JSONConfig`:
+```kotlin
+    val config = JSONConfig().apply {
+        includeNulls = true
+    }
+    val json = example.stringifyJSON(config)
+```
+
+If you have classes that already contain contain annotations for the above purposes, you can tell `json-kotlin` to use
 those annotations by specifying them in a `JSONConfig`:
 ```kotlin
     val config = JSONConfig().apply {
         addNameAnnotation(MyName::class, "name")
         addIgnoreAnnotation(MyIgnore::class)
+        addIncludeIfNullAnnotation(MyIncludeIfNull::class)
+        addIncludeAllPropertiesAnnotation(MyIncludeAllProperties::class)
     }
     val json = example.stringifyJSON(config)
 ```

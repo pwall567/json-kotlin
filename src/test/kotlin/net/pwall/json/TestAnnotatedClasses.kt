@@ -26,6 +26,8 @@
 package net.pwall.json
 
 import net.pwall.json.annotation.JSONIgnore
+import net.pwall.json.annotation.JSONIncludeAllProperties
+import net.pwall.json.annotation.JSONIncludeIfNull
 import net.pwall.json.annotation.JSONName
 
 data class DummyWithIgnore(val field1: String, @JSONIgnore val field2: String, val field3: String)
@@ -60,3 +62,22 @@ data class DummyWithParamNameAnnotation(val field1: String, @JSONName("fieldX") 
 annotation class CustomName(val symbol: String)
 
 data class DummyWithCustomNameAnnotation(val field1: String, @CustomName("fieldX") val field2: Int)
+
+data class DummyWithIncludeIfNull(val field1: String, @JSONIncludeIfNull val field2: String?, val field3: String)
+
+@Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class CustomIncludeIfNull
+
+data class DummyWithCustomIncludeIfNull(val field1: String, @CustomIncludeIfNull val field2: String?,
+        val field3: String)
+
+@JSONIncludeAllProperties
+data class DummyWithIncludeAllProperties(val field1: String, val field2: String?, val field3: String)
+
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class CustomIncludeAllProperties
+
+@CustomIncludeAllProperties
+data class DummyWithCustomIncludeAllProperties(val field1: String, val field2: String?, val field3: String)

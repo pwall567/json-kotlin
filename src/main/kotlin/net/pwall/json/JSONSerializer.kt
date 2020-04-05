@@ -144,20 +144,21 @@ object JSONSerializer {
         if (objClass.isSealedSubclass())
             result[config.sealedClassDiscriminator] = JSONString(objClass.simpleName)
 
+        val includeAll = config.hasIncludeAllPropertiesAnnotation(objClass.annotations)
         if (objClass.isData && objClass.constructors.isNotEmpty()) {
             // data classes will be a frequent use of serialization, so optimise for them
             val constructor = objClass.constructors.first()
             constructor.parameters.forEach { parameter ->
                 val member = objClass.members.find { it.name == parameter.name }
                 if (member is KProperty<*>)
-                    invokeGetter(member, parameter.annotations, obj, result, config)
+                    result.addUsingGetter(member, parameter.annotations, obj, config, includeAll)
             }
             // now check whether there are any more properties not in constructor
             val statics: Collection<KProperty<*>> = objClass.staticProperties
             objClass.members.forEach { member ->
                 if (member is KProperty<*> && !statics.contains(member)&&
                         !constructor.parameters.any { it.name == member.name })
-                    invokeGetter(member, member.annotations, obj, result, config)
+                    result.addUsingGetter(member, member.annotations, obj, config, includeAll)
             }
         }
         else {
@@ -168,7 +169,7 @@ object JSONSerializer {
                     objClass.constructors.firstOrNull()?.parameters?.find { it.name == member.name }?.let {
                         combinedAnnotations.addAll(it.annotations)
                     }
-                    invokeGetter(member, combinedAnnotations, obj, result, config)
+                    result.addUsingGetter(member, combinedAnnotations, obj, config, includeAll)
                 }
             }
         }
@@ -188,14 +189,16 @@ object JSONSerializer {
         return false
     }
 
-    private fun invokeGetter(member: KProperty<*>, annotations: List<Annotation>?, obj: Any, result: JSONObject,
-            config: JSONConfig) {
+    private fun JSONObject.addUsingGetter(member: KProperty<*>, annotations: List<Annotation>?, obj: Any,
+            config: JSONConfig, includeAll: Boolean) {
         if (!config.hasIgnoreAnnotation(annotations)) {
             val name = config.findNameFromAnnotation(annotations) ?: member.name
             val wasAccessible = member.isAccessible
             member.isAccessible = true
             try {
-                member.getter.call(obj)?.let { result[name] = serialize(it, config) }
+                val v = member.getter.call(obj)
+                if (v != null || config.hasIncludeIfNullAnnotation(annotations) || config.includeNulls || includeAll)
+                    put(name, serialize(v, config))
             }
             catch (e: JSONException) {
                 throw e
