@@ -40,7 +40,7 @@ object JSONAuto {
      * @return          the JSON form of the object
      */
     fun stringify(obj: Any?, config: JSONConfig = JSONConfig.defaultConfig): String =
-            JSONSerializer.serialize(obj, config)?.toJSON() ?: "null"
+            JSONStringify.stringify(obj, config)
 
     /**
      * Deserialize JSON from string ([CharSequence]) to a specified [KType].
@@ -72,7 +72,7 @@ object JSONAuto {
      * @return              the converted object
      */
     inline fun <reified T: Any> parse(str: CharSequence, config: JSONConfig = JSONConfig.defaultConfig): T? =
-            parse(JSONTypeRef.create<T>().refType, str, config) as T?
+            parse(JSONTypeRef.create<T>(true).refType, str, config) as T?
 
     /**
      * Deserialize JSON from string ([CharSequence]) to a specified Java [Type].

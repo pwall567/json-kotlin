@@ -2,6 +2,13 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [3.2] - 2020-04-13
+### Changed
+- `JSONConfig`, `JSONAuto`, `JSONFun`, `JSONSerializer`: accommodate JSONStringify
+- `JSONTypeRef`: added `nullable` parameter
+### Added
+- `JSONStringify`: stringify without intermediate JSONValue tree
+
 ## [3.1] - 2020-04-05
 ### Changed
 - `JSONConfig`, `JSONSerializer`: added `includeNulls` switch
