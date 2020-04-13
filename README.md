@@ -188,7 +188,7 @@ To allow (and ignore) extra properties throughout the deserialization process, t
 
 #### Using existing tags from other software
 
-If you have classes that already contain contain annotations for the above purposes, you can tell `json-kotlin` to use
+If you have classes that already contain annotations for the above purposes, you can tell `json-kotlin` to use
 those annotations by specifying them in a `JSONConfig`:
 ```kotlin
     val config = JSONConfig().apply {
@@ -247,37 +247,46 @@ Or:
 
 ## More Detail
 
-The serialization and deserialization functions both operate as a two stage process.
-Serialization first creates a structured form of the input data using the
-[`jsonutil`](https://github.com/pwall567/jsonutil) library ([Javadoc](https://pwall.net/oss/jsonutil/)).
-The resulting structure is then converted to string form as a second pass.
+The deserialization functions operate as a two-stage process.
+The JSON string is first parsed into an internal form using the
+[`jsonutil`](https://github.com/pwall567/jsonutil) library ([Javadoc](https://pwall.net/oss/jsonutil/));
+the resulting tree of `JSONValue` objects is then traversed to create the desired classes.
 
-Deserialization does the same in reverse - the JSON string is first parsed into the internal form, and then that
-structure is traversed to produce the target object.
+(Note that the
+[`json-stream`](https://github.com/pwall567/json-stream) library and its non-blocking coroutine-aware version
+[`json-co-stream`](https://github.com/pwall567/json-co-stream) may be used to parse a stream of JSON data on-the-fly,
+and in this case, each object may be converted to the required target form as its last character is read.)
+
+It is possible to perform serialization in the same manner, but from version 3.2 of this library onwards, the
+`JSONStringify` functions are used to stringify direct to a string, or, if the `appendJSON()` function is used, to any
+form of `Appendable` including the various `Writer` classes.
+As always, the KDoc, the source or the unit test classes provide more information.
 
 This information is of significance when custom serialization and deserialization are required.
-More information will be provided in due course, but in the meantime, examples of this form of use may be found in the
-unit test classes.
+Regardless of whether the `JSONStringify` functions are used to output directly to a string, the custom serialization
+is still required to create the internal `JSONValue`-based form.
+This ensures that errant serialization functions don't disrupt the remainder of the JSON, for example by omitting a
+trailing quote or bracket character.
 
 ## Dependency Specification
 
-The latest version of the library is 3.1, and it may be obtained from the Maven Central repository.
+The latest version of the library is 3.2, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>3.1</version>
+      <version>3.2</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin:3.1'
+    implementation 'net.pwall.json:json-kotlin:3.2'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:3.1")
+    implementation("net.pwall.json:json-kotlin:3.2")
 ```
 
 ## Breaking change
@@ -291,4 +300,4 @@ If there is anyone affected by this change (unlikely, I know!) version 1.2 is st
 
 Peter Wall
 
-2020-04-05
+2020-04-13

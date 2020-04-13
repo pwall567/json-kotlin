@@ -33,10 +33,10 @@ import java.lang.reflect.ParameterizedType
  * @author  Peter Wall (with acknowledgements to the author of the above-referenced article)
  * @param   T       the target type
  */
-open class JSONTypeRef<T> {
+open class JSONTypeRef<T>(nullable: Boolean = false) {
 
     /** The type reference */
-    val refType = (this::class.java.genericSuperclass as ParameterizedType).actualTypeArguments[0].toKType()
+    val refType = (this::class.java.genericSuperclass as ParameterizedType).actualTypeArguments[0].toKType(nullable)
 
     companion object {
 
@@ -46,7 +46,7 @@ open class JSONTypeRef<T> {
          * @param   T       the target type
          * @return          the [JSONTypeRef]
          */
-        inline fun <reified T> create(): JSONTypeRef<T> = object : JSONTypeRef<T>() {}
+        inline fun <reified T> create(nullable: Boolean = false): JSONTypeRef<T> = object : JSONTypeRef<T>(nullable) {}
 
     }
 

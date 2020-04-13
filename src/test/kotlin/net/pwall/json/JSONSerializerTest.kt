@@ -541,7 +541,7 @@ class JSONSerializerTest {
         expect(expected) { JSONSerializer.serialize(obj3) }
     }
 
-    @Test fun `Class with @JSONIgnore should return nested JSONObject skipping field`() {
+    @Test fun `Class with @JSONIgnore should return JSONObject skipping field`() {
         val obj = DummyWithIgnore("alpha", "beta", "gamma")
         val expected = JSONObject().apply {
             putValue("field1", "alpha")
@@ -550,7 +550,7 @@ class JSONSerializerTest {
         expect(expected) { JSONSerializer.serialize(obj) }
     }
 
-    @Test fun `Class with custom ignore annotation should return nested JSONObject skipping field`() {
+    @Test fun `Class with custom ignore annotation should return JSONObject skipping field`() {
         val obj = DummyWithCustomIgnore("alpha", "beta", "gamma")
         val config = JSONConfig().apply {
             addIgnoreAnnotation(CustomIgnore::class)

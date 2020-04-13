@@ -142,7 +142,7 @@ object JSONSerializer {
         val objClass = obj::class
 
         if (objClass.isSealedSubclass())
-            result[config.sealedClassDiscriminator] = JSONString(objClass.simpleName)
+            result[config.sealedClassDiscriminator] = JSONString(objClass.simpleName ?: "null")
 
         val includeAll = config.hasIncludeAllPropertiesAnnotation(objClass.annotations)
         if (objClass.isData && objClass.constructors.isNotEmpty()) {
@@ -156,7 +156,7 @@ object JSONSerializer {
             // now check whether there are any more properties not in constructor
             val statics: Collection<KProperty<*>> = objClass.staticProperties
             objClass.members.forEach { member ->
-                if (member is KProperty<*> && !statics.contains(member)&&
+                if (member is KProperty<*> && !statics.contains(member) &&
                         !constructor.parameters.any { it.name == member.name })
                     result.addUsingGetter(member, member.annotations, obj, config, includeAll)
             }
@@ -176,7 +176,7 @@ object JSONSerializer {
         return result
     }
 
-    private fun KClass<*>.isSealedSubclass(): Boolean {
+    internal fun KClass<*>.isSealedSubclass(): Boolean {
         supertypes.forEach { supertype ->
             (supertype.classifier as? KClass<*>)?.let {
                 if (it.isSealed)
@@ -264,32 +264,36 @@ object JSONSerializer {
     }
 
     private fun serializeCalendar(cal: Calendar) = JSONString(StringBuilder().apply {
-            Strings.appendPositiveInt(this, cal.get(Calendar.YEAR))
-            append('-')
-            Strings.append2Digits(this, cal.get(Calendar.MONTH) + 1)
-            append('-')
-            Strings.append2Digits(this, cal.get(Calendar.DAY_OF_MONTH))
-            append('T')
-            Strings.append2Digits(this, cal.get(Calendar.HOUR_OF_DAY))
-            append(':')
-            Strings.append2Digits(this, cal.get(Calendar.MINUTE))
-            append(':')
-            Strings.append2Digits(this, cal.get(Calendar.SECOND))
-            append('.')
-            Strings.append3Digits(this, cal.get(Calendar.MILLISECOND))
-            val offset = (cal.get(Calendar.ZONE_OFFSET) +
-                    if (cal.timeZone.inDaylightTime(cal.time)) cal.get(Calendar.DST_OFFSET) else 0) /
-                    60_000
-            if (offset == 0)
-                append('Z')
-            else {
-                append(if (offset < 0) '-' else '+')
-                val absOffset = abs(offset)
-                Strings.append2Digits(this, absOffset / 60)
+        appendCalendar(cal)
+    })
+
+    internal fun Appendable.appendCalendar(cal: Calendar) {
+        Strings.appendPositiveInt(this, cal.get(Calendar.YEAR))
+        append('-')
+        Strings.append2Digits(this, cal.get(Calendar.MONTH) + 1)
+        append('-')
+        Strings.append2Digits(this, cal.get(Calendar.DAY_OF_MONTH))
+        append('T')
+        Strings.append2Digits(this, cal.get(Calendar.HOUR_OF_DAY))
+        append(':')
+        Strings.append2Digits(this, cal.get(Calendar.MINUTE))
+        append(':')
+        Strings.append2Digits(this, cal.get(Calendar.SECOND))
+        append('.')
+        Strings.append3Digits(this, cal.get(Calendar.MILLISECOND))
+        val offset = (cal.get(Calendar.ZONE_OFFSET) +
+                if (cal.timeZone.inDaylightTime(cal.time)) cal.get(Calendar.DST_OFFSET) else 0) / 60_000
+        if (offset == 0)
+            append('Z')
+        else {
+            append(if (offset < 0) '-' else '+')
+            abs(offset).let {
+                Strings.append2Digits(this, it / 60)
                 append(':')
-                Strings.append2Digits(this, absOffset % 60)
+                Strings.append2Digits(this, it % 60)
             }
-        })
+        }
+    }
 
     private fun serializeDate(date: Date): JSONString {
         val cal = Calendar.getInstance()
@@ -303,7 +307,7 @@ object JSONSerializer {
 
     private val toJsonCache = HashMap<KClass<*>, KFunction<JSONValue>>()
 
-    private fun findToJSON(objClass: KClass<*>): KFunction<JSONValue>? {
+    internal fun findToJSON(objClass: KClass<*>): KFunction<JSONValue>? {
         toJsonCache[objClass]?.let { return it }
         try {
             objClass.members.forEach { function ->

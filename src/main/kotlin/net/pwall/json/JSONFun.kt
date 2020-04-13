@@ -277,7 +277,7 @@ inline fun <reified T: Any> CharSequence.parseJSON(config: JSONConfig = JSONConf
  * @param   config  an optional [JSONConfig] to customise the conversion
  * @return          the JSON string
  */
-fun Any?.stringifyJSON(config: JSONConfig = JSONConfig.defaultConfig): String = JSONAuto.stringify(this, config)
+fun Any?.stringifyJSON(config: JSONConfig = JSONConfig.defaultConfig): String = JSONStringify.stringify(this, config)
 
 /**
  * Helper method to create a [KType] for a parameterised type, for use as the target type of a deserialization.

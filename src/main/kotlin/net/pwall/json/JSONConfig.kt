@@ -25,7 +25,6 @@
 
 package net.pwall.json
 
-import net.pwall.json.annotation.JSONAllowExtra
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
@@ -35,6 +34,7 @@ import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.isSupertypeOf
 
+import net.pwall.json.annotation.JSONAllowExtra
 import net.pwall.json.annotation.JSONIgnore
 import net.pwall.json.annotation.JSONIncludeAllProperties
 import net.pwall.json.annotation.JSONIncludeIfNull
@@ -56,10 +56,19 @@ class JSONConfig {
     /** Read buffer size (for `json-ktor`), arbitrarily limited to multiple of 16, not greater than 256K */
     var readBufferSize = defaultBufferSize
         set (newValue) {
-            if ((newValue and 15) == 0 && newValue <= 256 * 1024)
+            if ((newValue and 15) == 0 && newValue in 16..(256 * 1024))
                 field = newValue
             else
                 throw JSONException("Read buffer size invalid - $newValue")
+        }
+
+    /** Initial allocation size for stringify operations, arbitrarily limited to 16 to 256K */
+    var stringifyInitialSize = defaultStringifyInitialSize
+        set (newValue) {
+            if (newValue in 16..(256 * 1024))
+                field = newValue
+            else
+                throw JSONException("Stringify initial allocation size invalid - $newValue")
         }
 
     /** Character set (for `json-ktor` and  `json-ktor-client`) */
@@ -438,6 +447,8 @@ class JSONConfig {
         const val defaultSealedClassDiscriminator = "class"
 
         const val defaultBufferSize = DEFAULT_BUFFER_SIZE
+
+        const val defaultStringifyInitialSize = 1024
 
         const val defaultBigIntegerString = false
 
