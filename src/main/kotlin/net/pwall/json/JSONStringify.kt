@@ -49,8 +49,9 @@ import java.util.Date
 import java.util.Enumeration
 import java.util.UUID
 
-import net.pwall.json.JSONSerializer.appendCalendar
-import net.pwall.json.JSONSerializer.isSealedSubclass
+import net.pwall.json.JSONSerializerFunctions.findToJSON
+import net.pwall.json.JSONSerializerFunctions.formatCalendar
+import net.pwall.json.JSONSerializerFunctions.isSealedSubclass
 import net.pwall.util.Strings
 
 /**
@@ -98,15 +99,24 @@ object JSONStringify {
         when (obj) {
             is JSONValue -> obj.appendJSON(this)
             is CharSequence -> appendJSONString(obj)
-            is CharArray -> appendQuoted { obj.forEach { appendJSONChar(it) } }
-            is Char -> appendQuoted { appendJSONChar(obj) }
+            is CharArray -> {
+                append('"')
+                for (ch in obj)
+                    appendJSONChar(ch)
+                append('"')
+            }
+            is Char -> {
+                append('"')
+                appendJSONChar(obj)
+                append('"')
+            }
             is Number -> appendJSONNumber(obj, config)
             is Boolean -> append(if (obj) "true" else "false")
             is Array<*> -> appendJSONArray(obj, config)
             is Pair<*, *> -> appendJSONPair(obj, config)
             is Triple<*, *, *> -> appendJSONTriple(obj, config)
             else -> {
-                JSONSerializer.findToJSON(obj::class)?.let {
+                findToJSON(obj::class)?.let {
                     try {
                         it.call(obj).appendJSON(this)
                         return
@@ -128,14 +138,20 @@ object JSONStringify {
             is Long -> Strings.appendLong(this, number)
             is Float, is Double -> append(number.toString())
             is BigInteger -> {
-                if (config.bigIntegerString)
-                    appendQuoted { append(number.toString()) }
+                if (config.bigIntegerString) {
+                    append('"')
+                    append(number.toString())
+                    append('"')
+                }
                 else
                     append(number.toString())
             }
             is BigDecimal -> {
-                if (config.bigDecimalString)
-                    appendQuoted { append(number.toString()) }
+                if (config.bigDecimalString) {
+                    append('"')
+                    append(number.toString())
+                    append('"')
+                }
                 else
                     append(number.toString())
             }
@@ -144,8 +160,12 @@ object JSONStringify {
     }
 
     private fun Appendable.appendJSONArray(array: Array<*>, config: JSONConfig) {
-        if (array.isArrayOf<Char>())
-            appendQuoted { array.forEach { appendJSONChar(it as Char) } }
+        if (array.isArrayOf<Char>()) {
+            append('"')
+            for (ch in array)
+                appendJSONChar(ch as Char)
+            append('"')
+        }
         else {
             append('[')
             if (array.isNotEmpty()) {
@@ -201,8 +221,8 @@ object JSONStringify {
             is URI,
             is URL,
             is UUID -> appendJSONString(obj.toString())
-            is Calendar -> appendQuoted { appendCalendar(obj) }
-            is Date -> appendQuoted { appendCalendar(Calendar.getInstance().apply { time = obj }) }
+            is Calendar -> appendJSONString(formatCalendar(obj))
+            is Date -> appendJSONString(formatCalendar(Calendar.getInstance().apply { time = obj }))
             is BitSet -> appendJSONBitSet(obj)
             else -> {
                 append('{')
@@ -219,14 +239,14 @@ object JSONStringify {
                 if (objClass.isData && objClass.constructors.isNotEmpty()) {
                     // data classes will be a frequent use of serialization, so optimise for them
                     val constructor = objClass.constructors.first()
-                    constructor.parameters.forEach { parameter ->
+                    for (parameter in constructor.parameters) {
                         val member = objClass.members.find { it.name == parameter.name }
                         if (member is KProperty<*>)
                             continuation = appendUsingGetter(member, parameter.annotations, obj, config, includeAll,
                                     continuation)
                     }
                     // now check whether there are any more properties not in constructor
-                    objClass.members.forEach { member ->
+                    for (member in objClass.members) {
                         if (member is KProperty<*> && !statics.contains(member) &&
                                 !constructor.parameters.any { it.name == member.name })
                             continuation = appendUsingGetter(member, member.annotations, obj, config, includeAll,
@@ -234,7 +254,7 @@ object JSONStringify {
                     }
                 }
                 else {
-                    objClass.members.forEach { member ->
+                    for (member in objClass.members) {
                         if (member is KProperty<*> && !statics.contains(member)) {
                             val combinedAnnotations = ArrayList(member.annotations)
                             objClass.constructors.firstOrNull()?.parameters?.find { it.name == member.name }?.let {
@@ -327,7 +347,7 @@ object JSONStringify {
     private fun Appendable.appendJSONBitSet(bitSet: BitSet) {
         append('[')
         var continuation = false
-        (0 until bitSet.length()).forEach { i ->
+        for (i in 0 until bitSet.length()) {
             if (bitSet.get(i)) {
                 if (continuation)
                     append(',')
@@ -339,12 +359,9 @@ object JSONStringify {
     }
 
     private fun Appendable.appendJSONString(cs: CharSequence) {
-        appendQuoted { cs.forEach { appendJSONChar(it) } }
-    }
-
-    private fun Appendable.appendQuoted(stringFunction: Appendable.() -> Unit) {
         append('"')
-        stringFunction()
+        for (ch in cs)
+            appendJSONChar(ch)
         append('"')
     }
 

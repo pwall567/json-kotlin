@@ -275,7 +275,7 @@ class JSONStringifyTest {
 
     @Test fun `should stringify the results of an enumeration`() {
         val list = listOf("tahi", "rua", "toru", "wh\u0101")
-        expect("""["tahi","rua","toru","wh\u0101"]""") { JSONStringify.stringify(JSONSerializerTest.ListEnum(list)) }
+        expect("""["tahi","rua","toru","wh\u0101"]""") { JSONStringify.stringify(ListEnum(list)) }
     }
 
     @Test fun `should stringify a map of string to string`() {
@@ -342,13 +342,13 @@ class JSONStringifyTest {
         expect("\"$str\"") { JSONStringify.stringify(localDateTime) }
     }
 
-    @Test fun `should stringify a OffsetTime`() {
+    @Test fun `should stringify an OffsetTime`() {
         val str = "10:15:06.543+10:00"
         val offsetTime = OffsetTime.parse(str)
         expect("\"$str\"") { JSONStringify.stringify(offsetTime) }
     }
 
-    @Test fun `should stringify a OffsetDateTime`() {
+    @Test fun `should stringify an OffsetDateTime`() {
         val str = "2020-04-10T10:15:06.543+10:00"
         val offsetDateTime = OffsetDateTime.parse(str)
         expect("\"$str\"") { JSONStringify.stringify(offsetDateTime) }

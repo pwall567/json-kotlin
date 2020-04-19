@@ -109,7 +109,7 @@ class JSONConfig {
      */
     fun findFromJSONMapping(type: KType): FromJSONMapping? {
         var best: Map.Entry<KType, FromJSONMapping>? = null
-        fromJSONMap.entries.forEach { entry ->
+        for (entry in fromJSONMap.entries) {
             if (entry.key.isSubtypeOf(type) && best.let { it == null || it.key.isSubtypeOf(entry.key) })
                 best = entry
         }
@@ -126,7 +126,7 @@ class JSONConfig {
         var best: KClass<*>? = null
         var nullable = false
         var result: FromJSONMapping? = null
-        fromJSONMap.entries.forEach { entry ->
+        for (entry in fromJSONMap.entries) {
             val classifier = entry.key.classifier as KClass<*>
             if (classifier.isSubclassOf(targetClass) && best.let {
                         it == null ||
@@ -147,7 +147,7 @@ class JSONConfig {
      */
     fun findToJSONMapping(type: KType): ToJSONMapping? {
         var best: Map.Entry<KType, ToJSONMapping>? = null
-        toJSONMap.entries.forEach { entry ->
+        for (entry in toJSONMap.entries) {
             if (entry.key.isSupertypeOf(type) && best.let { it == null || it.key.isSupertypeOf(entry.key) })
                 best = entry
         }
@@ -164,7 +164,7 @@ class JSONConfig {
         var best: KClass<*>? = null
         var nullable = false
         var result: ToJSONMapping? = null
-        toJSONMap.entries.forEach { entry ->
+        for (entry in toJSONMap.entries) {
             val classifier = entry.key.classifier as KClass<*>
             if (classifier.isSuperclassOf(sourceClass) && best.let {
                         it == null ||
@@ -285,9 +285,9 @@ class JSONConfig {
     @Suppress("UNCHECKED_CAST")
     private fun <T: Annotation> findAnnotationStringProperty(annotationClass: KClass<T>, argumentName: String):
             KProperty<String> {
-        annotationClass.members.forEach {
-            if (it is KProperty<*> && it.name == argumentName && it.returnType == stringType) {
-                return it as KProperty<String>
+        for (member in annotationClass.members) {
+            if (member is KProperty<*> && member.name == argumentName && member.returnType == stringType) {
+                return member as KProperty<String>
             }
         }
         throw IllegalArgumentException(
@@ -301,10 +301,12 @@ class JSONConfig {
      * @return              the name to be used, or `null` if no annotation found
      */
     fun findNameFromAnnotation(annotations: List<Annotation>?): String? {
-        nameAnnotations.forEach { entry ->
-            annotations?.forEach {
-                if (it::class.isSubclassOf(entry.first))
-                    return entry.second.call(it)
+        if (annotations != null) {
+            for (entry in nameAnnotations) {
+                for (annotation in annotations) {
+                    if (annotation::class.isSubclassOf(entry.first))
+                        return entry.second.call(annotation)
+                }
             }
         }
         return null
@@ -399,10 +401,12 @@ class JSONConfig {
      * @return                  `true` if an "ignore" annotation appears in the supplied list
      */
     private fun hasBooleanAnnotation(annotationList: List<KClass<*>>, annotations: List<Annotation>?): Boolean {
-        annotationList.forEach { entry ->
-            annotations?.forEach {
-                if (it::class.isSubclassOf(entry))
-                    return true
+        if (annotations != null) {
+            for (entry in annotationList) {
+                for (annotation in annotations) {
+                    if (annotation::class.isSubclassOf(entry))
+                        return true
+                }
             }
         }
         return false

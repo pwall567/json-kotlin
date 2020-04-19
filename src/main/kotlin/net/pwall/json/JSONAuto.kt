@@ -72,7 +72,7 @@ object JSONAuto {
      * @return              the converted object
      */
     inline fun <reified T: Any> parse(str: CharSequence, config: JSONConfig = JSONConfig.defaultConfig): T? =
-            parse(JSONTypeRef.create<T>(true).refType, str, config) as T?
+            parse(JSONTypeRef.create<T>(nullable = true).refType, str, config) as T?
 
     /**
      * Deserialize JSON from string ([CharSequence]) to a specified Java [Type].

@@ -884,6 +884,31 @@ class JSONDeserializerTest {
         }
     }
 
+    @Test fun `field annotated with @JSONIgnore should be ignored on deserialization`() {
+        val json = JSONObject().apply {
+            putValue("field1", "one")
+            putValue("field2", "two")
+            putValue("field3", "three")
+        }
+        expect(DummyWithIgnore(field1 = "one", field3 = "three")) {
+            JSONDeserializer.deserialize<DummyWithIgnore>(json)
+        }
+    }
+
+    @Test fun `field annotated with custom ignore annotation should be ignored on deserialization`() {
+        val config = JSONConfig().apply {
+            addIgnoreAnnotation(CustomIgnore::class)
+        }
+        val json = JSONObject().apply {
+            putValue("field1", "one")
+            putValue("field2", "two")
+            putValue("field3", "three")
+        }
+        expect(DummyWithCustomIgnore(field1 = "one", field3 = "three")) {
+            JSONDeserializer.deserialize<DummyWithCustomIgnore>(json, config)
+        }
+    }
+
     private fun <T>  sequenceEquals(seq1: Sequence<T>, seq2: Sequence<T>) = seq1.toList() == seq2.toList()
 
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY,
