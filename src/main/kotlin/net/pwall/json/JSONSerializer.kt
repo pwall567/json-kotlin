@@ -60,7 +60,10 @@ import net.pwall.json.JSONSerializerFunctions.isSealedSubclass
  */
 object JSONSerializer {
 
-    fun serialize(obj: Any?, config: JSONConfig = JSONConfig.defaultConfig): JSONValue? {
+    fun serialize(obj: Any?, config: JSONConfig = JSONConfig.defaultConfig): JSONValue? =
+            serialize(obj, config, mutableSetOf())
+
+    private fun serialize(obj: Any?, config: JSONConfig, references: MutableSet<Any>): JSONValue? {
 
         if (obj == null)
             return null
@@ -81,11 +84,11 @@ object JSONSerializer {
 
             is CharArray -> return JSONString(StringBuilder().append(obj))
 
-            is Array<*> -> return serializeArray(obj, config)
+            is Array<*> -> return serializeArray(obj, config, references)
 
-            is Pair<*, *> -> return serializePair(obj, config)
+            is Pair<*, *> -> return serializePair(obj, config, references)
 
-            is Triple<*, *, *> -> return serializeTriple(obj, config)
+            is Triple<*, *, *> -> return serializeTriple(obj, config, references)
         }
 
         try {
@@ -97,24 +100,24 @@ object JSONSerializer {
 
         when (obj) {
 
-            is Iterable<*> -> return JSONArray(obj.map { serialize(it, config) })
+            is Iterable<*> -> return JSONArray(obj.map { serialize(it, config, references) })
 
             is Iterator<*> -> return JSONArray().apply {
                 for (item in obj)
-                    add(serialize(item, config))
+                    add(serialize(item, config, references))
             }
 
             is Sequence<*> -> return JSONArray().apply {
                 for (item in obj)
-                    add(serialize(item, config))
+                    add(serialize(item, config, references))
             }
 
             is Enumeration<*> -> return JSONArray().apply {
                 for (item in obj)
-                    add(serialize(item, config))
+                    add(serialize(item, config, references))
             }
 
-            is Map<*, *> -> return serializeMap(obj, config)
+            is Map<*, *> -> return serializeMap(obj, config, references)
 
             is Enum<*> -> return JSONString(obj.toString())
 
@@ -146,51 +149,59 @@ object JSONSerializer {
         val result = JSONObject()
         val objClass = obj::class
 
-        if (objClass.isSealedSubclass())
-            result[config.sealedClassDiscriminator] = JSONString(objClass.simpleName ?: "null")
+        try {
+            references.add(obj)
+            if (objClass.isSealedSubclass())
+                result[config.sealedClassDiscriminator] = JSONString(objClass.simpleName ?: "null")
 
-        val includeAll = config.hasIncludeAllPropertiesAnnotation(objClass.annotations)
-        if (objClass.isData && objClass.constructors.isNotEmpty()) {
-            // data classes will be a frequent use of serialization, so optimise for them
-            val constructor = objClass.constructors.first()
-            for (parameter in constructor.parameters) {
-                val member = objClass.members.find { it.name == parameter.name }
-                if (member is KProperty<*>)
-                    result.addUsingGetter(member, parameter.annotations, obj, config, includeAll)
-            }
-            // now check whether there are any more properties not in constructor
-            val statics: Collection<KProperty<*>> = objClass.staticProperties
-            for (member in objClass.members) {
-                if (member is KProperty<*> && !statics.contains(member) &&
-                        !constructor.parameters.any { it.name == member.name })
-                    result.addUsingGetter(member, member.annotations, obj, config, includeAll)
-            }
-        }
-        else {
-            val statics: Collection<KProperty<*>> = objClass.staticProperties
-            for (member in objClass.members) {
-                if (member is KProperty<*> && !statics.contains(member)) {
-                    val combinedAnnotations = ArrayList(member.annotations)
-                    objClass.constructors.firstOrNull()?.parameters?.find { it.name == member.name }?.let {
-                        combinedAnnotations.addAll(it.annotations)
-                    }
-                    result.addUsingGetter(member, combinedAnnotations, obj, config, includeAll)
+            val includeAll = config.hasIncludeAllPropertiesAnnotation(objClass.annotations)
+            if (objClass.isData && objClass.constructors.isNotEmpty()) {
+                // data classes will be a frequent use of serialization, so optimise for them
+                val constructor = objClass.constructors.first()
+                for (parameter in constructor.parameters) {
+                    val member = objClass.members.find { it.name == parameter.name }
+                    if (member is KProperty<*>)
+                        result.addUsingGetter(member, parameter.annotations, obj, config, references, includeAll)
+                }
+                // now check whether there are any more properties not in constructor
+                val statics: Collection<KProperty<*>> = objClass.staticProperties
+                for (member in objClass.members) {
+                    if (member is KProperty<*> && !statics.contains(member) &&
+                            !constructor.parameters.any { it.name == member.name })
+                        result.addUsingGetter(member, member.annotations, obj, config, references, includeAll)
                 }
             }
+            else {
+                val statics: Collection<KProperty<*>> = objClass.staticProperties
+                for (member in objClass.members) {
+                    if (member is KProperty<*> && !statics.contains(member)) {
+                        val combinedAnnotations = ArrayList(member.annotations)
+                        objClass.constructors.firstOrNull()?.parameters?.find { it.name == member.name }?.let {
+                            combinedAnnotations.addAll(it.annotations)
+                        }
+                        result.addUsingGetter(member, combinedAnnotations, obj, config, references, includeAll)
+                    }
+                }
+            }
+        }
+        finally {
+            references.remove(obj)
         }
         return result
     }
 
     private fun JSONObject.addUsingGetter(member: KProperty<*>, annotations: List<Annotation>?, obj: Any,
-            config: JSONConfig, includeAll: Boolean) {
+            config: JSONConfig, references: MutableSet<Any>, includeAll: Boolean) {
         if (!config.hasIgnoreAnnotation(annotations)) {
             val name = config.findNameFromAnnotation(annotations) ?: member.name
             val wasAccessible = member.isAccessible
             member.isAccessible = true
             try {
                 val v = member.getter.call(obj)
+                if (v != null && v in references)
+                    throw JSONException("Circular reference: field ${member.name} in ${obj::class.simpleName}")
                 if (v != null || config.hasIncludeIfNullAnnotation(annotations) || config.includeNulls || includeAll)
-                    put(name, serialize(v, config))
+                    put(name, serialize(v, config, references))
             }
             catch (e: JSONException) {
                 throw e
@@ -224,7 +235,7 @@ object JSONSerializer {
 
     }
 
-    private fun serializeArray(array: Array<*>, config: JSONConfig): JSONValue {
+    private fun serializeArray(array: Array<*>, config: JSONConfig, references: MutableSet<Any>): JSONValue {
 
         if (array.isArrayOf<Char>())
             return JSONString(StringBuilder().apply {
@@ -232,23 +243,24 @@ object JSONSerializer {
                     append(ch)
             })
 
-        return JSONArray(array.map { serialize(it, config) })
+        return JSONArray(array.map { serialize(it, config, references) })
     }
 
-    private fun serializePair(pair: Pair<*, *>, config: JSONConfig) = JSONArray().apply {
-        add(serialize(pair.first, config))
-        add(serialize(pair.second, config))
+    private fun serializePair(pair: Pair<*, *>, config: JSONConfig, references: MutableSet<Any>) = JSONArray().apply {
+        add(serialize(pair.first, config, references))
+        add(serialize(pair.second, config, references))
     }
 
-    private fun serializeTriple(triple: Triple<*, *, *>, config: JSONConfig) = JSONArray().apply {
-        add(serialize(triple.first, config))
-        add(serialize(triple.second, config))
-        add(serialize(triple.third, config))
+    private fun serializeTriple(triple: Triple<*, *, *>, config: JSONConfig, references: MutableSet<Any>) =
+            JSONArray().apply {
+        add(serialize(triple.first, config, references))
+        add(serialize(triple.second, config, references))
+        add(serialize(triple.third, config, references))
     }
 
-    private fun serializeMap(map: Map<*, *>, config: JSONConfig) = JSONObject().apply {
+    private fun serializeMap(map: Map<*, *>, config: JSONConfig, references: MutableSet<Any>) = JSONObject().apply {
         for (entry in map.entries) {
-            this[entry.key.toString()] = serialize(entry.value, config)
+            this[entry.key.toString()] = serialize(entry.value, config, references)
         }
     }
 

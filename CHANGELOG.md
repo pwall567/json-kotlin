@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [3.4] - 2020-04-18
+### Changed
+- `JSONSerializer`, `JSONStringify`: added checks for circular references
+
 ## [3.3] - 2020-04-18
 ### Added
 - `JSONSerializerFunctions`: common functionality for `JSONSerializer`, `JSONStringify` etc. (split out from

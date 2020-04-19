@@ -49,6 +49,7 @@ import java.util.UUID
 
 import net.pwall.json.JSONStringify.appendJSON
 import net.pwall.json.test.JSONExpect.Companion.expectJSON
+import kotlin.test.assertFailsWith
 
 class JSONStringifyTest {
 
@@ -600,6 +601,17 @@ class JSONStringifyTest {
             property("field2", null)
             property("field3", "gamma")
         }
+    }
+
+    @Test fun `should fail on use of circular reference`() {
+        val circular1 = Circular1()
+        val circular2 = Circular2()
+        circular1.ref = circular2
+        circular2.ref = circular1
+        val exception = assertFailsWith<JSONException> {
+            JSONStringify.stringify(circular1)
+        }
+        expect("Circular reference: field ref in Circular2") { exception.message }
     }
 
     @Test fun `should append to existing Appendable`() {

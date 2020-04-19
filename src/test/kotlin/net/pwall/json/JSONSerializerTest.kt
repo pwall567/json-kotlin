@@ -52,6 +52,7 @@ import java.util.BitSet
 import java.util.Calendar
 import java.util.TimeZone
 import java.util.UUID
+import kotlin.test.assertFailsWith
 
 class JSONSerializerTest {
 
@@ -696,6 +697,17 @@ class JSONSerializerTest {
             putValue("number", 2.0)
         }
         expect(expected) { JSONSerializer.serialize(Const(2.0), config) }
+    }
+
+    @Test fun `should fail on use of circular reference`() {
+        val circular1 = Circular1()
+        val circular2 = Circular2()
+        circular1.ref = circular2
+        circular2.ref = circular1
+        val exception = assertFailsWith<JSONException> {
+            JSONSerializer.serialize(circular1)
+        }
+        expect("Circular reference: field ref in Circular2") { exception.message }
     }
 
     private fun intEquals(a: Int, b: Int): Boolean {
