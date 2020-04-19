@@ -25,13 +25,7 @@
 
 package net.pwall.json
 
-import kotlin.math.abs
-import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
-import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
-import kotlin.reflect.KType
-import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.staticProperties
 import kotlin.reflect.jvm.isAccessible
 
@@ -55,7 +49,9 @@ import java.util.Date
 import java.util.Enumeration
 import java.util.UUID
 
-import net.pwall.util.Strings
+import net.pwall.json.JSONSerializerFunctions.findToJSON
+import net.pwall.json.JSONSerializerFunctions.formatCalendar
+import net.pwall.json.JSONSerializerFunctions.isSealedSubclass
 
 /**
  * JSON Auto serialize for Kotlin.
@@ -64,7 +60,10 @@ import net.pwall.util.Strings
  */
 object JSONSerializer {
 
-    fun serialize(obj: Any?, config: JSONConfig = JSONConfig.defaultConfig): JSONValue? {
+    fun serialize(obj: Any?, config: JSONConfig = JSONConfig.defaultConfig): JSONValue? =
+            serialize(obj, config, mutableSetOf())
+
+    private fun serialize(obj: Any?, config: JSONConfig, references: MutableSet<Any>): JSONValue? {
 
         if (obj == null)
             return null
@@ -85,11 +84,11 @@ object JSONSerializer {
 
             is CharArray -> return JSONString(StringBuilder().append(obj))
 
-            is Array<*> -> return serializeArray(obj, config)
+            is Array<*> -> return serializeArray(obj, config, references)
 
-            is Pair<*, *> -> return serializePair(obj, config)
+            is Pair<*, *> -> return serializePair(obj, config, references)
 
-            is Triple<*, *, *> -> return serializeTriple(obj, config)
+            is Triple<*, *, *> -> return serializeTriple(obj, config, references)
         }
 
         try {
@@ -101,15 +100,24 @@ object JSONSerializer {
 
         when (obj) {
 
-            is Iterable<*> -> return JSONArray(obj.map { serialize(it, config) })
+            is Iterable<*> -> return JSONArray(obj.map { serialize(it, config, references) })
 
-            is Iterator<*> -> return JSONArray().apply { obj.forEach { add(serialize(it, config)) } }
+            is Iterator<*> -> return JSONArray().apply {
+                for (item in obj)
+                    add(serialize(item, config, references))
+            }
 
-            is Sequence<*> -> return JSONArray().apply { obj.forEach { add(serialize(it, config)) } }
+            is Sequence<*> -> return JSONArray().apply {
+                for (item in obj)
+                    add(serialize(item, config, references))
+            }
 
-            is Enumeration<*> -> return JSONArray().apply { obj.forEach { add(serialize(it, config)) } }
+            is Enumeration<*> -> return JSONArray().apply {
+                for (item in obj)
+                    add(serialize(item, config, references))
+            }
 
-            is Map<*, *> -> return serializeMap(obj, config)
+            is Map<*, *> -> return serializeMap(obj, config, references)
 
             is Enum<*> -> return JSONString(obj.toString())
 
@@ -130,9 +138,9 @@ object JSONSerializer {
             is URL,
             is UUID -> return JSONString(obj.toString())
 
-            is Calendar -> return serializeCalendar(obj)
+            is Calendar -> return JSONString(formatCalendar(obj))
 
-            is Date -> return serializeDate(obj)
+            is Date -> return JSONString(formatCalendar(Calendar.getInstance().apply { time = obj }))
 
             is BitSet -> return serializeBitSet(obj)
 
@@ -141,64 +149,59 @@ object JSONSerializer {
         val result = JSONObject()
         val objClass = obj::class
 
-        if (objClass.isSealedSubclass())
-            result[config.sealedClassDiscriminator] = JSONString(objClass.simpleName ?: "null")
+        try {
+            references.add(obj)
+            if (objClass.isSealedSubclass())
+                result[config.sealedClassDiscriminator] = JSONString(objClass.simpleName ?: "null")
 
-        val includeAll = config.hasIncludeAllPropertiesAnnotation(objClass.annotations)
-        if (objClass.isData && objClass.constructors.isNotEmpty()) {
-            // data classes will be a frequent use of serialization, so optimise for them
-            val constructor = objClass.constructors.first()
-            constructor.parameters.forEach { parameter ->
-                val member = objClass.members.find { it.name == parameter.name }
-                if (member is KProperty<*>)
-                    result.addUsingGetter(member, parameter.annotations, obj, config, includeAll)
-            }
-            // now check whether there are any more properties not in constructor
-            val statics: Collection<KProperty<*>> = objClass.staticProperties
-            objClass.members.forEach { member ->
-                if (member is KProperty<*> && !statics.contains(member) &&
-                        !constructor.parameters.any { it.name == member.name })
-                    result.addUsingGetter(member, member.annotations, obj, config, includeAll)
-            }
-        }
-        else {
-            val statics: Collection<KProperty<*>> = objClass.staticProperties
-            objClass.members.forEach { member ->
-                if (member is KProperty<*> && !statics.contains(member)) {
-                    val combinedAnnotations = ArrayList(member.annotations)
-                    objClass.constructors.firstOrNull()?.parameters?.find { it.name == member.name }?.let {
-                        combinedAnnotations.addAll(it.annotations)
-                    }
-                    result.addUsingGetter(member, combinedAnnotations, obj, config, includeAll)
+            val includeAll = config.hasIncludeAllPropertiesAnnotation(objClass.annotations)
+            if (objClass.isData && objClass.constructors.isNotEmpty()) {
+                // data classes will be a frequent use of serialization, so optimise for them
+                val constructor = objClass.constructors.first()
+                for (parameter in constructor.parameters) {
+                    val member = objClass.members.find { it.name == parameter.name }
+                    if (member is KProperty<*>)
+                        result.addUsingGetter(member, parameter.annotations, obj, config, references, includeAll)
+                }
+                // now check whether there are any more properties not in constructor
+                val statics: Collection<KProperty<*>> = objClass.staticProperties
+                for (member in objClass.members) {
+                    if (member is KProperty<*> && !statics.contains(member) &&
+                            !constructor.parameters.any { it.name == member.name })
+                        result.addUsingGetter(member, member.annotations, obj, config, references, includeAll)
                 }
             }
+            else {
+                val statics: Collection<KProperty<*>> = objClass.staticProperties
+                for (member in objClass.members) {
+                    if (member is KProperty<*> && !statics.contains(member)) {
+                        val combinedAnnotations = ArrayList(member.annotations)
+                        objClass.constructors.firstOrNull()?.parameters?.find { it.name == member.name }?.let {
+                            combinedAnnotations.addAll(it.annotations)
+                        }
+                        result.addUsingGetter(member, combinedAnnotations, obj, config, references, includeAll)
+                    }
+                }
+            }
+        }
+        finally {
+            references.remove(obj)
         }
         return result
     }
 
-    internal fun KClass<*>.isSealedSubclass(): Boolean {
-        supertypes.forEach { supertype ->
-            (supertype.classifier as? KClass<*>)?.let {
-                if (it.isSealed)
-                    return true
-                if (it != Any::class)
-                    if (it.isSealedSubclass())
-                        return true
-            }
-        }
-        return false
-    }
-
     private fun JSONObject.addUsingGetter(member: KProperty<*>, annotations: List<Annotation>?, obj: Any,
-            config: JSONConfig, includeAll: Boolean) {
+            config: JSONConfig, references: MutableSet<Any>, includeAll: Boolean) {
         if (!config.hasIgnoreAnnotation(annotations)) {
             val name = config.findNameFromAnnotation(annotations) ?: member.name
             val wasAccessible = member.isAccessible
             member.isAccessible = true
             try {
                 val v = member.getter.call(obj)
+                if (v != null && v in references)
+                    throw JSONException("Circular reference: field ${member.name} in ${obj::class.simpleName}")
                 if (v != null || config.hasIncludeIfNullAnnotation(annotations) || config.includeNulls || includeAll)
-                    put(name, serialize(v, config))
+                    put(name, serialize(v, config, references))
             }
             catch (e: JSONException) {
                 throw e
@@ -232,110 +235,39 @@ object JSONSerializer {
 
     }
 
-    private fun serializeArray(array: Array<*>, config: JSONConfig): JSONValue {
+    private fun serializeArray(array: Array<*>, config: JSONConfig, references: MutableSet<Any>): JSONValue {
 
         if (array.isArrayOf<Char>())
-            return JSONString(StringBuilder().apply { array.forEach { append(it) } })
+            return JSONString(StringBuilder().apply {
+                for (ch in array)
+                    append(ch)
+            })
 
-        return JSONArray(array.map { serialize(it, config) })
+        return JSONArray(array.map { serialize(it, config, references) })
     }
 
-    private fun serializePair(pair: Pair<*, *>, config: JSONConfig): JSONArray {
-        return JSONArray().apply {
-            add(serialize(pair.first, config))
-            add(serialize(pair.second, config))
+    private fun serializePair(pair: Pair<*, *>, config: JSONConfig, references: MutableSet<Any>) = JSONArray().apply {
+        add(serialize(pair.first, config, references))
+        add(serialize(pair.second, config, references))
+    }
+
+    private fun serializeTriple(triple: Triple<*, *, *>, config: JSONConfig, references: MutableSet<Any>) =
+            JSONArray().apply {
+        add(serialize(triple.first, config, references))
+        add(serialize(triple.second, config, references))
+        add(serialize(triple.third, config, references))
+    }
+
+    private fun serializeMap(map: Map<*, *>, config: JSONConfig, references: MutableSet<Any>) = JSONObject().apply {
+        for (entry in map.entries) {
+            this[entry.key.toString()] = serialize(entry.value, config, references)
         }
-    }
-
-    private fun serializeTriple(triple: Triple<*, *, *>, config: JSONConfig): JSONArray {
-        return JSONArray().apply {
-            add(serialize(triple.first, config))
-            add(serialize(triple.second, config))
-            add(serialize(triple.third, config))
-        }
-    }
-
-    private fun serializeMap(map: Map<*, *>, config: JSONConfig): JSONObject {
-        return JSONObject().apply {
-            map.entries.forEach { entry ->
-                this[entry.key.toString()] = serialize(entry.value, config)
-            }
-        }
-    }
-
-    private fun serializeCalendar(cal: Calendar) = JSONString(StringBuilder().apply {
-        appendCalendar(cal)
-    })
-
-    internal fun Appendable.appendCalendar(cal: Calendar) {
-        Strings.appendPositiveInt(this, cal.get(Calendar.YEAR))
-        append('-')
-        Strings.append2Digits(this, cal.get(Calendar.MONTH) + 1)
-        append('-')
-        Strings.append2Digits(this, cal.get(Calendar.DAY_OF_MONTH))
-        append('T')
-        Strings.append2Digits(this, cal.get(Calendar.HOUR_OF_DAY))
-        append(':')
-        Strings.append2Digits(this, cal.get(Calendar.MINUTE))
-        append(':')
-        Strings.append2Digits(this, cal.get(Calendar.SECOND))
-        append('.')
-        Strings.append3Digits(this, cal.get(Calendar.MILLISECOND))
-        val offset = (cal.get(Calendar.ZONE_OFFSET) +
-                if (cal.timeZone.inDaylightTime(cal.time)) cal.get(Calendar.DST_OFFSET) else 0) / 60_000
-        if (offset == 0)
-            append('Z')
-        else {
-            append(if (offset < 0) '-' else '+')
-            abs(offset).let {
-                Strings.append2Digits(this, it / 60)
-                append(':')
-                Strings.append2Digits(this, it % 60)
-            }
-        }
-    }
-
-    private fun serializeDate(date: Date): JSONString {
-        val cal = Calendar.getInstance()
-        cal.time = date
-        return serializeCalendar(cal)
     }
 
     private fun serializeBitSet(bitSet: BitSet) = JSONArray(ArrayList<JSONValue>().apply {
-            (0 until bitSet.length()).forEach { i -> if (bitSet.get(i)) add(JSONInt(i)) }
-        })
-
-    private val toJsonCache = HashMap<KClass<*>, KFunction<JSONValue>>()
-
-    internal fun findToJSON(objClass: KClass<*>): KFunction<JSONValue>? {
-        toJsonCache[objClass]?.let { return it }
-        try {
-            objClass.members.forEach { function ->
-                if (function is KFunction<*> &&
-                        function.name == "toJSON" &&
-                        function.parameters.size == 1 &&
-                        function.parameters[0].kind == KParameter.Kind.INSTANCE &&
-                        function.returnType.isJSONValue())
-                    @Suppress("UNCHECKED_CAST")
-                    return (function as KFunction<JSONValue>).apply { toJsonCache[objClass] = this }
-            }
-        }
-        catch (ignore: kotlin.reflect.jvm.internal.KotlinReflectionInternalError) {
-            // seems like a bug in Kotlin runtime
-        }
-        catch (ignore: Exception) {
-        }
-        return null
-    }
-
-    private fun KType.isJSONValue(): Boolean {
-        classifier?.let { if (it is KClass<*>) return it.isSubclassOf(JSONValue::class) }
-        return false
-    }
-
-    private fun <T> Enumeration<T>.forEach(action: (T) -> Unit) {
-        while (hasMoreElements())
-            action(nextElement())
-    }
+        for (i in 0 until bitSet.length())
+            if (bitSet.get(i))
+                add(JSONInt(i))
+    })
 
 }

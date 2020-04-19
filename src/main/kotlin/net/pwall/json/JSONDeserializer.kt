@@ -139,7 +139,8 @@ object JSONDeserializer {
 
     /**
      * Deserialize a parsed [JSONValue] to an unspecified([Any]) type.  Strings will be converted to `String`, numbers
-     * to `Int`, `Long` or `Double`, arrays to `ArrayList<Any?>` and objects to `LinkedHashMap<String, Any?>`.
+     * to `Int`, `Long` or `BigDecimal`, booleans to `Boolean`, arrays to `ArrayList<Any?>` and objects to
+     * `LinkedHashMap<String, Any?>`.
      *
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
      * @param   config      an optional [JSONConfig]
@@ -156,7 +157,7 @@ object JSONDeserializer {
      * @return              the converted object
      */
     inline fun <reified T: Any> deserialize(json: JSONValue, config: JSONConfig = JSONConfig.defaultConfig): T? =
-            deserialize(JSONTypeRef.create<T>().refType, json, config) as T?
+            deserialize(JSONTypeRef.create<T>(nullable = true).refType, json, config) as T?
 
     /**
      * Deserialize a parsed [JSONValue] to a parameterized [KClass], with the specified [KTypeProjection]s.
@@ -378,10 +379,10 @@ object JSONDeserializer {
 
                 BitSet::class -> {
                     BitSet().apply {
-                        json.forEach {
-                            if (it !is JSONInt)
+                        for (value in json) {
+                            if (value !is JSONInt)
                                 throw JSONException("Can't deserialize BitSet; array member not int")
-                            set(it.get())
+                            set(value.get())
                         }
                     }
                 }
@@ -435,8 +436,9 @@ object JSONDeserializer {
 
     private fun MutableCollection<Any?>.fillFromJSON(json: JSONArray, type: KType, config: JSONConfig):
             MutableCollection<Any?> {
-        // using forEach rather than map to avoid creation of intermediate List
-        json.forEach { add(deserialize(type, it, config)) }
+        // using for rather than map to avoid creation of intermediate List
+        for (value in json)
+            add(deserialize(type, value, config))
         return this
     }
 
@@ -478,11 +480,15 @@ object JSONDeserializer {
 
             findBestConstructor(resultClass.constructors, json, config)?.let { constructor ->
                 val argMap = HashMap<KParameter, Any?>()
-                constructor.parameters.forEach { parameter ->
+                for (parameter in constructor.parameters) {
                     val paramName = findParameterName(parameter, config)
-                    jsonCopy[paramName]?.let {
-                        argMap[parameter] = deserialize(parameter.type, it, config)
+                    if (config.hasIgnoreAnnotation(parameter.annotations))
                         jsonCopy.remove(paramName)
+                    else {
+                        jsonCopy[paramName]?.let {
+                            argMap[parameter] = deserialize(parameter.type, it, config)
+                            jsonCopy.remove(paramName)
+                        }
                     }
                 }
                 return setRemainingFields(resultClass, constructor.callBy(argMap), jsonCopy, config)
@@ -504,7 +510,7 @@ object JSONDeserializer {
         val keyClass = getTypeParam(types, 0).classifier as? KClass<*> ?:
                 throw JSONException("Key type can not be determined for Map")
         val valueType = getTypeParam(types, 1)
-        json.forEach { entry: Map.Entry<String, JSONValue?> ->
+        for (entry in json.entries) {
             map[deserializeString(keyClass, entry.key)] = deserialize(valueType, entry.value, config)
         }
         return map
@@ -512,26 +518,28 @@ object JSONDeserializer {
 
     private fun <T: Any> setRemainingFields(resultClass: KClass<T>, instance: T, json: Map<String, JSONValue?>,
             config: JSONConfig): T {
-        json.forEach { entry -> // JSONObject fields not used in constructor
+        for (entry in json) { // JSONObject fields not used in constructor
             val member = findField(resultClass.members, entry.key, config)
             if (member != null) {
-                val value = deserialize(member.returnType, entry.value, config)
-                if (member is KMutableProperty<*>) {
-                    val wasAccessible = member.isAccessible
-                    member.isAccessible = true
-                    try {
-                        member.setter.call(instance, value)
+                if (!config.hasIgnoreAnnotation(member.annotations)) {
+                    val value = deserialize(member.returnType, entry.value, config)
+                    if (member is KMutableProperty<*>) {
+                        val wasAccessible = member.isAccessible
+                        member.isAccessible = true
+                        try {
+                            member.setter.call(instance, value)
+                        }
+                        catch (e: Exception) {
+                            throw JSONException("Error setting property ${entry.key} in ${resultClass.simpleName}", e)
+                        }
+                        finally {
+                            member.isAccessible = wasAccessible
+                        }
                     }
-                    catch (e: Exception) {
-                        throw JSONException("Error setting property ${entry.key} in ${resultClass.simpleName}", e)
+                    else {
+                        if (member.getter.call(instance) != value)
+                            throw JSONException("Can't set property ${entry.key} in ${resultClass.simpleName}")
                     }
-                    finally {
-                        member.isAccessible = wasAccessible
-                    }
-                }
-                else {
-                    if (member.getter.call(instance) != value)
-                        throw JSONException("Can't set property ${entry.key} in ${resultClass.simpleName}")
                 }
             }
             else {

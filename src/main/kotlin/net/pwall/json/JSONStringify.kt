@@ -49,8 +49,9 @@ import java.util.Date
 import java.util.Enumeration
 import java.util.UUID
 
-import net.pwall.json.JSONSerializer.appendCalendar
-import net.pwall.json.JSONSerializer.isSealedSubclass
+import net.pwall.json.JSONSerializerFunctions.findToJSON
+import net.pwall.json.JSONSerializerFunctions.formatCalendar
+import net.pwall.json.JSONSerializerFunctions.isSealedSubclass
 import net.pwall.util.Strings
 
 /**
@@ -84,6 +85,10 @@ object JSONStringify {
      * @param   config  an optional [JSONConfig] to customise the conversion
      */
     fun Appendable.appendJSON(obj: Any?, config: JSONConfig = JSONConfig.defaultConfig) {
+        appendJSON(obj, config, mutableSetOf())
+    }
+
+    private fun Appendable.appendJSON(obj: Any?, config: JSONConfig, references: MutableSet<Any>) {
 
         if (obj == null) {
             append("null")
@@ -98,15 +103,24 @@ object JSONStringify {
         when (obj) {
             is JSONValue -> obj.appendJSON(this)
             is CharSequence -> appendJSONString(obj)
-            is CharArray -> appendQuoted { obj.forEach { appendJSONChar(it) } }
-            is Char -> appendQuoted { appendJSONChar(obj) }
-            is Number -> appendJSONNumber(obj, config)
+            is CharArray -> {
+                append('"')
+                for (ch in obj)
+                    appendJSONChar(ch)
+                append('"')
+            }
+            is Char -> {
+                append('"')
+                appendJSONChar(obj)
+                append('"')
+            }
+            is Number -> appendJSONNumber(obj, config, references)
             is Boolean -> append(if (obj) "true" else "false")
-            is Array<*> -> appendJSONArray(obj, config)
-            is Pair<*, *> -> appendJSONPair(obj, config)
-            is Triple<*, *, *> -> appendJSONTriple(obj, config)
+            is Array<*> -> appendJSONArray(obj, config, references)
+            is Pair<*, *> -> appendJSONPair(obj, config, references)
+            is Triple<*, *, *> -> appendJSONTriple(obj, config, references)
             else -> {
-                JSONSerializer.findToJSON(obj::class)?.let {
+                findToJSON(obj::class)?.let {
                     try {
                         it.call(obj).appendJSON(this)
                         return
@@ -115,75 +129,85 @@ object JSONStringify {
                         throw JSONException("Error in custom toJSON - ${obj::class.simpleName}", e)
                     }
                 }
-                appendJSONObject(obj, config)
+                appendJSONObject(obj, config, references)
             }
         }
 
     }
 
-    private fun Appendable.appendJSONNumber(number: Number, config: JSONConfig) {
+    private fun Appendable.appendJSONNumber(number: Number, config: JSONConfig, references: MutableSet<Any>) {
         when (number) {
             is Int -> Strings.appendInt(this, number)
             is Short, is Byte -> Strings.appendInt(this, number.toInt())
             is Long -> Strings.appendLong(this, number)
             is Float, is Double -> append(number.toString())
             is BigInteger -> {
-                if (config.bigIntegerString)
-                    appendQuoted { append(number.toString()) }
+                if (config.bigIntegerString) {
+                    append('"')
+                    append(number.toString())
+                    append('"')
+                }
                 else
                     append(number.toString())
             }
             is BigDecimal -> {
-                if (config.bigDecimalString)
-                    appendQuoted { append(number.toString()) }
+                if (config.bigDecimalString) {
+                    append('"')
+                    append(number.toString())
+                    append('"')
+                }
                 else
                     append(number.toString())
             }
-            else -> appendJSONObject(number, config)
+            else -> appendJSONObject(number, config, references)
         }
     }
 
-    private fun Appendable.appendJSONArray(array: Array<*>, config: JSONConfig) {
-        if (array.isArrayOf<Char>())
-            appendQuoted { array.forEach { appendJSONChar(it as Char) } }
+    private fun Appendable.appendJSONArray(array: Array<*>, config: JSONConfig, references: MutableSet<Any>) {
+        if (array.isArrayOf<Char>()) {
+            append('"')
+            for (ch in array)
+                appendJSONChar(ch as Char)
+            append('"')
+        }
         else {
             append('[')
             if (array.isNotEmpty()) {
                 for (i in array.indices) {
                     if (i > 0)
                         append(',')
-                    appendJSON(array[i], config)
+                    appendJSON(array[i], config, references)
                 }
             }
             append(']')
         }
     }
 
-    private fun Appendable.appendJSONPair(pair: Pair<*, *>, config: JSONConfig) {
+    private fun Appendable.appendJSONPair(pair: Pair<*, *>, config: JSONConfig, references: MutableSet<Any>) {
         append('[')
-        appendJSON(pair.first, config)
+        appendJSON(pair.first, config, references)
         append(',')
-        appendJSON(pair.second, config)
+        appendJSON(pair.second, config, references)
         append(']')
     }
 
-    private fun Appendable.appendJSONTriple(pair: Triple<*, *, *>, config: JSONConfig) {
+    private fun Appendable.appendJSONTriple(pair: Triple<*, *, *>, config: JSONConfig, references: MutableSet<Any>) {
         append('[')
-        appendJSON(pair.first, config)
+        appendJSON(pair.first, config, references)
         append(',')
-        appendJSON(pair.second, config)
+        appendJSON(pair.second, config, references)
         append(',')
-        appendJSON(pair.third, config)
+        appendJSON(pair.third, config, references)
         append(']')
     }
 
-    private fun Appendable.appendJSONObject(obj: Any, config: JSONConfig) {
+    private fun Appendable.appendJSONObject(obj: Any, config: JSONConfig, references: MutableSet<Any>) {
         when (obj) {
-            is Iterable<*> -> appendJSONIterator(obj.iterator(), config)
-            is Iterator<*> -> appendJSONIterator(obj, config)
-            is Sequence<*> -> appendJSONIterator(obj.iterator(), config)
-            is Enumeration<*> -> appendJSONEnumeration(obj, config)
-            is Map<*, *> -> appendJSONMap(obj, config)
+            is Iterable<*> -> appendJSONIterator(obj.iterator(), config, references)
+            is Iterator<*> -> appendJSONIterator(obj, config, references)
+            is Sequence<*> -> appendJSONIterator(obj.iterator(), config, references)
+            is Enumeration<*> -> appendJSONEnumeration(obj, config, references)
+            is Map<*, *> -> appendJSONMap(obj, config, references)
             is Enum<*>,
             is java.sql.Date,
             is java.sql.Time,
@@ -201,69 +225,77 @@ object JSONStringify {
             is URI,
             is URL,
             is UUID -> appendJSONString(obj.toString())
-            is Calendar -> appendQuoted { appendCalendar(obj) }
-            is Date -> appendQuoted { appendCalendar(Calendar.getInstance().apply { time = obj }) }
+            is Calendar -> appendJSONString(formatCalendar(obj))
+            is Date -> appendJSONString(formatCalendar(Calendar.getInstance().apply { time = obj }))
             is BitSet -> appendJSONBitSet(obj)
             else -> {
-                append('{')
-                var continuation = false
-                val objClass = obj::class
-                if (objClass.isSealedSubclass()) {
-                    appendJSONString(config.sealedClassDiscriminator)
-                    append(':')
-                    appendJSONString(objClass.simpleName ?: "null")
-                    continuation = true
-                }
-                val includeAll = config.hasIncludeAllPropertiesAnnotation(objClass.annotations)
-                val statics: Collection<KProperty<*>> = objClass.staticProperties
-                if (objClass.isData && objClass.constructors.isNotEmpty()) {
-                    // data classes will be a frequent use of serialization, so optimise for them
-                    val constructor = objClass.constructors.first()
-                    constructor.parameters.forEach { parameter ->
-                        val member = objClass.members.find { it.name == parameter.name }
-                        if (member is KProperty<*>)
-                            continuation = appendUsingGetter(member, parameter.annotations, obj, config, includeAll,
-                                    continuation)
+                try {
+                    references.add(obj)
+                    append('{')
+                    var continuation = false
+                    val objClass = obj::class
+                    if (objClass.isSealedSubclass()) {
+                        appendJSONString(config.sealedClassDiscriminator)
+                        append(':')
+                        appendJSONString(objClass.simpleName ?: "null")
+                        continuation = true
                     }
-                    // now check whether there are any more properties not in constructor
-                    objClass.members.forEach { member ->
-                        if (member is KProperty<*> && !statics.contains(member) &&
-                                !constructor.parameters.any { it.name == member.name })
-                            continuation = appendUsingGetter(member, member.annotations, obj, config, includeAll,
-                                    continuation)
-                    }
-                }
-                else {
-                    objClass.members.forEach { member ->
-                        if (member is KProperty<*> && !statics.contains(member)) {
-                            val combinedAnnotations = ArrayList(member.annotations)
-                            objClass.constructors.firstOrNull()?.parameters?.find { it.name == member.name }?.let {
-                                combinedAnnotations.addAll(it.annotations)
-                            }
-                            continuation = appendUsingGetter(member, combinedAnnotations, obj, config, includeAll,
-                                    continuation)
+                    val includeAll = config.hasIncludeAllPropertiesAnnotation(objClass.annotations)
+                    val statics: Collection<KProperty<*>> = objClass.staticProperties
+                    if (objClass.isData && objClass.constructors.isNotEmpty()) {
+                        // data classes will be a frequent use of serialization, so optimise for them
+                        val constructor = objClass.constructors.first()
+                        for (parameter in constructor.parameters) {
+                            val member = objClass.members.find { it.name == parameter.name }
+                            if (member is KProperty<*>)
+                                continuation = appendUsingGetter(member, parameter.annotations, obj, config, references,
+                                        includeAll, continuation)
+                        }
+                        // now check whether there are any more properties not in constructor
+                        for (member in objClass.members) {
+                            if (member is KProperty<*> && !statics.contains(member) &&
+                                    !constructor.parameters.any { it.name == member.name })
+                                continuation = appendUsingGetter(member, member.annotations, obj, config, references,
+                                        includeAll, continuation)
                         }
                     }
+                    else {
+                        for (member in objClass.members) {
+                            if (member is KProperty<*> && !statics.contains(member)) {
+                                val combinedAnnotations = ArrayList(member.annotations)
+                                objClass.constructors.firstOrNull()?.parameters?.find { it.name == member.name }?.let {
+                                    combinedAnnotations.addAll(it.annotations)
+                                }
+                                continuation = appendUsingGetter(member, combinedAnnotations, obj, config, references,
+                                        includeAll, continuation)
+                            }
+                        }
+                    }
+                    append('}')
                 }
-                append('}')
+                finally {
+                    references.remove(obj)
+                }
             }
         }
     }
 
     private fun Appendable.appendUsingGetter(member: KProperty<*>, annotations: List<Annotation>?, obj: Any,
-            config: JSONConfig, includeAll: Boolean, continuation: Boolean): Boolean {
+            config: JSONConfig, references: MutableSet<Any>, includeAll: Boolean, continuation: Boolean): Boolean {
         if (!config.hasIgnoreAnnotation(annotations)) {
             val name = config.findNameFromAnnotation(annotations) ?: member.name
             val wasAccessible = member.isAccessible
             member.isAccessible = true
             try {
                 val v = member.getter.call(obj)
+                if (v != null && v in references)
+                    throw JSONException("Circular reference: field ${member.name} in ${obj::class.simpleName}")
                 if (v != null || config.hasIncludeIfNullAnnotation(annotations) || config.includeNulls || includeAll) {
                     if (continuation)
                         append(',')
                     appendJSONString(name)
                     append(':')
-                    appendJSON(v, config)
+                    appendJSON(v, config, references)
                     return true
                 }
             }
@@ -280,11 +312,11 @@ object JSONStringify {
         return continuation
     }
 
-    private fun Appendable.appendJSONIterator(iterator: Iterator<*>, config: JSONConfig) {
+    private fun Appendable.appendJSONIterator(iterator: Iterator<*>, config: JSONConfig, references: MutableSet<Any>) {
         append('[')
         if (iterator.hasNext()) {
             while (true) {
-                appendJSON(iterator.next(), config)
+                appendJSON(iterator.next(), config, references)
                 if (!iterator.hasNext())
                     break
                 append(',')
@@ -293,11 +325,12 @@ object JSONStringify {
         append(']')
     }
 
-    private fun Appendable.appendJSONEnumeration(enumeration: Enumeration<*>, config: JSONConfig) {
+    private fun Appendable.appendJSONEnumeration(enumeration: Enumeration<*>, config: JSONConfig,
+            references: MutableSet<Any>) {
         append('[')
         if (enumeration.hasMoreElements()) {
             while (true) {
-                appendJSON(enumeration.nextElement(), config)
+                appendJSON(enumeration.nextElement(), config, references)
                 if (!enumeration.hasMoreElements())
                     break
                 append(',')
@@ -306,7 +339,7 @@ object JSONStringify {
         append(']')
     }
 
-    private fun Appendable.appendJSONMap(map: Map<*, *>, config: JSONConfig) {
+    private fun Appendable.appendJSONMap(map: Map<*, *>, config: JSONConfig, references: MutableSet<Any>) {
         append('{')
         map.entries.iterator().let {
             if (it.hasNext()) {
@@ -314,7 +347,7 @@ object JSONStringify {
                     val ( key, value ) = it.next()
                     appendJSONString(key.toString())
                     append(':')
-                    appendJSON(value, config)
+                    appendJSON(value, config, references)
                     if (!it.hasNext())
                         break
                     append(',')
@@ -327,7 +360,7 @@ object JSONStringify {
     private fun Appendable.appendJSONBitSet(bitSet: BitSet) {
         append('[')
         var continuation = false
-        (0 until bitSet.length()).forEach { i ->
+        for (i in 0 until bitSet.length()) {
             if (bitSet.get(i)) {
                 if (continuation)
                     append(',')
@@ -339,12 +372,9 @@ object JSONStringify {
     }
 
     private fun Appendable.appendJSONString(cs: CharSequence) {
-        appendQuoted { cs.forEach { appendJSONChar(it) } }
-    }
-
-    private fun Appendable.appendQuoted(stringFunction: Appendable.() -> Unit) {
         append('"')
-        stringFunction()
+        for (ch in cs)
+            appendJSONChar(ch)
         append('"')
     }
 

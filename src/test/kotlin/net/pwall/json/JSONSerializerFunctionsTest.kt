@@ -1,5 +1,5 @@
 /*
- * @(#) JSONIncludeAllProperties.kt
+ * @(#) JSONSerializerFunctionsTest.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
  * Copyright (c) 2020 Peter Wall
@@ -23,15 +23,33 @@
  * SOFTWARE.
  */
 
-package net.pwall.json.annotation
+package net.pwall.json
 
-/**
- * Annotation to indicate all properties in a class are to be included in auto-serialization and deserialization even if
- * `null`.
- *
- * @author  Peter Wall
- */
-@Target(AnnotationTarget.CLASS)
-@Retention(AnnotationRetention.RUNTIME)
-@MustBeDocumented
-annotation class JSONIncludeAllProperties
+import kotlin.test.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+
+import net.pwall.json.JSONSerializerFunctions.findToJSON
+import net.pwall.json.JSONSerializerFunctions.isSealedSubclass
+
+class JSONSerializerFunctionsTest {
+
+    @Test fun `should find toJSON when it is present`() {
+        assertNotNull(findToJSON(DummyFromJSON::class))
+    }
+
+    @Test fun `should return null when toJSON is present`() {
+        assertNull(findToJSON(Dummy1::class))
+    }
+
+    @Test fun `should return true when class is a subclass of a sealed class`() {
+        assertTrue(NotANumber::class.isSealedSubclass())
+    }
+
+    @Test fun `should return false when class is not a subclass of a sealed class`() {
+        assertFalse(Dummy1::class.isSealedSubclass())
+    }
+
+}

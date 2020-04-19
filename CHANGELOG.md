@@ -2,6 +2,19 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [3.4] - 2020-04-18
+### Changed
+- `JSONSerializer`, `JSONStringify`: added checks for circular references
+
+## [3.3] - 2020-04-18
+### Added
+- `JSONSerializerFunctions`: common functionality for `JSONSerializer`, `JSONStringify` etc. (split out from
+`JSONSerializer`)
+### Changed
+- `JSONDeserializer`: added check for `@JSONIgnore`
+### Removed
+- `TestAnnotatedClasses.kt`, `TestSealedClasses.kt`: moved to `json-kotlin-test-classes`
+
 ## [3.2] - 2020-04-13
 ### Changed
 - `JSONConfig`, `JSONAuto`, `JSONFun`, `JSONSerializer`: accommodate JSONStringify
