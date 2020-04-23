@@ -26,6 +26,7 @@
 package net.pwall.json
 
 import kotlin.math.abs
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -40,6 +41,8 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.MonthDay
 import java.time.OffsetDateTime
 import java.time.OffsetTime
 import java.time.Period
@@ -52,7 +55,6 @@ import java.util.BitSet
 import java.util.Calendar
 import java.util.TimeZone
 import java.util.UUID
-import kotlin.test.assertFailsWith
 
 class JSONSerializerTest {
 
@@ -334,6 +336,11 @@ class JSONSerializerTest {
         expect(JSONString("2019-04-25T21:06:05")) { JSONSerializer.serialize(date) }
     }
 
+    @Test fun `LocalTime should return JSONString`() {
+        val date = LocalTime.of(21, 6, 5)
+        expect(JSONString("21:06:05")) { JSONSerializer.serialize(date) }
+    }
+
     @Test fun `OffsetTime should return JSONString`() {
         val time = OffsetTime.of(21, 6, 5, 456000000, ZoneOffset.ofHours(10))
         expect(JSONString("21:06:05.456+10:00")) { JSONSerializer.serialize(time) }
@@ -355,8 +362,13 @@ class JSONSerializerTest {
     }
 
     @Test fun `YearMonth should return JSONString`() {
-        val year = YearMonth.of(2019, 4)
-        expect(JSONString("2019-04")) { JSONSerializer.serialize(year) }
+        val yearMonth = YearMonth.of(2019, 4)
+        expect(JSONString("2019-04")) { JSONSerializer.serialize(yearMonth) }
+    }
+
+    @Test fun `MonthDay should return JSONString`() {
+        val month = MonthDay.of(4, 23)
+        expect(JSONString("--04-23")) { JSONSerializer.serialize(month) }
     }
 
     @Test fun `Duration should return JSONString`() {

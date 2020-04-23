@@ -2,6 +2,17 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [3.5] - 2020-04-23
+### Changed
+- `JSONConfig`: added `streamOutput` switch (for `json-ktor`)
+- `JSONSerializerFunctions`: changed `toJsonCache` handling (more efficient)
+- `JSONSerializer`, `JSONSerializerFunctions`: improved handling of classes output by `toString()`
+- `JSONDeserializer`, `JSONSerializerFunctions`: add classes from `java.time` package
+
+## [3.4.1] - 2020-04-21
+### Changed
+- `pom.xml`: updated dependency versions
+
 ## [3.4] - 2020-04-18
 ### Changed
 - `JSONSerializer`, `JSONStringify`: added checks for circular references

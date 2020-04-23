@@ -196,6 +196,7 @@ class JSONConfigTest {
             bigDecimalString = true
             includeNulls = true
             allowExtra = true
+            streamOutput = true
         }
         val config2 = JSONConfig().apply {
             combineAll(config)
@@ -204,6 +205,7 @@ class JSONConfigTest {
         expect(true) { config2.bigDecimalString }
         expect(true) { config2.includeNulls }
         expect(true) { config2.allowExtra }
+        expect(true) { config2.streamOutput }
     }
 
     @Test fun `toJSON mapping of nullable type should be selected correctly`() {

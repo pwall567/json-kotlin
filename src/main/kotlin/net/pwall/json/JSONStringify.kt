@@ -31,27 +31,15 @@ import kotlin.reflect.jvm.isAccessible
 
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.net.URI
-import java.net.URL
-import java.time.Duration
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.OffsetTime
-import java.time.Period
-import java.time.Year
-import java.time.YearMonth
-import java.time.ZonedDateTime
 import java.util.BitSet
 import java.util.Calendar
 import java.util.Date
 import java.util.Enumeration
-import java.util.UUID
 
 import net.pwall.json.JSONSerializerFunctions.findToJSON
-import net.pwall.json.JSONSerializerFunctions.formatCalendar
+import net.pwall.json.JSONSerializerFunctions.formatISO8601
 import net.pwall.json.JSONSerializerFunctions.isSealedSubclass
+import net.pwall.json.JSONSerializerFunctions.isToStringClass
 import net.pwall.util.Strings
 
 /**
@@ -119,18 +107,7 @@ object JSONStringify {
             is Array<*> -> appendJSONArray(obj, config, references)
             is Pair<*, *> -> appendJSONPair(obj, config, references)
             is Triple<*, *, *> -> appendJSONTriple(obj, config, references)
-            else -> {
-                findToJSON(obj::class)?.let {
-                    try {
-                        it.call(obj).appendJSON(this)
-                        return
-                    }
-                    catch (e: Exception) {
-                        throw JSONException("Error in custom toJSON - ${obj::class.simpleName}", e)
-                    }
-                }
-                appendJSONObject(obj, config, references)
-            }
+            else -> appendJSONObject(obj, config, references)
         }
 
     }
@@ -202,38 +179,34 @@ object JSONStringify {
     }
 
     private fun Appendable.appendJSONObject(obj: Any, config: JSONConfig, references: MutableSet<Any>) {
+        val objClass = obj::class
+        if (objClass.isToStringClass() || obj is Enum<*>) {
+            appendJSONString(obj.toString())
+            return
+        }
+        objClass.findToJSON()?.let {
+            try {
+                it.call(obj).appendJSON(this)
+                return
+            }
+            catch (e: Exception) {
+                throw JSONException("Error in custom toJSON - ${objClass.simpleName}", e)
+            }
+        }
         when (obj) {
             is Iterable<*> -> appendJSONIterator(obj.iterator(), config, references)
             is Iterator<*> -> appendJSONIterator(obj, config, references)
             is Sequence<*> -> appendJSONIterator(obj.iterator(), config, references)
             is Enumeration<*> -> appendJSONEnumeration(obj, config, references)
             is Map<*, *> -> appendJSONMap(obj, config, references)
-            is Enum<*>,
-            is java.sql.Date,
-            is java.sql.Time,
-            is java.sql.Timestamp,
-            is Instant,
-            is LocalDate,
-            is LocalDateTime,
-            is OffsetTime,
-            is OffsetDateTime,
-            is ZonedDateTime,
-            is Year,
-            is YearMonth,
-            is Duration,
-            is Period,
-            is URI,
-            is URL,
-            is UUID -> appendJSONString(obj.toString())
-            is Calendar -> appendJSONString(formatCalendar(obj))
-            is Date -> appendJSONString(formatCalendar(Calendar.getInstance().apply { time = obj }))
+            is Calendar -> appendJSONString(obj.formatISO8601())
+            is Date -> appendJSONString((Calendar.getInstance().apply { time = obj }).formatISO8601())
             is BitSet -> appendJSONBitSet(obj)
             else -> {
                 try {
                     references.add(obj)
                     append('{')
                     var continuation = false
-                    val objClass = obj::class
                     if (objClass.isSealedSubclass()) {
                         appendJSONString(config.sealedClassDiscriminator)
                         append(':')

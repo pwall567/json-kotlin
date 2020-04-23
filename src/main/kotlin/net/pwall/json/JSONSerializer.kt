@@ -31,27 +31,15 @@ import kotlin.reflect.jvm.isAccessible
 
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.net.URI
-import java.net.URL
-import java.time.Duration
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.OffsetTime
-import java.time.Period
-import java.time.Year
-import java.time.YearMonth
-import java.time.ZonedDateTime
 import java.util.BitSet
 import java.util.Calendar
 import java.util.Date
 import java.util.Enumeration
-import java.util.UUID
 
 import net.pwall.json.JSONSerializerFunctions.findToJSON
-import net.pwall.json.JSONSerializerFunctions.formatCalendar
+import net.pwall.json.JSONSerializerFunctions.formatISO8601
 import net.pwall.json.JSONSerializerFunctions.isSealedSubclass
+import net.pwall.json.JSONSerializerFunctions.isToStringClass
 
 /**
  * JSON Auto serialize for Kotlin.
@@ -91,11 +79,16 @@ object JSONSerializer {
             is Triple<*, *, *> -> return serializeTriple(obj, config, references)
         }
 
+        val objClass = obj::class
+
+        if (objClass.isToStringClass() || obj is Enum<*>)
+            return JSONString(obj.toString())
+
         try {
-            findToJSON(obj::class)?.let { return it.call(obj) }
+            objClass.findToJSON()?.let { return it.call(obj) }
         }
         catch (e: Exception) {
-            throw JSONException("Error in custom toJSON - ${obj::class.simpleName}", e)
+            throw JSONException("Error in custom toJSON - ${objClass.simpleName}", e)
         }
 
         when (obj) {
@@ -119,35 +112,15 @@ object JSONSerializer {
 
             is Map<*, *> -> return serializeMap(obj, config, references)
 
-            is Enum<*> -> return JSONString(obj.toString())
+            is Calendar -> return JSONString(obj.formatISO8601())
 
-            is java.sql.Date,
-            is java.sql.Time,
-            is java.sql.Timestamp,
-            is Instant,
-            is LocalDate,
-            is LocalDateTime,
-            is OffsetTime,
-            is OffsetDateTime,
-            is ZonedDateTime,
-            is Year,
-            is YearMonth,
-            is Duration,
-            is Period,
-            is URI,
-            is URL,
-            is UUID -> return JSONString(obj.toString())
-
-            is Calendar -> return JSONString(formatCalendar(obj))
-
-            is Date -> return JSONString(formatCalendar(Calendar.getInstance().apply { time = obj }))
+            is Date -> return JSONString((Calendar.getInstance().apply { time = obj }).formatISO8601())
 
             is BitSet -> return serializeBitSet(obj)
 
         }
 
         val result = JSONObject()
-        val objClass = obj::class
 
         try {
             references.add(obj)
