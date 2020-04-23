@@ -48,6 +48,8 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.MonthDay
 import java.time.OffsetDateTime
 import java.time.OffsetTime
 import java.time.Period
@@ -183,6 +185,12 @@ class JSONDeserializerTest {
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
 
+    @Test fun `JSONString should return LocalTime`() {
+        val json = JSONString("16:43:33")
+        val expected: LocalTime? = LocalTime.of(16, 43, 33)
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
     @Test fun `JSONString should return OffsetTime`() {
         val json = JSONString("16:46:11.234+10:00")
         val expected: OffsetTime? = OffsetTime.of(16, 46, 11, 234000000, ZoneOffset.ofHours(10))
@@ -211,6 +219,12 @@ class JSONDeserializerTest {
     @Test fun `JSONString should return YearMonth`() {
         val json = JSONString("2019-03")
         val expected: YearMonth? = YearMonth.of(2019, 3)
+        expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONString should return MonthDay`() {
+        val json = JSONString("--03-10")
+        val expected: MonthDay? = MonthDay.of(3, 10)
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
 

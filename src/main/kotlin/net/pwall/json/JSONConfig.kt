@@ -86,6 +86,9 @@ class JSONConfig {
     /** Switch to control whether extra fields are allowed on deserialization: `true` -> yes, `false` -> no */
     var allowExtra = defaultAllowExtra
 
+    /** Switch to control whether `json-ktor` uses streamed output */
+    var streamOutput = defaultStreamOutput
+
     private val fromJSONMap: MutableMap<KType, FromJSONMapping> = LinkedHashMap()
 
     private val toJSONMap: MutableMap<KType, ToJSONMapping> = LinkedHashMap()
@@ -425,6 +428,7 @@ class JSONConfig {
         bigDecimalString = config.bigDecimalString
         includeNulls = config.includeNulls
         allowExtra = config.allowExtra
+        streamOutput = config.streamOutput
         fromJSONMap.putAll(config.fromJSONMap)
         toJSONMap.putAll(config.toJSONMap)
         nameAnnotations.addAll(config.nameAnnotations)
@@ -461,6 +465,8 @@ class JSONConfig {
         const val defaultIncludeNulls = false
 
         const val defaultAllowExtra = false
+
+        const val defaultStreamOutput = false
 
         val defaultCharset = Charsets.UTF_8
 

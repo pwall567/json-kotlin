@@ -25,6 +25,7 @@
 
 package net.pwall.json
 
+import kotlin.test.assertFailsWith
 import kotlin.test.expect
 import kotlin.test.Test
 
@@ -36,6 +37,8 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.MonthDay
 import java.time.OffsetDateTime
 import java.time.OffsetTime
 import java.time.Period
@@ -49,7 +52,6 @@ import java.util.UUID
 
 import net.pwall.json.JSONStringify.appendJSON
 import net.pwall.json.test.JSONExpect.Companion.expectJSON
-import kotlin.test.assertFailsWith
 
 class JSONStringifyTest {
 
@@ -343,6 +345,12 @@ class JSONStringifyTest {
         expect("\"$str\"") { JSONStringify.stringify(localDateTime) }
     }
 
+    @Test fun `should stringify a LocalTime`() {
+        val str = "00:09:26.123"
+        val localTime = LocalTime.parse(str)
+        expect("\"$str\"") { JSONStringify.stringify(localTime) }
+    }
+
     @Test fun `should stringify an OffsetTime`() {
         val str = "10:15:06.543+10:00"
         val offsetTime = OffsetTime.parse(str)
@@ -371,6 +379,12 @@ class JSONStringifyTest {
         val str = "2020-04"
         val yearMonth = YearMonth.parse(str)
         expect("\"$str\"") { JSONStringify.stringify(yearMonth) }
+    }
+
+    @Test fun `should stringify a MonthDay`() {
+        val str = "--04-23"
+        val monthDay = MonthDay.parse(str)
+        expect("\"$str\"") { JSONStringify.stringify(monthDay) }
     }
 
     @Test fun `should stringify a Duration`() {

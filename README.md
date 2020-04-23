@@ -257,9 +257,9 @@ the resulting tree of `JSONValue` objects is then traversed to create the desire
 [`json-co-stream`](https://github.com/pwall567/json-co-stream) may be used to parse a stream of JSON data on-the-fly,
 and in this case, each object may be converted to the required target form as its last character is read.)
 
-It is possible to perform serialization in the same manner, but from version 3.2 of this library onwards, the
-`JSONStringify` functions are used to stringify direct to a string, or, if the `appendJSON()` function is used, to any
-form of `Appendable` including the various `Writer` classes.
+It is possible to perform serialization using the same two-stage approach, but from version 3.2 of this library onwards,
+the `JSONStringify` functions are used to stringify direct to a string, or, if the `appendJSON()` function is used, to
+any form of `Appendable` including the various `Writer` classes.
 As always, the KDoc, the source or the unit test classes provide more information.
 
 This information is of significance when custom serialization and deserialization are required.
@@ -270,23 +270,23 @@ trailing quote or bracket character.
 
 ## Dependency Specification
 
-The latest version of the library is 3.2, and it may be obtained from the Maven Central repository.
+The latest version of the library is 3.5, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>3.2</version>
+      <version>3.5</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin:3.2'
+    implementation 'net.pwall.json:json-kotlin:3.5'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:3.2")
+    implementation("net.pwall.json:json-kotlin:3.5")
 ```
 
 ## Breaking change
@@ -300,4 +300,4 @@ If there is anyone affected by this change (unlikely, I know!) version 1.2 is st
 
 Peter Wall
 
-2020-04-13
+2020-04-23

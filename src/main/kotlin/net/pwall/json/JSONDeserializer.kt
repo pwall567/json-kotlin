@@ -50,6 +50,8 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.MonthDay
 import java.time.OffsetDateTime
 import java.time.OffsetTime
 import java.time.Period
@@ -284,6 +286,8 @@ object JSONDeserializer {
 
                 LocalDateTime::class -> return LocalDateTime.parse(str) as T
 
+                LocalTime::class -> return LocalTime.parse(str) as T
+
                 OffsetTime::class -> return OffsetTime.parse(str) as T
 
                 OffsetDateTime::class -> return OffsetDateTime.parse(str) as T
@@ -293,6 +297,8 @@ object JSONDeserializer {
                 Year::class -> return Year.parse(str) as T
 
                 YearMonth::class -> return YearMonth.parse(str) as T
+
+                MonthDay::class -> return MonthDay.parse(str) as T
 
                 Duration::class -> return Duration.parse(str) as T
 
