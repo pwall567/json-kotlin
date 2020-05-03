@@ -34,10 +34,8 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection
-import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.createType
-import kotlin.reflect.full.functions
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.staticFunctions
@@ -64,6 +62,7 @@ import java.util.Date
 import java.util.LinkedList
 import java.util.UUID
 
+import net.pwall.json.JSONDeserializerFunctions.findFromJSON
 import net.pwall.util.ISO8601Date
 
 /**
@@ -183,7 +182,7 @@ object JSONDeserializer {
         // does the target class companion object have a "fromJSON()" method?
 
         try {
-            findFromJSON(resultClass)?.let {
+            findFromJSON(resultClass, json::class)?.let {
                 return it.call(resultClass.companionObjectInstance, json) as T
             }
         }
@@ -595,25 +594,6 @@ object JSONDeserializer {
 
     private fun findParameterName(parameter: KParameter, config: JSONConfig): String? =
             config.findNameFromAnnotation(parameter.annotations) ?: parameter.name
-
-    private val fromJsonCache = HashMap<KClass<*>, KFunction<*>>()
-
-    private fun findFromJSON(resultClass: KClass<*>): KFunction<*>? {
-        fromJsonCache[resultClass]?.let { return it }
-        val newEntry = try {
-            resultClass.companionObject?.functions?.find { function ->
-                function.name == "fromJSON" &&
-                        function.parameters.size == 2 &&
-                        function.parameters[0].type.classifier == resultClass.companionObject &&
-                        function.parameters[1].type.classifier == JSONValue::class &&
-                        function.returnType.classifier == resultClass
-            }
-        }
-        catch (e: Exception) {
-            null
-        }
-        return newEntry?.apply { fromJsonCache[resultClass] = this }
-    }
 
     private fun KFunction<*>.hasSingleParameter(paramClass: KClass<*>) =
             parameters.size == 1 && parameters[0].type.classifier == paramClass

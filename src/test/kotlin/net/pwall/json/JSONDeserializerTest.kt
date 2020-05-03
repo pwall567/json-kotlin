@@ -94,6 +94,21 @@ class JSONDeserializerTest {
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
 
+    @Test fun `companion object with multiple fromJSON should use the correct function`() {
+        val json1 = JSONObject().apply {
+            putValue("dec", "17")
+            putValue("hex", "11")
+        }
+        val expected1: DummyMultipleFromJSON? = DummyMultipleFromJSON(17)
+        expect(expected1) { JSONDeserializer.deserialize(json1) }
+        val json2 = JSONInt(300)
+        val expected2: DummyMultipleFromJSON? = DummyMultipleFromJSON(300)
+        expect(expected2) { JSONDeserializer.deserialize(json2) }
+        val json3 = JSONString("FF")
+        val expected3: DummyMultipleFromJSON? = DummyMultipleFromJSON(255)
+        expect(expected3) { JSONDeserializer.deserialize(json3) }
+    }
+
     @Test fun `JSONString should return string`() {
         val json = JSONString("abc")
         val expected: String? = "abc"
