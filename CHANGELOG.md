@@ -2,6 +2,12 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [3.6] - Unreleased
+### Added
+- `JSONDeserializerFunctions`:  (split out from `JSONDeserializer`)
+### Changed
+- `JSONDeserializerFunctions`: improved handling of `fromJSON` (in companion object)
+
 ## [3.5] - 2020-04-23
 ### Changed
 - `JSONConfig`: added `streamOutput` switch (for `json-ktor`)
