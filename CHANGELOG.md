@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [3.6] - Unreleased
+## [3.6] - 2020-05-03
 ### Added
 - `JSONDeserializerFunctions`:  (split out from `JSONDeserializer`)
 ### Changed
