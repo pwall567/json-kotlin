@@ -63,6 +63,8 @@ import java.util.LinkedList
 import java.util.UUID
 
 import net.pwall.json.JSONDeserializerFunctions.findFromJSON
+import net.pwall.json.JSONDeserializerFunctions.findParameterName
+import net.pwall.json.JSONDeserializerFunctions.hasSingleParameter
 import net.pwall.util.ISO8601Date
 
 /**
@@ -487,14 +489,19 @@ object JSONDeserializer {
                 val argMap = HashMap<KParameter, Any?>()
                 for (parameter in constructor.parameters) {
                     val paramName = findParameterName(parameter, config)
-                    if (config.hasIgnoreAnnotation(parameter.annotations))
-                        jsonCopy.remove(paramName)
-                    else {
-                        jsonCopy[paramName]?.let {
-                            argMap[parameter] = deserialize(parameter.type, it, config)
-                            jsonCopy.remove(paramName)
+                    if (!config.hasIgnoreAnnotation(parameter.annotations)) {
+                        if (jsonCopy.containsKey(paramName))
+                            argMap[parameter] = deserialize(parameter.type, jsonCopy[paramName], config)
+                        else {
+                            if (!parameter.isOptional) {
+                                if (parameter.type.isMarkedNullable)
+                                    argMap[parameter] = null
+                                else
+                                    throw JSONException("Can't create $resultClass - missing property $paramName")
+                            }
                         }
                     }
+                    jsonCopy.remove(paramName)
                 }
                 return setRemainingFields(resultClass, constructor.callBy(argMap), jsonCopy, config)
             }
@@ -585,17 +592,11 @@ object JSONDeserializer {
             if (json.containsKey(findParameterName(parameter, config)))
                 n++
             else {
-                if (!parameter.isOptional)
+                if (!(parameter.isOptional || parameter.type.isMarkedNullable))
                     return -1
             }
         }
         return n
     }
-
-    private fun findParameterName(parameter: KParameter, config: JSONConfig): String? =
-            config.findNameFromAnnotation(parameter.annotations) ?: parameter.name
-
-    private fun KFunction<*>.hasSingleParameter(paramClass: KClass<*>) =
-            parameters.size == 1 && parameters[0].type.classifier == paramClass
 
 }
