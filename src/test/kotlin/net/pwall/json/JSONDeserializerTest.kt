@@ -938,6 +938,13 @@ class JSONDeserializerTest {
         }
     }
 
+    @Test fun `should deserialize missing members as null where allowed`() {
+        val json = JSONObject().apply {
+            putValue("field2", 123)
+        }
+        expect(Dummy5(null, 123)) { JSONDeserializer.deserialize<Dummy5>(json) }
+    }
+
     private fun <T>  sequenceEquals(seq1: Sequence<T>, seq2: Sequence<T>) = seq1.toList() == seq2.toList()
 
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY,

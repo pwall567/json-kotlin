@@ -722,6 +722,13 @@ class JSONSerializerTest {
         expect("Circular reference: field ref in Circular2") { exception.message }
     }
 
+    @Test fun `should omit null members`() {
+        val dummy5 = Dummy5(null, 123)
+        val serialized = JSONSerializer.serialize(dummy5)
+        expect(true) { serialized is JSONObject }
+        expect(1) { (serialized as JSONObject).size }
+    }
+
     private fun intEquals(a: Int, b: Int): Boolean {
         return a == b
     }
