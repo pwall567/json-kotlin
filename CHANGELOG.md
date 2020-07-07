@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [3.7] - Unreleased
+## [3.7] - 2020-07-07
 ### Changed
 - `JSONDeserializerFunctions`: added `hasSingleParameter` and `findParameterName` (moved from `JSONDeserializer`)
 - `JSONDeserializer`: improved deserialization of objects with missing parameters
