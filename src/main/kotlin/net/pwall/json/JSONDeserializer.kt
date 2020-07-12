@@ -25,7 +25,6 @@
 
 package net.pwall.json
 
-import kotlin.collections.ArrayList
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -33,11 +32,14 @@ import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
+import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KTypeProjection
+import kotlin.reflect.KVariance
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
+import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.staticFunctions
 import kotlin.reflect.jvm.isAccessible
 
@@ -92,7 +94,7 @@ object JSONDeserializer {
             return null
         }
         val classifier = resultType.classifier as? KClass<*> ?: throw JSONException("Can't deserialize $resultType")
-        return deserialize(classifier, resultType.arguments, json, config)
+        return deserialize(resultType, classifier, resultType.arguments, json, config)
     }
 
     /**
@@ -100,6 +102,7 @@ object JSONDeserializer {
      *
      * @param   resultClass the target class
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @param   config      an optional [JSONConfig]
      * @param   T           the target class
      * @return              the converted object
      */
@@ -109,14 +112,15 @@ object JSONDeserializer {
         config.findFromJSONMapping(resultClass)?.let { return it(json) as T }
         if (json == null)
             return null
-        return deserialize(resultClass, emptyList(), json, config)
+        return deserialize(resultClass.starProjectedType, resultClass, emptyList(), json, config)
     }
 
     /**
      * Deserialize a parsed [JSONValue] to a specified [KClass], where the result may not be `null`.
      *
      * @param   resultClass the target class
-     * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @param   json        the parsed JSON, as a [JSONValue]
+     * @param   config      an optional [JSONConfig]
      * @param   T           the target class
      * @return              the converted object
      */
@@ -126,7 +130,7 @@ object JSONDeserializer {
         config.findFromJSONMapping(resultClass)?.let { return it(json) as T }
         if (json == null)
             throw JSONException("Can't deserialize null as ${resultClass.simpleName}")
-        return deserialize(resultClass, emptyList(), json, config)
+        return deserialize(resultClass.starProjectedType, resultClass, emptyList(), json, config)
     }
 
     /**
@@ -156,6 +160,7 @@ object JSONDeserializer {
      * Deserialize a parsed [JSONValue] to the inferred [KType].
      *
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @param   config      an optional [JSONConfig]
      * @param   T           the target class
      * @return              the converted object
      */
@@ -165,16 +170,17 @@ object JSONDeserializer {
     /**
      * Deserialize a parsed [JSONValue] to a parameterized [KClass], with the specified [KTypeProjection]s.
      *
+     * @param   resultType  the target [KType]
      * @param   resultClass the target class
      * @param   types       the [KTypeProjection]s
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
-     * @param   config      an optional [JSONConfig]
+     * @param   config      a [JSONConfig]
      * @param   T           the target class
      * @return              the converted object
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T: Any> deserialize(resultClass: KClass<T>, types: List<KTypeProjection>, json: JSONValue,
-            config: JSONConfig = JSONConfig.defaultConfig): T {
+    private fun <T: Any> deserialize(resultType: KType, resultClass: KClass<T>, types: List<KTypeProjection>,
+            json: JSONValue, config: JSONConfig): T {
 
         // check for JSONValue
 
@@ -242,9 +248,9 @@ object JSONDeserializer {
                 throw JSONException("Can't deserialize $json as $resultClass")
             }
 
-            is JSONArray -> return deserializeArray(resultClass, types, json, config)
+            is JSONArray -> return deserializeArray(resultType, resultClass, types, json, config)
 
-            is JSONObject -> return deserializeObject(resultClass, types, json, config)
+            is JSONObject -> return deserializeObject(resultType, resultClass, types, json, config)
 
         }
 
@@ -331,8 +337,8 @@ object JSONDeserializer {
     }
 
     @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
-    fun <T: Any> deserializeArray(resultClass: KClass<T>, types: List<KTypeProjection>, json: JSONArray,
-            config: JSONConfig): T {
+    fun <T: Any> deserializeArray(resultType: KType, resultClass: KClass<T>, types: List<KTypeProjection>,
+            json: JSONArray, config: JSONConfig): T {
         try {
 
             return when (resultClass) {
@@ -359,28 +365,32 @@ object JSONDeserializer {
                 MutableList::class,
                 Iterable::class,
                 Any::class,
-                ArrayList::class-> ArrayList<Any?>(json.size).fillFromJSON(json, getTypeParam(types), config)
+                ArrayList::class-> ArrayList<Any?>(json.size).fillFromJSON(resultType, json, getTypeParam(types),
+                        config)
 
-                LinkedList::class -> LinkedList<Any?>().fillFromJSON(json, getTypeParam(types), config)
+                LinkedList::class -> LinkedList<Any?>().fillFromJSON(resultType, json, getTypeParam(types), config)
 
                 Set::class,
                 MutableSet::class,
-                LinkedHashSet::class -> LinkedHashSet<Any?>(json.size).fillFromJSON(json, getTypeParam(types), config)
+                LinkedHashSet::class -> LinkedHashSet<Any?>(json.size).fillFromJSON(resultType, json,
+                        getTypeParam(types), config)
 
-                HashSet::class -> HashSet<Any?>(json.size).fillFromJSON(json, getTypeParam(types), config)
+                HashSet::class -> HashSet<Any?>(json.size).fillFromJSON(resultType, json, getTypeParam(types), config)
 
-                Sequence::class -> json.map { deserialize(getTypeParam(types), it, config) }.asSequence()
+                Sequence::class -> json.map {
+                    deserializeNested(resultType, getTypeParam(types), it, config)
+                }.asSequence()
 
                 Pair::class -> {
-                    val result0 = deserialize(getTypeParam(types, 0), json[0], config)
-                    val result1 = deserialize(getTypeParam(types, 1), json[1], config)
+                    val result0 = deserializeNested(resultType, getTypeParam(types, 0), json[0], config)
+                    val result1 = deserializeNested(resultType, getTypeParam(types, 1), json[1], config)
                     result0 to result1
                 }
 
                 Triple::class -> {
-                    val result0 = deserialize(getTypeParam(types, 0), json[0], config)
-                    val result1 = deserialize(getTypeParam(types, 1), json[1], config)
-                    val result2 = deserialize(getTypeParam(types, 2), json[2], config)
+                    val result0 = deserializeNested(resultType, getTypeParam(types, 0), json[0], config)
+                    val result1 = deserializeNested(resultType, getTypeParam(types, 1), json[1], config)
+                    val result2 = deserializeNested(resultType, getTypeParam(types, 2), json[2], config)
                     Triple(result0, result1, result2)
                 }
 
@@ -402,7 +412,7 @@ object JSONDeserializer {
                                 throw JSONException("Can't determine array type")
                         newArray(itemClass, json.size).apply {
                             for (i in json.indices)
-                                this[i] = deserialize(type, json[i], config)
+                                this[i] = deserializeNested(resultType, type, json[i], config)
                         }
                     }
                     else {
@@ -412,7 +422,7 @@ object JSONDeserializer {
 
                         resultClass.constructors.find { it.hasSingleParameter(List::class) }?.run {
                             val type = getTypeParam(parameters[0].type.arguments)
-                            call(ArrayList<Any?>(json.size).fillFromJSON(json, type, config))
+                            call(ArrayList<Any?>(json.size).fillFromJSON(resultType, json, type, config))
                         } ?: throw JSONException("Can't deserialize array as $resultClass")
 
                     }
@@ -441,25 +451,26 @@ object JSONDeserializer {
         return types.getOrNull(n)?.type ?: anyQType
     }
 
-    private fun MutableCollection<Any?>.fillFromJSON(json: JSONArray, type: KType, config: JSONConfig):
-            MutableCollection<Any?> {
+    private fun MutableCollection<Any?>.fillFromJSON(resultType: KType, json: JSONArray, type: KType,
+            config: JSONConfig): MutableCollection<Any?> {
         // using for rather than map to avoid creation of intermediate List
         for (value in json)
-            add(deserialize(type, value, config))
+            add(deserializeNested(resultType, type, value, config))
         return this
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T: Any> deserializeObject(resultClass: KClass<T>, types: List<KTypeProjection>, json: JSONObject,
-            config: JSONConfig): T {
+    private fun <T: Any> deserializeObject(resultType: KType, resultClass: KClass<T>, types: List<KTypeProjection>,
+            json: JSONObject, config: JSONConfig): T {
 
         try {
             if (resultClass.isSubclassOf(Map::class)) {
                 when (resultClass) {
-                    HashMap::class -> return deserializeMap(HashMap(json.size), types, json, config) as T
+                    HashMap::class -> return deserializeMap(resultType, HashMap(json.size), types, json, config) as T
                     Map::class,
                     MutableMap::class,
-                    LinkedHashMap::class -> return deserializeMap(LinkedHashMap(json.size), types, json, config) as T
+                    LinkedHashMap::class -> return deserializeMap(resultType, LinkedHashMap(json.size), types, json,
+                            config) as T
                 }
             }
 
@@ -467,7 +478,8 @@ object JSONDeserializer {
             // constructor.  This should catch the less frequently used Map classes.
 
             resultClass.constructors.find { it.hasSingleParameter(Map::class) }?.apply {
-                return call(deserializeMap(LinkedHashMap(json.size), parameters[0].type.arguments, json, config))
+                return call(deserializeMap(resultType, LinkedHashMap(json.size), parameters[0].type.arguments, json,
+                        config))
             }
 
             val jsonCopy = JSONObject(json)
@@ -477,13 +489,14 @@ object JSONDeserializer {
                         throw JSONException("No class name for sealed class")
                 val subClass = resultClass.sealedSubclasses.find { it.simpleName == subClassName } ?:
                         throw JSONException("Can't find named subclass for sealed class")
-                return deserializeObject(subClass, types, jsonCopy, config)
+                return deserializeObject(subClass.createType(types, nullable = resultType.isMarkedNullable), subClass,
+                        types, jsonCopy, config)
             }
 
-            resultClass.objectInstance?.let { return setRemainingFields(resultClass, it, json, config) }
+            resultClass.objectInstance?.let { return setRemainingFields(resultType, resultClass, it, json, config) }
 
             if (resultClass.isSuperclassOf(Map::class))
-                return deserializeMap(LinkedHashMap(json.size), types, json, config) as T
+                return deserializeMap(resultType, LinkedHashMap(json.size), types, json, config) as T
 
             findBestConstructor(resultClass.constructors, json, config)?.let { constructor ->
                 val argMap = HashMap<KParameter, Any?>()
@@ -491,7 +504,8 @@ object JSONDeserializer {
                     val paramName = findParameterName(parameter, config)
                     if (!config.hasIgnoreAnnotation(parameter.annotations)) {
                         if (jsonCopy.containsKey(paramName))
-                            argMap[parameter] = deserialize(parameter.type, jsonCopy[paramName], config)
+                            argMap[parameter] = deserializeNested(resultType, parameter.type, jsonCopy[paramName],
+                                    config)
                         else {
                             if (!parameter.isOptional) {
                                 if (parameter.type.isMarkedNullable)
@@ -503,7 +517,7 @@ object JSONDeserializer {
                     }
                     jsonCopy.remove(paramName)
                 }
-                return setRemainingFields(resultClass, constructor.callBy(argMap), jsonCopy, config)
+                return setRemainingFields(resultType, resultClass, constructor.callBy(argMap), jsonCopy, config)
             }
         }
         catch (e: JSONException) {
@@ -517,24 +531,24 @@ object JSONDeserializer {
 
     }
 
-    private fun deserializeMap(map: MutableMap<Any, Any?>, types: List<KTypeProjection>, json: JSONObject,
-            config: JSONConfig): MutableMap<Any, Any?> {
+    private fun deserializeMap(resultType: KType, map: MutableMap<Any, Any?>, types: List<KTypeProjection>,
+            json: JSONObject, config: JSONConfig): MutableMap<Any, Any?> {
         val keyClass = getTypeParam(types, 0).classifier as? KClass<*> ?:
                 throw JSONException("Key type can not be determined for Map")
         val valueType = getTypeParam(types, 1)
         for (entry in json.entries) {
-            map[deserializeString(keyClass, entry.key)] = deserialize(valueType, entry.value, config)
+            map[deserializeString(keyClass, entry.key)] = deserializeNested(resultType, valueType, entry.value, config)
         }
         return map
     }
 
-    private fun <T: Any> setRemainingFields(resultClass: KClass<T>, instance: T, json: Map<String, JSONValue?>,
-            config: JSONConfig): T {
+    private fun <T: Any> setRemainingFields(resultType: KType, resultClass: KClass<T>, instance: T,
+            json: Map<String, JSONValue?>, config: JSONConfig): T {
         for (entry in json) { // JSONObject fields not used in constructor
             val member = findField(resultClass.members, entry.key, config)
             if (member != null) {
                 if (!config.hasIgnoreAnnotation(member.annotations)) {
-                    val value = deserialize(member.returnType, entry.value, config)
+                    val value = deserializeNested(resultType, member.returnType, entry.value, config)
                     if (member is KMutableProperty<*>) {
                         val wasAccessible = member.isAccessible
                         member.isAccessible = true
@@ -597,6 +611,39 @@ object JSONDeserializer {
             }
         }
         return n
+    }
+
+    private fun deserializeNested(enclosingType: KType, resultType: KType, json: JSONValue?, config: JSONConfig): Any? =
+        deserialize(resultType.applyTypeParameters(enclosingType), json, config)
+
+    private fun KType.applyTypeParameters(enclosingType: KType): KType {
+        if (arguments.isEmpty())
+            return this
+        val thisClass = classifier as? KClass<*> ?:
+                throw JSONException("Can't create $this - insufficient type information")
+        val enclosingClass = enclosingType.classifier as? KClass<*> ?:
+                throw JSONException("Can't create $this - insufficient type information")
+        return thisClass.createType(arguments.map { projection ->
+            val variance = projection.variance
+            var type = projection.type
+            if (variance == null || type == null)
+                KTypeProjection.STAR
+            else {
+                val classifier = type.classifier
+                if (classifier is KTypeParameter) {
+                    val index = enclosingClass.typeParameters.indexOfFirst { it.name == classifier.name }
+                    if (index < 0)
+                        throw JSONException("Can't create $this - no type information for ${classifier.name}")
+                    type = enclosingType.arguments.getOrNull(index)?.type ?:
+                            throw JSONException("Can't create $this - no type information for ${classifier.name}")
+                }
+                when (variance) {
+                    KVariance.INVARIANT -> KTypeProjection.invariant(type)
+                    KVariance.IN -> KTypeProjection.contravariant(type)
+                    KVariance.OUT -> KTypeProjection.covariant(type)
+                }
+            }
+        }, this.isMarkedNullable, this.annotations)
     }
 
 }

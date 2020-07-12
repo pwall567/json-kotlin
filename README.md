@@ -270,23 +270,23 @@ trailing quote or bracket character.
 
 ## Dependency Specification
 
-The latest version of the library is 3.7, and it may be obtained from the Maven Central repository.
+The latest version of the library is 3.8, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>3.7</version>
+      <version>3.8</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin:3.7'
+    implementation 'net.pwall.json:json-kotlin:3.8'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:3.7")
+    implementation("net.pwall.json:json-kotlin:3.8")
 ```
 
 ## Breaking change
@@ -298,6 +298,11 @@ The recommended approach to perform repeat actions such as this is to use the Ko
 
 If there is anyone affected by this change (unlikely, I know!) version 1.2 is still available.
 
+Also, version 3.8 changed the visibility of an internal function in `JSONDeserializer` from `public` to `private`
+(and changed its signature, although that's hardly relevant if it's no longer public).
+It was never intended that this function would be part of the published API, so the "major version" has not been
+incremented as would normally be the case for a breaking change.
+
 Peter Wall
 
-2020-07-07
+2020-07-12
