@@ -945,6 +945,39 @@ class JSONDeserializerTest {
         expect(Dummy5(null, 123)) { JSONDeserializer.deserialize<Dummy5>(json) }
     }
 
+    @Test fun `should deserialize custom parameterised type`() {
+        val json = JSONObject().apply {
+            put("lines", JSONArray(JSONString("abc"), JSONString("def")))
+        }
+        val expected = TestPage<String>(lines = listOf("abc", "def"))
+        expect(expected) { JSONDeserializer.deserialize<TestPage<String>>(json) }
+    }
+
+    @Test fun `should deserialize nested custom parameterised type`() {
+        val json1 = JSONObject().apply {
+            put("lines", JSONArray(JSONString("abc"), JSONString("def")))
+        }
+        val json2 = JSONArray(json1, JSONString("xyz"))
+        val expected = TestPage<String>(lines = listOf("abc", "def")) to "xyz"
+        expect(expected) { JSONDeserializer.deserialize<Pair<TestPage<String>, String>>(json2) }
+    }
+
+    @Test fun `should deserialize complex custom parameterised type`() {
+        val obj1 = JSONObject().apply {
+            putValue("field1", "abc")
+            putValue("field2", 123)
+        }
+        val obj2 = JSONObject().apply {
+            putValue("field1", "def")
+            putValue("field2", 456)
+        }
+        val json = JSONObject().apply {
+            put("lines", JSONArray(obj1, obj2))
+        }
+        val expected = TestPage<Dummy1>(lines = listOf(Dummy1("abc", 123), Dummy1("def", 456)))
+        expect(expected) { JSONDeserializer.deserialize<TestPage<Dummy1>>(json) }
+    }
+
     private fun <T>  sequenceEquals(seq1: Sequence<T>, seq2: Sequence<T>) = seq1.toList() == seq2.toList()
 
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY,
@@ -956,5 +989,7 @@ class JSONDeserializerTest {
                 return false
         return true
     }
+
+    data class TestPage<T>(val header: String? = null, val lines: List<T>)
 
 }

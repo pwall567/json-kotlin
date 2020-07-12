@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+### Changed
+- `JSONDeserializer`: improved handling of parameterized types
+
 ## [3.7] - 2020-07-07
 ### Changed
 - `JSONDeserializerFunctions`: added `hasSingleParameter` and `findParameterName` (moved from `JSONDeserializer`)
