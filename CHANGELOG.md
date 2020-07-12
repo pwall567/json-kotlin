@@ -2,7 +2,7 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [3.8] - 2020-07-12
 ### Changed
 - `JSONDeserializer`: improved handling of parameterized types
 

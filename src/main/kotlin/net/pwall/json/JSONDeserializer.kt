@@ -102,6 +102,7 @@ object JSONDeserializer {
      *
      * @param   resultClass the target class
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @param   config      an optional [JSONConfig]
      * @param   T           the target class
      * @return              the converted object
      */
@@ -118,7 +119,8 @@ object JSONDeserializer {
      * Deserialize a parsed [JSONValue] to a specified [KClass], where the result may not be `null`.
      *
      * @param   resultClass the target class
-     * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @param   json        the parsed JSON, as a [JSONValue]
+     * @param   config      an optional [JSONConfig]
      * @param   T           the target class
      * @return              the converted object
      */
@@ -158,6 +160,7 @@ object JSONDeserializer {
      * Deserialize a parsed [JSONValue] to the inferred [KType].
      *
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
+     * @param   config      an optional [JSONConfig]
      * @param   T           the target class
      * @return              the converted object
      */
@@ -171,13 +174,13 @@ object JSONDeserializer {
      * @param   resultClass the target class
      * @param   types       the [KTypeProjection]s
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
-     * @param   config      an optional [JSONConfig]
+     * @param   config      a [JSONConfig]
      * @param   T           the target class
      * @return              the converted object
      */
     @Suppress("UNCHECKED_CAST")
     private fun <T: Any> deserialize(resultType: KType, resultClass: KClass<T>, types: List<KTypeProjection>,
-            json: JSONValue, config: JSONConfig = JSONConfig.defaultConfig): T {
+            json: JSONValue, config: JSONConfig): T {
 
         // check for JSONValue
 
