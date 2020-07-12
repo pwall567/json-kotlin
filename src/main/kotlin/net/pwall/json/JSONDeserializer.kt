@@ -167,6 +167,7 @@ object JSONDeserializer {
     /**
      * Deserialize a parsed [JSONValue] to a parameterized [KClass], with the specified [KTypeProjection]s.
      *
+     * @param   resultType  the target [KType]
      * @param   resultClass the target class
      * @param   types       the [KTypeProjection]s
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
@@ -177,8 +178,6 @@ object JSONDeserializer {
     @Suppress("UNCHECKED_CAST")
     private fun <T: Any> deserialize(resultType: KType, resultClass: KClass<T>, types: List<KTypeProjection>,
             json: JSONValue, config: JSONConfig = JSONConfig.defaultConfig): T {
-
-//        val resultClass = resultType.classifier as? KClass<*> ?: throw JSONException("Can't deserialize $resultType")
 
         // check for JSONValue
 
