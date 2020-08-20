@@ -237,7 +237,7 @@ class JSONConfig {
      * @param   T       the type to be mapped
      */
     inline fun <reified T: Any> fromJSON(noinline mapping: (JSONValue?) -> T?) {
-        fromJSON(T::class.createType(nullable = false), mapping)
+        fromJSON(JSONTypeRef.create<T>(nullable = false).refType, mapping)
     }
 
     /**
@@ -246,7 +246,7 @@ class JSONConfig {
      * @param   T       the type to be mapped
      */
     inline fun <reified T: Any> fromJSONString() {
-        fromJSONString(T::class.createType(nullable = false))
+        fromJSONString(JSONTypeRef.create<T>(nullable = false).refType)
     }
 
     /**
@@ -256,7 +256,7 @@ class JSONConfig {
      * @param   T       the type to be mapped
      */
     inline fun <reified T: Any> toJSON(noinline mapping: (T?) -> JSONValue?) {
-        toJSON(T::class.createType(nullable = true)) { mapping(it as T?) }
+        toJSON(JSONTypeRef.create<T>(nullable = true).refType) { mapping(it as T?) }
     }
 
     /**
@@ -265,7 +265,7 @@ class JSONConfig {
      * @param   T       the type to be mapped
      */
     inline fun <reified T: Any> toJSONString() {
-        toJSONString(T::class.createType(nullable = true))
+        toJSONString(JSONTypeRef.create<T>(nullable = true).refType)
     }
 
     /**
