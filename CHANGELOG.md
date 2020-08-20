@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [3.9] - 2020-08-20
+### Changed
+- `JSONConfig`: changed `toJSON` and `fromJSON` to use `JSONTypeRef`
+
 ## [3.8] - 2020-07-12
 ### Changed
 - `JSONDeserializer`: improved handling of parameterized types
