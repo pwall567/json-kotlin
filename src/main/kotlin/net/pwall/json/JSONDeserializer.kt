@@ -617,33 +617,32 @@ object JSONDeserializer {
         deserialize(resultType.applyTypeParameters(enclosingType), json, config)
 
     private fun KType.applyTypeParameters(enclosingType: KType): KType {
+        (classifier as? KTypeParameter)?.let { typeParameter ->
+            val enclosingClass = enclosingType.classifierAsClass(this)
+            val index = enclosingClass.typeParameters.indexOfFirst { it.name == typeParameter.name }
+            return enclosingType.arguments.getOrNull(index)?.type ?:
+                    throw JSONException("Can't create $this - no type information for ${typeParameter.name}")
+        }
+
         if (arguments.isEmpty())
             return this
-        val thisClass = classifier as? KClass<*> ?:
-                throw JSONException("Can't create $this - insufficient type information")
-        val enclosingClass = enclosingType.classifier as? KClass<*> ?:
-                throw JSONException("Can't create $this - insufficient type information")
-        return thisClass.createType(arguments.map { projection ->
-            val variance = projection.variance
-            var type = projection.type
+
+        return classifierAsClass(this).createType(arguments.map { (variance, type) ->
             if (variance == null || type == null)
                 KTypeProjection.STAR
-            else {
-                val classifier = type.classifier
-                if (classifier is KTypeParameter) {
-                    val index = enclosingClass.typeParameters.indexOfFirst { it.name == classifier.name }
-                    if (index < 0)
-                        throw JSONException("Can't create $this - no type information for ${classifier.name}")
-                    type = enclosingType.arguments.getOrNull(index)?.type ?:
-                            throw JSONException("Can't create $this - no type information for ${classifier.name}")
+            else
+                type.applyTypeParameters(enclosingType).let {
+                    when (variance) {
+                        KVariance.INVARIANT -> KTypeProjection.invariant(it)
+                        KVariance.IN -> KTypeProjection.contravariant(it)
+                        KVariance.OUT -> KTypeProjection.covariant(it)
+                    }
                 }
-                when (variance) {
-                    KVariance.INVARIANT -> KTypeProjection.invariant(type)
-                    KVariance.IN -> KTypeProjection.contravariant(type)
-                    KVariance.OUT -> KTypeProjection.covariant(type)
-                }
-            }
-        }, this.isMarkedNullable, this.annotations)
+        }, isMarkedNullable, annotations)
+    }
+
+    private fun KType.classifierAsClass(target: KType): KClass<*> {
+        return classifier as? KClass<*> ?: throw JSONException("Can't create $target - insufficient type information")
     }
 
 }
