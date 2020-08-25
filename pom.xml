@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.pwall.json</groupId>
   <artifactId>json-kotlin</artifactId>
-  <version>3.10</version>
+  <version>3.10.1</version>
   <name>JSON serialization and deserialization for Kotlin</name>
   <description>Kotlin classes to perform auto-serialization and deserialization.</description>
   <packaging>jar</packaging>
@@ -101,7 +101,8 @@
   </dependencies>
 
   <build>
-
+    <sourceDirectory>src/main/kotlin</sourceDirectory>
+    <testSourceDirectory>src/test/kotlin</testSourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.jetbrains.kotlin</groupId>
@@ -113,11 +114,6 @@
             <goals>
               <goal>compile</goal>
             </goals>
-            <configuration>
-              <sourceDirs>
-                <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
-              </sourceDirs>
-            </configuration>
           </execution>
           <execution>
             <id>test-compile-kotlin</id>
@@ -125,11 +121,6 @@
             <goals>
               <goal>test-compile</goal>
             </goals>
-            <configuration>
-              <sourceDirs>
-                <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
-              </sourceDirs>
-            </configuration>
           </execution>
         </executions>
       </plugin>

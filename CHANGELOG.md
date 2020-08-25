@@ -2,6 +2,15 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [3.10.1] - 2020-08-25
+### Changed
+- `pom.xml`: fixed generation of sources jar
+- `JSONJava`, `JSONJavaTest`: moved to kotlin directory (to allow sources jar generation)
+
+## [3.10] - 2020-08-25
+### Changed
+- `JSONDeserializer`: further improvements to handling of parameterized types
+
 ## [3.9] - 2020-08-20
 ### Changed
 - `JSONConfig`: changed `toJSON` and `fromJSON` to use `JSONTypeRef`
