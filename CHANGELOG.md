@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [3.11] - 2020-09-16
+### Changed
+- `pom.xml`: updated to Kotlin 1.4.0
+
 ## [3.10.1] - 2020-08-25
 ### Changed
 - `pom.xml`: fixed generation of sources jar
