@@ -248,9 +248,9 @@ object JSONDeserializer {
                 throw JSONException("Can't deserialize $json as $resultClass")
             }
 
-            is JSONArray -> return deserializeArray(resultType, resultClass, types, json, config)
+            is JSONSequence<*> -> return deserializeArray(resultType, resultClass, types, json, config)
 
-            is JSONObject -> return deserializeObject(resultType, resultClass, types, json, config)
+            is JSONMapping<*> -> return deserializeObject(resultType, resultClass, types, json, config)
 
         }
 
@@ -338,7 +338,7 @@ object JSONDeserializer {
 
     @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
     fun <T: Any> deserializeArray(resultType: KType, resultClass: KClass<T>, types: List<KTypeProjection>,
-            json: JSONArray, config: JSONConfig): T {
+            json: JSONSequence<*>, config: JSONConfig): T {
         try {
 
             return when (resultClass) {
@@ -451,7 +451,7 @@ object JSONDeserializer {
         return types.getOrNull(n)?.type ?: anyQType
     }
 
-    private fun MutableCollection<Any?>.fillFromJSON(resultType: KType, json: JSONArray, type: KType,
+    private fun MutableCollection<Any?>.fillFromJSON(resultType: KType, json: JSONSequence<*>, type: KType,
             config: JSONConfig): MutableCollection<Any?> {
         // using for rather than map to avoid creation of intermediate List
         for (value in json)
@@ -461,7 +461,7 @@ object JSONDeserializer {
 
     @Suppress("UNCHECKED_CAST")
     private fun <T: Any> deserializeObject(resultType: KType, resultClass: KClass<T>, types: List<KTypeProjection>,
-            json: JSONObject, config: JSONConfig): T {
+            json: JSONMapping<*>, config: JSONConfig): T {
 
         try {
             if (resultClass.isSubclassOf(Map::class)) {
@@ -482,7 +482,7 @@ object JSONDeserializer {
                         config))
             }
 
-            val jsonCopy = JSONObject(json)
+            val jsonCopy = JSONMapping<JSONValue>(json)
 
             if (resultClass.isSealed) {
                 val subClassName = (jsonCopy.remove(config.sealedClassDiscriminator) as? JSONString)?.toString() ?:
@@ -532,7 +532,7 @@ object JSONDeserializer {
     }
 
     private fun deserializeMap(resultType: KType, map: MutableMap<Any, Any?>, types: List<KTypeProjection>,
-            json: JSONObject, config: JSONConfig): MutableMap<Any, Any?> {
+            json: JSONMapping<*>, config: JSONConfig): MutableMap<Any, Any?> {
         val keyClass = getTypeParam(types, 0).classifier as? KClass<*> ?:
                 throw JSONException("Key type can not be determined for Map")
         val valueType = getTypeParam(types, 1)
@@ -583,7 +583,7 @@ object JSONDeserializer {
         return null
     }
 
-    private fun <T: Any> findBestConstructor(constructors: Collection<KFunction<T>>, json: JSONObject,
+    private fun <T: Any> findBestConstructor(constructors: Collection<KFunction<T>>, json: JSONMapping<*>,
             config: JSONConfig): KFunction<T>? {
         var result: KFunction<T>? = null
         var best = -1
@@ -600,7 +600,7 @@ object JSONDeserializer {
         return result
     }
 
-    private fun findMatchingParameters(parameters: List<KParameter>, json: JSONObject, config: JSONConfig): Int {
+    private fun findMatchingParameters(parameters: List<KParameter>, json: JSONMapping<*>, config: JSONConfig): Int {
         var n = 0
         for (parameter in parameters) {
             if (json.containsKey(findParameterName(parameter, config)))

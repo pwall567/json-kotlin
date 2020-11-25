@@ -2,6 +2,13 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+### Changed
+- `JSONDeserializer`: modified to allow use by `YAMLSequence` and `YAMLMapping`
+- `README.md`: added badges
+### Added
+- `travis.yml`
+
 ## [3.11] - 2020-09-16
 ### Changed
 - `pom.xml`: updated to Kotlin 1.4.0
