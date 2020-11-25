@@ -28,6 +28,9 @@ package net.pwall.json
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 
+import java.io.File
+import java.io.InputStream
+import java.io.Reader
 import java.lang.reflect.Type
 
 object JSONAuto {
@@ -84,5 +87,135 @@ object JSONAuto {
      */
     fun parse(javaType: Type, str: CharSequence, config: JSONConfig = JSONConfig.defaultConfig): Any? =
             JSONDeserializer.deserialize(javaType, JSON.parse(str), config)
+
+    /**
+     * Deserialize JSON from a [Reader] to a specified [KType].
+     *
+     * @param   resultType  the target type
+     * @param   reader      the JSON in the form of a [Reader]
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    fun parse(resultType: KType, reader: Reader, config: JSONConfig = JSONConfig.defaultConfig): Any? =
+            JSONDeserializer.deserialize(resultType, JSON.parse(reader), config)
+
+    /**
+     * Deserialize JSON from a [Reader] to a specified [KClass].
+     *
+     * @param   resultClass the target class
+     * @param   reader      the JSON in the form of a [Reader]
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    fun <T: Any> parse(resultClass: KClass<T>, reader: Reader, config: JSONConfig = JSONConfig.defaultConfig): T? =
+            JSONDeserializer.deserialize(resultClass, JSON.parse(reader), config)
+
+    /**
+     * Deserialize JSON from a [Reader] to the inferred [KType].
+     *
+     * @param   reader      the JSON in the form of a [Reader]
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    inline fun <reified T: Any> parse(reader: Reader, config: JSONConfig = JSONConfig.defaultConfig): T? =
+            parse(JSONTypeRef.create<T>(nullable = true).refType, reader, config) as T?
+
+    /**
+     * Deserialize JSON from a [Reader] to a specified Java [Type].
+     *
+     * @param   javaType    the target type
+     * @param   reader      the JSON in the form of a [Reader]
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    fun parse(javaType: Type, reader: Reader, config: JSONConfig = JSONConfig.defaultConfig): Any? =
+            JSONDeserializer.deserialize(javaType, JSON.parse(reader), config)
+
+    /**
+     * Deserialize JSON from an [InputStream] to a specified [KType].
+     *
+     * @param   resultType  the target type
+     * @param   inputStream the JSON in the form of an [InputStream]
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    fun parse(resultType: KType, inputStream: InputStream, config: JSONConfig = JSONConfig.defaultConfig): Any? =
+            JSONDeserializer.deserialize(resultType, JSON.parse(inputStream), config)
+
+    /**
+     * Deserialize JSON from an [InputStream] to a specified [KClass].
+     *
+     * @param   resultClass the target class
+     * @param   inputStream the JSON in the form of an [InputStream]
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    fun <T: Any> parse(resultClass: KClass<T>, inputStream: InputStream,
+            config: JSONConfig = JSONConfig.defaultConfig): T? =
+                    JSONDeserializer.deserialize(resultClass, JSON.parse(inputStream), config)
+
+    /**
+     * Deserialize JSON from an [InputStream] to the inferred [KType].
+     *
+     * @param   inputStream the JSON in the form of an [InputStream]
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    inline fun <reified T: Any> parse(inputStream: InputStream, config: JSONConfig = JSONConfig.defaultConfig): T? =
+            parse(JSONTypeRef.create<T>(nullable = true).refType, inputStream, config) as T?
+
+    /**
+     * Deserialize JSON from an [InputStream] to a specified Java [Type].
+     *
+     * @param   javaType    the target type
+     * @param   inputStream the JSON in the form of an [InputStream]
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    fun parse(javaType: Type, inputStream: InputStream, config: JSONConfig = JSONConfig.defaultConfig): Any? =
+            JSONDeserializer.deserialize(javaType, JSON.parse(inputStream), config)
+
+    /**
+     * Deserialize JSON from a [File] to a specified [KType].
+     *
+     * @param   resultType  the target type
+     * @param   file        the JSON in the form of a [File]
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    fun parse(resultType: KType, file: File, config: JSONConfig = JSONConfig.defaultConfig): Any? =
+            JSONDeserializer.deserialize(resultType, JSON.parse(file), config)
+
+    /**
+     * Deserialize JSON from a [File] to a specified [KClass].
+     *
+     * @param   resultClass the target class
+     * @param   file        the JSON in the form of a [File]
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    fun <T: Any> parse(resultClass: KClass<T>, file: File, config: JSONConfig = JSONConfig.defaultConfig): T? =
+            JSONDeserializer.deserialize(resultClass, JSON.parse(file), config)
+
+    /**
+     * Deserialize JSON from a [File] to the inferred [KType].
+     *
+     * @param   file        the JSON in the form of a [File]
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    inline fun <reified T: Any> parse(file: File, config: JSONConfig = JSONConfig.defaultConfig): T? =
+            parse(JSONTypeRef.create<T>(nullable = true).refType, file, config) as T?
+
+    /**
+     * Deserialize JSON from a [File] to a specified Java [Type].
+     *
+     * @param   javaType    the target type
+     * @param   file        the JSON in the form of a [File]
+     * @param   config      an optional [JSONConfig] to customise the conversion
+     * @return              the converted object
+     */
+    fun parse(javaType: Type, file: File, config: JSONConfig = JSONConfig.defaultConfig): Any? =
+            JSONDeserializer.deserialize(javaType, JSON.parse(file), config)
 
 }

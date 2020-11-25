@@ -2,7 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [3.13] - 2020-11-25
+### Changed
+- `JSONAuto`: added more helper functions
+
+## [3.12] - 2020-11-25
 ### Changed
 - `JSONDeserializer`: modified to allow use by `YAMLSequence` and `YAMLMapping`
 - `README.md`: added badges

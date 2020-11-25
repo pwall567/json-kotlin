@@ -183,7 +183,7 @@ class JSONSerializerTest {
         expect(expected) { JSONSerializer.serialize(array) }
     }
 
-    @Test fun `Array of Int? should return JSONArray`() {
+    @Test fun `Array of Int nullable should return JSONArray`() {
         val array = arrayOf(123, null, 0, 999)
         val expected = JSONArray().apply {
             addValue(123)
@@ -249,7 +249,7 @@ class JSONSerializerTest {
         expect(expected) { JSONSerializer.serialize(map) }
     }
 
-    @Test fun `Map of String to String? should return JSONObject`() {
+    @Test fun `Map of String to String nullable should return JSONObject`() {
         val map = mapOf("abc" to "hello", "def" to null, "ghi" to "goodbye")
         val expected = JSONObject().apply {
             putValue("abc", "hello")
