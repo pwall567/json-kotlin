@@ -299,7 +299,12 @@ class JSONSerializerTest {
             set(Calendar.ZONE_OFFSET, 10 * 60 * 60 * 1000)
         }
         val date = cal.time
-        expect(JSONString("2019-04-25T18:52:47.123+10:00")) { JSONSerializer.serialize(date) }
+        // NOTE - Java implementations are inconsistent - some will normalise the time to UTC
+        // while others preserve the time zone as supplied.  The test below allows for either.
+        val expected1 = JSONString("2019-04-25T18:52:47.123+10:00")
+        val expected2 = JSONString("2019-04-25T08:52:47.123Z")
+        val result = JSONSerializer.serialize(date)
+        expect(true) { result == expected1 || result == expected2 }
     }
 
     @Test fun `java-sql-Date should return JSONString`() {

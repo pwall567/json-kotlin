@@ -219,8 +219,8 @@ class JSONDeserializerTest {
     }
 
     @Test fun `JSONString should return ZonedDateTime`() {
-        val json = JSONString("2019-03-10T16:46:11.234+10:00[Australia/Sydney]")
-        val expected: ZonedDateTime? = ZonedDateTime.of(2019, 3, 10, 16, 46, 11, 234000000,
+        val json = JSONString("2019-01-10T16:46:11.234+11:00[Australia/Sydney]")
+        val expected: ZonedDateTime? = ZonedDateTime.of(2019, 1, 10, 16, 46, 11, 234000000,
                 ZoneId.of("Australia/Sydney"))
         expect(expected) { JSONDeserializer.deserialize(json) }
     }
