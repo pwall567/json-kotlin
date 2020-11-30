@@ -305,8 +305,6 @@ fun targetKType(mainClass: KClass<*>, vararg paramTypes: KType, nullable: Boolea
  * Convert a Java [Type] to a Kotlin [KType].  This allows Java [Type]s to be used as the target type of a
  * deserialization operation.
  *
- * This function is not complete, but with any luck it will cover the great majority of usages.
- *
  * @receiver    the Java [Type] to be converted
  * @param       nullable    `true` if the [KType] is to be nullable
  * @return      the resulting Kotlin [KType]
@@ -325,3 +323,48 @@ fun Type.toKType(nullable: Boolean = false): KType = when (this) {
         } }, nullable)
     else -> throw JSONException("Can't handle type: $this")
 }
+
+/**
+ * Deserialize a [JSONValue] to the nominated [KType].
+ *
+ * @receiver    the [JSONValue] (or `null`)
+ * @param       resultType  the target [KType]
+ * @param       config      an optional [JSONConfig] to customise the conversion
+ * @throws      JSONException if the value can not be converted
+ */
+fun JSONValue?.deserialize(resultType: KType, config: JSONConfig = JSONConfig.defaultConfig): Any? =
+        JSONDeserializer.deserialize(resultType, this, config)
+
+/**
+ * Deserialize a [JSONValue] to the nominated [KClass].
+ *
+ * @receiver    the [JSONValue] (or `null`)
+ * @param       resultClass the target [KClass]
+ * @param       config      an optional [JSONConfig] to customise the conversion
+ * @param       T           the target class
+ * @throws      JSONException if the value can not be converted
+ */
+fun <T: Any> JSONValue?.deserialize(resultClass: KClass<T>, config: JSONConfig = JSONConfig.defaultConfig): T? =
+        JSONDeserializer.deserialize(resultClass, this, config)
+
+/**
+ * Deserialize a [JSONValue] to the inferred class.
+ *
+ * @receiver    the [JSONValue] (or `null`)
+ * @param       config      an optional [JSONConfig] to customise the conversion
+ * @param       T           the target class
+ * @throws      JSONException if the value can not be converted
+ */
+inline fun <reified T: Any> JSONValue?.deserialize(config: JSONConfig = JSONConfig.defaultConfig): T? =
+        JSONDeserializer.deserialize(this, config)
+
+/**
+ * Deserialize a [JSONValue] to the nominated Java [Type].
+ *
+ * @receiver    the [JSONValue] (or `null`)
+ * @param       javaType    the target [Type]
+ * @param       config      an optional [JSONConfig] to customise the conversion
+ * @throws      JSONException if the value can not be converted
+ */
+fun JSONValue?.deserialize(javaType: Type, config: JSONConfig = JSONConfig.defaultConfig): Any? =
+        JSONDeserializer.deserialize(javaType, this, config)

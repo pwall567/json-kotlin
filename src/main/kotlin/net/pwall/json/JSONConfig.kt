@@ -111,6 +111,8 @@ class JSONConfig {
      * @return          the mapping function, or `null` if not found
      */
     fun findFromJSONMapping(type: KType): FromJSONMapping? {
+        if (type.classifier == Any::class)
+            return null
         var best: Map.Entry<KType, FromJSONMapping>? = null
         for (entry in fromJSONMap.entries) {
             if (entry.key.isSubtypeOf(type) && best.let { it == null || it.key.isSubtypeOf(entry.key) })
@@ -126,6 +128,8 @@ class JSONConfig {
      * @return              the mapping function, or `null` if not found
      */
     fun findFromJSONMapping(targetClass: KClass<*>): FromJSONMapping? {
+        if (targetClass == Any::class)
+            return null
         var best: KClass<*>? = null
         var nullable = false
         var result: FromJSONMapping? = null

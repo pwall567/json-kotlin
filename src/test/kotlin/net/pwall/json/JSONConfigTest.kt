@@ -63,6 +63,19 @@ class JSONConfigTest {
         expect(Dummy1("xyz", 888)) { JSONDeserializer.deserialize(Dummy1::class.createType(), json, config) }
     }
 
+    @Test fun `fromJSON mapping should not interfere with other deserialization`() {
+        val config = JSONConfig().apply {
+            fromJSON { json ->
+                if (json !is JSONObject)
+                    throw JSONException("Must be JSONObject")
+                Dummy1(json.getString("a"), json.getInt("b"))
+            }
+        }
+        val json = JSONArray(JSONString("AAA"), JSONString("BBB"))
+        val result = JSONDeserializer.deserialize<List<Any>>(json, config)
+        expect(listOf("AAA", "BBB")) { result }
+    }
+
     @Test fun `fromJSON mapping should map nested class`() {
         val config = JSONConfig().apply {
             fromJSON { json ->

@@ -164,7 +164,7 @@ object JSONDeserializer {
      * @param   T           the target class
      * @return              the converted object
      */
-    inline fun <reified T: Any> deserialize(json: JSONValue, config: JSONConfig = JSONConfig.defaultConfig): T? =
+    inline fun <reified T: Any> deserialize(json: JSONValue?, config: JSONConfig = JSONConfig.defaultConfig): T? =
             deserialize(JSONTypeRef.create<T>(nullable = true).refType, json, config) as T?
 
     /**

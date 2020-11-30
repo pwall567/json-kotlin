@@ -259,4 +259,40 @@ class JSONFunTest {
         expect(expected) { type.toKType() }
     }
 
+    @Test fun `decode should convert a JSONObject to a specified type`() {
+        val json = JSONObject().apply {
+            putValue("field1", "abdef")
+            putValue("field2", 54321)
+        }
+        val expected: Dummy1? = Dummy1("abdef", 54321)
+        expect(expected) { json.deserialize(Dummy1::class.starProjectedType) }
+    }
+
+    @Test fun `decode should convert a JSONObject to a specified class`() {
+        val json = JSONObject().apply {
+            putValue("field1", "abdef")
+            putValue("field2", 54321)
+        }
+        val expected: Dummy1? = Dummy1("abdef", 54321)
+        expect(expected) { json.deserialize(Dummy1::class) }
+    }
+
+    @Test fun `decode should convert a JSONObject to an implied class`() {
+        val json = JSONObject().apply {
+            putValue("field1", "abdef")
+            putValue("field2", 54321)
+        }
+        val expected: Dummy1? = Dummy1("abdef", 54321)
+        expect(expected) { json.deserialize() }
+    }
+
+    @Test fun `decode should convert a JSONObject to a specified Java class`() {
+        val json = JSONObject().apply {
+            putValue("field1", "abdef")
+            putValue("field2", 54321)
+        }
+        val expected: Dummy1? = Dummy1("abdef", 54321)
+        expect(expected) { json.deserialize(Dummy1::class.java) }
+    }
+
 }

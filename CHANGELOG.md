@@ -2,6 +2,12 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [3.14] - 2020-11-30
+### Changed
+- `JSONFun`: additional extension functions on `JSONValue`
+- `JSONConfig`: bug fix on `fromJSON`
+- `JSONDeserializer`: minor bug fix
+
 ## [3.13] - 2020-11-25
 ### Changed
 - `JSONAuto`: added more helper functions

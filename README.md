@@ -41,6 +41,8 @@ Also, support is included for the following standard Java classes:
 
 ## Quick Start
 
+### Serialization
+
 To serialize any object (say, a `data class`):
 ```kotlin
     val json = dataClassInstance.stringifyJSON()
@@ -67,29 +69,31 @@ will yield:
 {"abc":"hello","def":12345,"ghi":["A","B"]}
 ```
 
+### Deserialization
+
 Deserialization is slightly more complicated, because the target data type must be specified to the function.
-This can be achieved in a number of ways (the following examples assume `json` is a `String` containing JSON):
+This can be achieved in a number of ways (the following examples assume `jsonString` is a `String` containing JSON):
 
 The type can be inferred from the context:
 ```kotlin
-    val example: Example? = json.parseJSON()
+    val example: Example? = jsonString.parseJSON()
 ```
 
 The type may be specified as a type parameter:
 ```kotlin
-    val example = json.parseJSON<Example>()
+    val example = jsonString.parseJSON<Example>()
 ```
 
 The type may be specified as a `KClass`:
 ```kotlin
-    val example = json.parseJSON(Example::class)
+    val example = jsonString.parseJSON(Example::class)
 ```
 
 The type may be specified as a `KType`:
 ```kotlin
-    val example = json.parseJSON(Example::class.starProjectedType) as Example
+    val example = jsonString.parseJSON(Example::class.starProjectedType) as Example
 ```
-(This form is generally only needed when deserializing parameterized types and the parameter types can not be
+(This form is generally only needed when deserializing parameterized types where the parameter types can not be
 inferred; the `as` expression is needed because `KType` does not convey inferred type information.)
 
 Because of the limitations caused by [type erasure](https://kotlinlang.org/docs/reference/generics.html#type-erasure),
@@ -238,6 +242,8 @@ The `toJSON` function must supply a lambda will the signature `(Any?) -> JSONVal
 supply a lambda with the signature `(JSONValue?) -> Any?`.
 `JSONValue` is the interface implemented by each node in the `jsonutil` library (see below).
 
+Both `toJSON` and `fromJSON` may be specified repeatedly in the same `JSONConfig` to cover multiple classes.
+
 ## Mixed Kotlin and Java
 
 If you need to serialize or deserialize a Kotlin class from Java, the `JSONJava` class provides this capability while
@@ -275,23 +281,23 @@ trailing quote or bracket character.
 
 ## Dependency Specification
 
-The latest version of the library is 3.13, and it may be obtained from the Maven Central repository.
+The latest version of the library is 3.14, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>3.13</version>
+      <version>3.14</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin:3.13'
+    implementation 'net.pwall.json:json-kotlin:3.14'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:3.13")
+    implementation("net.pwall.json:json-kotlin:3.14")
 ```
 
 ## Breaking change
@@ -310,4 +316,4 @@ incremented as would normally be the case for a breaking change.
 
 Peter Wall
 
-2020-11-25
+2020-11-30
