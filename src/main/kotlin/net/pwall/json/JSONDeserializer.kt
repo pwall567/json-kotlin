@@ -147,14 +147,15 @@ object JSONDeserializer {
     /**
      * Deserialize a parsed [JSONValue] to an unspecified([Any]) type.  Strings will be converted to `String`, numbers
      * to `Int`, `Long` or `BigDecimal`, booleans to `Boolean`, arrays to `ArrayList<Any?>` and objects to
-     * `LinkedHashMap<String, Any?>`.
+     * `ListMap<String, Any?>` (a simple implementation of `Map` that preserves order).
      *
      * @param   json        the parsed JSON, as a [JSONValue] (or `null`)
-     * @param   config      an optional [JSONConfig]
+     * @param   config      an optional [JSONConfig] (not used, accepted for compatibility with other functions)
      * @return              the converted object
      */
-    fun deserializeAny(json: JSONValue?, config: JSONConfig = JSONConfig.defaultConfig): Any? =
-            deserialize(anyQType, json, config)
+    fun deserializeAny(json: JSONValue?, @Suppress("UNUSED_PARAMETER") config: JSONConfig? = null): Any? {
+        return json?.toSimpleValue()
+    }
 
     /**
      * Deserialize a parsed [JSONValue] to the inferred [KType].

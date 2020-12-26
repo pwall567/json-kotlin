@@ -2,6 +2,13 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+### Added
+- `USERGUIDE.md`
+### Changed
+- `pom.xml`: updated dependency versions
+- `JSONDeserializer`: simplified `deserializeAny`
+
 ## [3.14] - 2020-11-30
 ### Changed
 - `JSONFun`: additional extension functions on `JSONValue`

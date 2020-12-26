@@ -846,10 +846,38 @@ class JSONDeserializerTest {
     @Test fun `JSONObject should deserialize to Any`() {
         val json = JSONObject().apply {
             putValue("aaa", 1234)
+            putValue("ccc", 9999)
             putValue("bbb", 5678)
+            putValue("abc", 8888)
         }
-        val expected: Map<String, Int>? = mapOf("aaa" to 1234, "bbb" to 5678)
-        expect(expected) { JSONDeserializer.deserialize(json) }
+        val result = JSONDeserializer.deserializeAny(json)
+        // check that the result is a map in the correct order
+        if (result is Map<*, *>) {
+            val iterator = result.keys.iterator()
+            expect(true) { iterator.hasNext() }
+            iterator.next().let {
+                expect("aaa") { it }
+                expect(1234) { result[it] }
+            }
+            expect(true) { iterator.hasNext() }
+            iterator.next().let {
+                expect("ccc") { it }
+                expect(9999) { result[it] }
+            }
+            expect(true) { iterator.hasNext() }
+            iterator.next().let {
+                expect("bbb") { it }
+                expect(5678) { result[it] }
+            }
+            expect(true) { iterator.hasNext() }
+            iterator.next().let {
+                expect("abc") { it }
+                expect(8888) { result[it] }
+            }
+            expect(false) { iterator.hasNext() }
+        }
+        else
+            fail("Not a Map - $result")
     }
 
     @Test fun `sealed class should deserialize to correct subclass`() {
