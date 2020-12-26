@@ -59,6 +59,12 @@ class JSONAutoTest {
         expect(Dummy1("abdef", 54321)) { JSONAuto.parse(Dummy1::class.starProjectedType, json) }
     }
 
+    @Test fun `JSONAuto should parse List using parameterised type`() {
+        val json = """[{"field1":"abcdef","field2":567},{"field1":"qwerty","field2":9999}]"""
+        val expected = listOf(Dummy1("abcdef", 567), Dummy1("qwerty", 9999))
+        expect(expected) { JSONAuto.parse<List<Dummy1>>(json) }
+    }
+
     @Test fun `JSONAuto should parse List using Java Type`() {
         val json = """[{"field1":567,"field2":"abcdef"},{"field1":9999,"field2":"qwerty"}]"""
         val type: Type = JavaClass2::class.java.getField("field1").genericType
