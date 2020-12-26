@@ -55,6 +55,8 @@ import java.util.BitSet
 import java.util.Calendar
 import java.util.TimeZone
 import java.util.UUID
+import java.util.stream.IntStream
+import java.util.stream.Stream
 
 class JSONSerializerTest {
 
@@ -732,6 +734,29 @@ class JSONSerializerTest {
         val serialized = JSONSerializer.serialize(dummy5)
         expect(true) { serialized is JSONObject }
         expect(1) { (serialized as JSONObject).size }
+    }
+
+    @Test fun `should serialize Java Stream of strings`() {
+        val stream = Stream.of("abc", "def")
+        val serialized = JSONSerializer.serialize(stream)
+        expect(true) { serialized is JSONSequence<*> }
+        with(serialized as JSONSequence<*>) {
+            expect(2) { size }
+            expect(JSONString("abc")) { get(0) }
+            expect(JSONString("def")) { get(1) }
+        }
+    }
+
+    @Test fun `should serialize Java IntStream`() {
+        val stream = IntStream.of(987, 654, 321)
+        val serialized = JSONSerializer.serialize(stream)
+        expect(true) { serialized is JSONSequence<*> }
+        with(serialized as JSONSequence<*>) {
+            expect(3) { size }
+            expect(JSONInt(987)) { get(0) }
+            expect(JSONInt(654)) { get(1) }
+            expect(JSONInt(321)) { get(2) }
+        }
     }
 
     private fun intEquals(a: Int, b: Int): Boolean {

@@ -38,6 +38,8 @@ Also, support is included for the following standard Java classes:
 - `java.time.Instant`, `java.time.LocalDate`, `java.time.LocalDateTime`, `java.time.OffsetDateTime`,
   `java.time.OffsetTime`, `java.time.ZonedDateTime`, `java.time.Year`, `java.time.YearMonth`, `java.time.Duration`,
   `java.time.Period`
+- `java.util.stream.Stream`, `java.util.stream.IntStream`, `java.util.stream.LongStream`,
+  `java.util.stream.DoubleStream`
 
 ## Quick Start
 

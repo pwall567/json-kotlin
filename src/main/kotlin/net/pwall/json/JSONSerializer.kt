@@ -35,6 +35,7 @@ import java.util.BitSet
 import java.util.Calendar
 import java.util.Date
 import java.util.Enumeration
+import java.util.stream.BaseStream
 
 import net.pwall.json.JSONSerializerFunctions.findToJSON
 import net.pwall.json.JSONSerializerFunctions.formatISO8601
@@ -96,6 +97,11 @@ object JSONSerializer {
             is Iterable<*> -> return JSONArray(obj.map { serialize(it, config, references) })
 
             is Iterator<*> -> return JSONArray().apply {
+                for (item in obj)
+                    add(serialize(item, config, references))
+            }
+
+            is BaseStream<*, *> -> return JSONArray().apply {
                 for (item in obj)
                     add(serialize(item, config, references))
             }

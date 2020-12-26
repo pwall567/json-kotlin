@@ -49,6 +49,8 @@ import java.util.BitSet
 import java.util.Calendar
 import java.util.TimeZone
 import java.util.UUID
+import java.util.stream.IntStream
+import java.util.stream.Stream
 
 import net.pwall.json.JSONStringify.appendJSON
 import net.pwall.json.test.JSONExpect.Companion.expectJSON
@@ -279,6 +281,16 @@ class JSONStringifyTest {
     @Test fun `should stringify the results of an enumeration`() {
         val list = listOf("tahi", "rua", "toru", "wh\u0101")
         expect("""["tahi","rua","toru","wh\u0101"]""") { JSONStringify.stringify(ListEnum(list)) }
+    }
+
+    @Test fun `should stringify a Java Stream of strings`() {
+        val stream = Stream.of("tahi", "rua", "toru", "wh\u0101")
+        expect("""["tahi","rua","toru","wh\u0101"]""") { JSONStringify.stringify(stream) }
+    }
+
+    @Test fun `should stringify a Java IntStream`() {
+        val stream = IntStream.of(1, 1, 2, 3, 5, 8, 13, 21)
+        expect("[1,1,2,3,5,8,13,21]") { JSONStringify.stringify(stream) }
     }
 
     @Test fun `should stringify a map of string to string`() {

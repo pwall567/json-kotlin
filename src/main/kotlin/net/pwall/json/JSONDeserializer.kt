@@ -63,6 +63,10 @@ import java.util.Calendar
 import java.util.Date
 import java.util.LinkedList
 import java.util.UUID
+import java.util.stream.DoubleStream
+import java.util.stream.IntStream
+import java.util.stream.LongStream
+import java.util.stream.Stream
 
 import net.pwall.json.JSONDeserializerFunctions.findFromJSON
 import net.pwall.json.JSONDeserializerFunctions.findParameterName
@@ -370,6 +374,26 @@ object JSONDeserializer {
                         config)
 
                 LinkedList::class -> LinkedList<Any?>().fillFromJSON(resultType, json, getTypeParam(types), config)
+
+                Stream::class -> {
+                    val list = ArrayList<Any?>(json.size).fillFromJSON(resultType, json, getTypeParam(types), config)
+                    list.stream()
+                }
+
+                IntStream::class -> {
+                    val intArray = IntArray(json.size) { i -> deserializeNonNull(Int::class, json[i], config) }
+                    IntStream.of(*intArray)
+                }
+
+                LongStream::class -> {
+                    val longArray = LongArray(json.size) { i -> deserializeNonNull(Long::class, json[i], config) }
+                    LongStream.of(*longArray)
+                }
+
+                DoubleStream::class -> {
+                    val doubleArray = DoubleArray(json.size) { i -> deserializeNonNull(Double::class, json[i], config) }
+                    DoubleStream.of(*doubleArray)
+                }
 
                 Set::class,
                 MutableSet::class,

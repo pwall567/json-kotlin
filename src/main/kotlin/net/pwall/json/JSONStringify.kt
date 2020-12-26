@@ -35,6 +35,7 @@ import java.util.BitSet
 import java.util.Calendar
 import java.util.Date
 import java.util.Enumeration
+import java.util.stream.BaseStream
 
 import net.pwall.json.JSONSerializerFunctions.findToJSON
 import net.pwall.json.JSONSerializerFunctions.formatISO8601
@@ -198,6 +199,7 @@ object JSONStringify {
             is Iterator<*> -> appendJSONIterator(obj, config, references)
             is Sequence<*> -> appendJSONIterator(obj.iterator(), config, references)
             is Enumeration<*> -> appendJSONEnumeration(obj, config, references)
+            is BaseStream<*, *> -> appendJSONIterator(obj.iterator(), config, references)
             is Map<*, *> -> appendJSONMap(obj, config, references)
             is Calendar -> appendJSONString(obj.formatISO8601())
             is Date -> appendJSONString((Calendar.getInstance().apply { time = obj }).formatISO8601())

@@ -65,6 +65,10 @@ import java.util.Date
 import java.util.LinkedList
 import java.util.TimeZone
 import java.util.UUID
+import java.util.stream.DoubleStream
+import java.util.stream.IntStream
+import java.util.stream.LongStream
+import java.util.stream.Stream
 
 class JSONDeserializerTest {
 
@@ -1036,6 +1040,50 @@ class JSONDeserializerTest {
         }
         val expected = TestPage2<String>(lineLists = listOf(listOf("lineA1", "lineA2"), listOf("lineB1", "lineB2")))
         expect(expected) { JSONDeserializer.deserialize<TestPage2<String>>(json)}
+    }
+
+    @Test fun `should deserialize Java Stream`() {
+        val json = JSONArray(JSONString("abc"), JSONString("def"))
+        val result: Stream<String> = JSONDeserializer.deserialize(json) ?: fail("result was null")
+        val iterator = result.iterator()
+        expect(true) { iterator.hasNext() }
+        expect("abc") { iterator.next() }
+        expect(true) { iterator.hasNext() }
+        expect("def") { iterator.next() }
+        expect(false) { iterator.hasNext() }
+    }
+
+    @Test fun `should deserialize Java IntStream`() {
+        val json = JSONArray(JSONInt(2345), JSONInt(6789))
+        val result: IntStream = JSONDeserializer.deserialize(json) ?: fail("result was null")
+        val iterator = result.iterator()
+        expect(true) { iterator.hasNext() }
+        expect(2345) { iterator.next() }
+        expect(true) { iterator.hasNext() }
+        expect(6789) { iterator.next() }
+        expect(false) { iterator.hasNext() }
+    }
+
+    @Test fun `should deserialize Java LongStream`() {
+        val json = JSONArray(JSONLong(1234567812345678), JSONLong(9876543298765432))
+        val result: LongStream = JSONDeserializer.deserialize(json) ?: fail("result was null")
+        val iterator = result.iterator()
+        expect(true) { iterator.hasNext() }
+        expect(1234567812345678) { iterator.next() }
+        expect(true) { iterator.hasNext() }
+        expect(9876543298765432) { iterator.next() }
+        expect(false) { iterator.hasNext() }
+    }
+
+    @Test fun `should deserialize Java DoubleStream`() {
+        val json = JSONArray(JSONDouble(1234.5), JSONDouble(1e40))
+        val result: DoubleStream = JSONDeserializer.deserialize(json) ?: fail("result was null")
+        val iterator = result.iterator()
+        expect(true) { iterator.hasNext() }
+        expect(1234.5) { iterator.next() }
+        expect(true) { iterator.hasNext() }
+        expect(1e40) { iterator.next() }
+        expect(false) { iterator.hasNext() }
     }
 
     private fun <T>  sequenceEquals(seq1: Sequence<T>, seq2: Sequence<T>) = seq1.toList() == seq2.toList()
