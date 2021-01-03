@@ -427,6 +427,7 @@ class JSONConfig {
     fun combineAll(config: JSONConfig) {
         sealedClassDiscriminator = config.sealedClassDiscriminator
         readBufferSize = config.readBufferSize
+        stringifyInitialSize = config.stringifyInitialSize
         charset = config.charset
         bigIntegerString = config.bigIntegerString
         bigDecimalString = config.bigDecimalString

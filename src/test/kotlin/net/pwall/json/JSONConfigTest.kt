@@ -203,13 +203,15 @@ class JSONConfigTest {
         expect(expected) { JSONSerializer.serialize(obj, config2) }
     }
 
-    @Test fun `Switch settings should be transferred on combineAll`() {
+    @Test fun `Switch settings and numeric values should be transferred on combineAll`() {
         val config = JSONConfig().apply {
             bigIntegerString = true
             bigDecimalString = true
             includeNulls = true
             allowExtra = true
             streamOutput = true
+            readBufferSize = 16384
+            stringifyInitialSize = 512
         }
         val config2 = JSONConfig().apply {
             combineAll(config)
@@ -219,6 +221,8 @@ class JSONConfigTest {
         expect(true) { config2.includeNulls }
         expect(true) { config2.allowExtra }
         expect(true) { config2.streamOutput }
+        expect(16384) { config2.readBufferSize }
+        expect(512) { config2.stringifyInitialSize }
     }
 
     @Test fun `toJSON mapping of nullable type should be selected correctly`() {
