@@ -146,7 +146,8 @@ following this pseudo-code:
 create a shortlist of potential constructors
 for each constructor in the target class:
     for each parameter in the constructor (there may be no parameters):
-        if there is no property in the JSON object with the same name, and the parameter has no default value:
+        if there is no property in the JSON object with the same name, and the parameter has no default value,
+                    and the parameter is not nullable:
             reject the constructor
     if the constructor has not been rejected add it to the shortlist
 if there is no constructor in the shortlist:
@@ -156,6 +157,8 @@ if there is more than one constructor in the shortlist:
 for each parameter in the selected constructor (there may be none in the case of a no-arg constructor):
     if the parameter has a matching property in the JSON:
         invoke the deserialization functions using the target type from the parameter and the property from the JSON
+    if the parameter has no matching property in the JSON, and has no default value, but is nullable:
+        set the parameter value to null
 invoke the constructor using the parameter values derived as above
 for each property in the JSON that has not been consumed by the constructor (there may be no such properties):
     locate a property in the instantiated object with the same name
@@ -178,7 +181,10 @@ constructor and no additional properties, the steps reduce to:
 for each parameter in the constructor:
     if the parameter has a matching property in the JSON:
         invoke the deserialization functions using the target type from the parameter and the property from the JSON
-    if there is no matching property and the parameter has no default value:
+    if the parameter has no matching property in the JSON, and has no default value, but is nullable:
+        set the parameter value to null
+    if the parameter has no matching property in the JSON, the parameter has no default value,
+                and the parameter is not nullable:
         FAILURE - can't construct an object of the target type from the supplied JSON
 invoke the constructor using the parameter values derived as above
 if there are properties in the JSON that have not been consumed by the constructor (and allowExtra not specified):
