@@ -366,7 +366,6 @@ The `JSONAuto` object has a number of functions to help with parsing, but it als
 operates identically to the `JSONStringify.stringify()` function above.
 
 
-
 ## Deserialize String to Kotlin object
 
 Deserialization in all its forms requires the target type to be specified in some way.
@@ -588,7 +587,8 @@ directly in that structure to determine the specific target type.
 For example:
 ```kotlin
     val json = JSON.parseObject(inputString) ?: throw NullPointerException("JSON must not be null")
-    val event = when (json["type"].toString()) { // the toString() is necessary because json["type"] returns a JSONValue
+    val event = when (json["type"].toString()) {
+        // the toString() above is necessary because json["type"] returns a JSONValue
         "open" -> JSONDeserializer.deserialize<OpenEvent>(json)
         "close" -> JSONDeserializer.deserialize<CloseEvent>(json)
         else -> throw JSONException("Unknown event type")

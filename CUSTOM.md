@@ -94,11 +94,9 @@ class Person(val firstName: String, val surname: String) {
     companion object {
         @Suppress("unused")
         fun fromJSON(json: JSONValue): DummyFromJSON {
-            if (json !is JSONString)
-                throw new JSONException("Can't deserialize ${json::class} as Person")
+            require(json is JSONString) { "Can't deserialize ${json::class} as Person" }
             val names = json.get().split('|')
-            if (names.length != 2)
-                throw new JSONException("Person string has incorrect format")
+            require(names.length == 2) { "Person string has incorrect format" }
             return Person(names[0], names[1])
         }
     }
@@ -112,11 +110,9 @@ Again, it may not be possible to modify the class, so a `fromJSON` lambda may be
 The above example may be specified as:
 ```kotlin
     config.fromJSON { json ->
-        if (json !is JSONString)
-            throw new JSONException("Can't deserialize ${json::class} as Person")
+        require(json is JSONString) { "Can't deserialize ${json::class} as Person" }
         val names = json.get().split('|')
-        if (names.length != 2)
-            throw new JSONException("Person string has incorrect format")
+        require(names.length == 2) { "Person string has incorrect format" }
         Person(names[0], names[1])
     }
 ```
@@ -126,16 +122,11 @@ As with `toJSON`, the type may be specified explicitly:
 ```kotlin
     val personType = Person::class.starProjectedType
     config.fromJSON(personType) { json ->
-        if (json !is JSONString)
-            throw new JSONException("Can't deserialize ${json::class} as Person")
+        require(json is JSONString) { "Can't deserialize ${json::class} as Person" }
         val names = json.get().split('|')
-        if (names.length != 2)
-            throw new JSONException("Person string has incorrect format")
+        require(names.length == 2) { "Person string has incorrect format" }
         Person(names[0], names[1])
     }
 ```
-
-This example, like the others in this file, throws an exception of the class `JSONException` in the case of any errors;
-the class is not a requirement and the exception may be of any class.
 
 2021-01-03
