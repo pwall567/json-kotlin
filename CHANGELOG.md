@@ -2,12 +2,15 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [3.15] - 2021-01-03
 ### Added
 - `USERGUIDE.md`
+- `CUSTOM.md`
 ### Changed
 - `pom.xml`: updated dependency versions
 - `JSONDeserializer`: simplified `deserializeAny`
+- `JSONSerializer`, `JSONDeserializer`, `JSONStringify`: added support for Java Streams
+- `JSONConfig`: bug fix in `combineAll`
 
 ## [3.14] - 2020-11-30
 ### Changed

@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.pwall.json</groupId>
   <artifactId>json-kotlin</artifactId>
-  <version>3.14</version>
+  <version>3.15</version>
   <name>JSON serialization and deserialization for Kotlin</name>
   <description>Kotlin classes to perform auto-serialization and deserialization.</description>
   <packaging>jar</packaging>
@@ -61,17 +61,17 @@
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin-annotations</artifactId>
-      <version>1.1</version>
+      <version>1.1.1</version>
     </dependency>
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>jsonutil</artifactId>
-      <version>4.1</version>
+      <version>4.2</version>
     </dependency>
     <dependency>
       <groupId>net.pwall.util</groupId>
       <artifactId>javautil</artifactId>
-      <version>2.3</version>
+      <version>2.4</version>
     </dependency>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
@@ -89,7 +89,7 @@
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin-test-classes</artifactId>
-      <version>1.4</version>
+      <version>1.4.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>

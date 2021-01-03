@@ -5,7 +5,10 @@
 [![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=v1.4.0&color=blue&logo=kotlin)](https://github.com/JetBrains/kotlin/releases/tag/v1.4.0)
 [![Maven Central](https://img.shields.io/maven-central/v/net.pwall.json/json-kotlin?label=Maven%20Central)](https://search.maven.org/search?q=g:%22net.pwall.json%22%20AND%20a:%22json-kotlin%22)
 
-JSON serialization and deserialization for Kotlin
+JSON serialization and deserialization for Kotlin.
+
+This document provides introductory information on the `json-kotlin` library; fuller information is available in the
+[User Guide](USERGUIDE.md).
 
 ## Background
 
@@ -35,9 +38,9 @@ Also, support is included for the following standard Java classes:
 - `java.net.URI`, `java.net.URL`
 - `java.util.Enumeration`, `java.util.Bitset`, `java.util.UUID`, `java.util.Date`, `java.util.Calendar`
 - `java.sql.Date`, `java.sql.Time`, `java.sql.Timestamp`
-- `java.time.Instant`, `java.time.LocalDate`, `java.time.LocalDateTime`, `java.time.OffsetDateTime`,
-  `java.time.OffsetTime`, `java.time.ZonedDateTime`, `java.time.Year`, `java.time.YearMonth`, `java.time.Duration`,
-  `java.time.Period`
+- `java.time.Instant`, `java.time.LocalDate`, `java.time.LocalTime`, `java.time.LocalDateTime`,
+  `java.time.OffsetTime`, `java.time.OffsetDateTime`, `java.time.ZonedDateTime`, `java.time.Year`,
+  `java.time.YearMonth`, `java.time.MonthDay`, `java.time.Duration`, `java.time.Period`
 - `java.util.stream.Stream`, `java.util.stream.IntStream`, `java.util.stream.LongStream`,
   `java.util.stream.DoubleStream`
 
@@ -112,26 +115,8 @@ or:
 
 ## Sealed Classes
 
-The library will handle Kotlin sealed classes, by adding a discriminator property to the JSON object to allow the
-deserialization to select the correct derived class.
-The Kotlin documentation on sealed classes uses the following example:
-```kotlin
-    sealed class Expr
-    data class Const(val number: Double) : Expr()
-    data class Sum(val e1: Expr, val e2: Expr) : Expr()
-    object NotANumber : Expr()
-```
-
-A `Const` instance from the example will serialize as:
-```json
-{"class":"Const","number":1.234}
-```
-and the `NotANumber` object will serialize as:
-```json
-{"class":"NotANumber"}
-```
-The discriminator property name (default "class") may be modified by setting the `sealedClassDiscriminator` property of
-a `JSONConfig` object (see Customization below).
+The library will handle Kotlin sealed classes.
+See the [User Guide](USERGUIDE.md#sealed-classes) for more details.
 
 ## Customization
 
@@ -149,7 +134,7 @@ An alternative name may be specified if required, by the use of the `@JSONName` 
 #### Ignore a property on serialization
 
 If it is not necessary (or desirable) to output a particular field, the `@JSONIgnore` annotation may be used to prevent
-serialisation:
+serialization:
 ```kotlin
     data class Example(val abc: String, @Ignore val def: Int)
 ```
@@ -283,23 +268,23 @@ trailing quote or bracket character.
 
 ## Dependency Specification
 
-The latest version of the library is 3.14, and it may be obtained from the Maven Central repository.
+The latest version of the library is 3.15, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>3.14</version>
+      <version>3.15</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin:3.14'
+    implementation 'net.pwall.json:json-kotlin:3.15'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:3.14")
+    implementation("net.pwall.json:json-kotlin:3.15")
 ```
 
 ## Breaking change
@@ -318,4 +303,4 @@ incremented as would normally be the case for a breaking change.
 
 Peter Wall
 
-2020-11-30
+2021-01-03
