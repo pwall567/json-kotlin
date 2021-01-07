@@ -268,23 +268,23 @@ trailing quote or bracket character.
 
 ## Dependency Specification
 
-The latest version of the library is 3.15, and it may be obtained from the Maven Central repository.
+The latest version of the library is 3.16, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>3.15</version>
+      <version>3.16</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin:3.15'
+    implementation 'net.pwall.json:json-kotlin:3.16'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:3.15")
+    implementation("net.pwall.json:json-kotlin:3.16")
 ```
 
 ## Breaking change
@@ -303,4 +303,4 @@ incremented as would normally be the case for a breaking change.
 
 Peter Wall
 
-2021-01-03
+2021-01-07

@@ -424,7 +424,7 @@ object JSONDeserializer {
                         for (value in json) {
                             if (value !is JSONInt)
                                 throw JSONException("Can't deserialize BitSet; array member not int")
-                            set(value.get())
+                            set(value.value)
                         }
                     }
                 }

@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [3.16] - 2021-01-07
+### Changed
+- `JSONFun.kt`: added `value` extension variables for `JSONValue` primitive types
+
 ## [3.15] - 2021-01-03
 ### Added
 - `USERGUIDE.md`

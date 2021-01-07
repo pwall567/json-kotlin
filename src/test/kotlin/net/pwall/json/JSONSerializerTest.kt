@@ -89,7 +89,7 @@ class JSONSerializerTest {
         val i = 123456
         val actual = JSONSerializer.serialize(i)
         assertTrue(actual is JSONInt)
-        assertTrue(intEquals(i, actual.get()))
+        assertTrue(intEquals(i, actual.value))
         // Note - these assertions are complicated because JSONInt.equals() returns true
         // for any comparison with another numeric JSON types where the values are equal
     }
@@ -98,63 +98,63 @@ class JSONSerializerTest {
         val i = -8888
         val actual = JSONSerializer.serialize(i)
         assertTrue(actual is JSONInt)
-        assertTrue(intEquals(i, actual.get()))
+        assertTrue(intEquals(i, actual.value))
     }
 
     @Test fun `Long should return JSONLong`() {
         val i = 12345678901234
         val actual = JSONSerializer.serialize(i)
         assertTrue(actual is JSONLong)
-        assertTrue(longEquals(i, actual.get()))
+        assertTrue(longEquals(i, actual.value))
     }
 
     @Test fun `Long (negative) should return JSONLong`() {
         val i = -987654321987654321
         val actual = JSONSerializer.serialize(i)
         assertTrue(actual is JSONLong)
-        assertTrue(longEquals(i, actual.get()))
+        assertTrue(longEquals(i, actual.value))
     }
 
     @Test fun `Short should return JSONInt`() {
         val i: Short = 1234
         val actual = JSONSerializer.serialize(i)
         assertTrue(actual is JSONInt)
-        assertTrue(intEquals(i.toInt(), actual.get()))
+        assertTrue(intEquals(i.toInt(), actual.value))
     }
 
     @Test fun `Byte should return JSONInt`() {
         val i: Byte = 123
         val actual = JSONSerializer.serialize(i)
         assertTrue(actual is JSONInt)
-        assertTrue(intEquals(i.toInt(), actual.get()))
+        assertTrue(intEquals(i.toInt(), actual.value))
     }
 
     @Test fun `Float should return JSONFloat`() {
         val f = 0.1234F
         val actual = JSONSerializer.serialize(f)
         assertTrue(actual is JSONFloat)
-        assertTrue(floatEquals(f, actual.get()))
+        assertTrue(floatEquals(f, actual.value))
     }
 
     @Test fun `Float (negative) should return JSONFloat`() {
         val f = -88.987F
         val actual = JSONSerializer.serialize(f)
         assertTrue(actual is JSONFloat)
-        assertTrue(floatEquals(f, actual.get()))
+        assertTrue(floatEquals(f, actual.value))
     }
 
     @Test fun `Double should return JSONDouble`() {
         val d = 987.654321
         val actual = JSONSerializer.serialize(d)
         assertTrue(actual is JSONDouble)
-        assertTrue(doubleEquals(d, actual.get()))
+        assertTrue(doubleEquals(d, actual.value))
     }
 
     @Test fun `Double (exponent notation) should return JSONDouble`() {
         val d = 1e40
         val actual = JSONSerializer.serialize(d)
         assertTrue(actual is JSONDouble)
-        assertTrue(doubleEquals(d, actual.get()))
+        assertTrue(doubleEquals(d, actual.value))
     }
 
     @Test fun `Boolean should return JSONBoolean`() {
