@@ -2,7 +2,7 @@
  * @(#) JSONSerializerTest.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019, 2020 Peter Wall
+ * Copyright (c) 2019, 2020, 2021 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -723,7 +723,7 @@ class JSONSerializerTest {
         val circular2 = Circular2()
         circular1.ref = circular2
         circular2.ref = circular1
-        val exception = assertFailsWith<JSONException> {
+        val exception = assertFailsWith<JSONKotlinException> {
             JSONSerializer.serialize(circular1)
         }
         expect("Circular reference: field ref in Circular2") { exception.message }

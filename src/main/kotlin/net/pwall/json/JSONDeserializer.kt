@@ -2,7 +2,7 @@
  * @(#) JSONDeserializer.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019, 2020 Peter Wall
+ * Copyright (c) 2019, 2020, 2021 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -71,6 +71,7 @@ import java.util.stream.Stream
 import net.pwall.json.JSONDeserializerFunctions.findFromJSON
 import net.pwall.json.JSONDeserializerFunctions.findParameterName
 import net.pwall.json.JSONDeserializerFunctions.hasSingleParameter
+import net.pwall.json.JSONKotlinException.Companion.fail
 import net.pwall.util.ISO8601Date
 
 /**
@@ -94,10 +95,10 @@ object JSONDeserializer {
         config.findFromJSONMapping(resultType)?.let { return it(json) }
         if (json == null) {
             if (!resultType.isMarkedNullable)
-                throw JSONException("Can't deserialize null as $resultType")
+                fail("Can't deserialize null as ${resultType.simpleName}")
             return null
         }
-        val classifier = resultType.classifier as? KClass<*> ?: throw JSONException("Can't deserialize $resultType")
+        val classifier = resultType.classifier as? KClass<*> ?: fail("Can't deserialize ${resultType.simpleName}")
         return deserialize(resultType, classifier, resultType.arguments, json, config)
     }
 
@@ -133,7 +134,7 @@ object JSONDeserializer {
             config: JSONConfig = JSONConfig.defaultConfig): T {
         config.findFromJSONMapping(resultClass)?.let { return it(json) as T }
         if (json == null)
-            throw JSONException("Can't deserialize null as ${resultClass.simpleName}")
+            fail("Can't deserialize null as ${resultClass.simpleName}")
         return deserialize(resultClass.starProjectedType, resultClass, emptyList(), json, config)
     }
 
@@ -200,7 +201,7 @@ object JSONDeserializer {
             }
         }
         catch (e: Exception) {
-            throw JSONException("Error in custom fromJSON - ${resultClass.simpleName}", e)
+            fail("Error in custom fromJSON - ${resultClass.simpleName}", e)
         }
 
         when (json) {
@@ -250,7 +251,7 @@ object JSONDeserializer {
                     }
                 }
 
-                throw JSONException("Can't deserialize $json as $resultClass")
+                fail("Can't deserialize $json as ${resultClass.simpleName}")
             }
 
             is JSONSequence<*> -> return deserializeArray(resultType, resultClass, types, json, config)
@@ -259,7 +260,7 @@ object JSONDeserializer {
 
         }
 
-        throw JSONException("Can't deserialize $resultClass")
+        fail("Can't deserialize ${resultClass.simpleName}")
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -274,7 +275,7 @@ object JSONDeserializer {
 
                 Char::class -> {
                     if (str.length != 1)
-                        throw JSONException("Character must be string of length 1")
+                        fail("Character must be string of length 1")
                     return str[0] as T
                 }
 
@@ -325,7 +326,7 @@ object JSONDeserializer {
             throw e
         }
         catch (e: Exception) {
-            throw JSONException("Can't deserialize \"$str\" as $resultClass", e)
+            fail("Can't deserialize \"$str\" as ${resultClass.simpleName}", e)
         }
 
         // is the target class an enum?
@@ -338,7 +339,7 @@ object JSONDeserializer {
 
         resultClass.constructors.find { it.hasSingleParameter(String::class) }?.apply { return call(str) }
 
-        throw JSONException("Can't deserialize \"$str\" as $resultClass")
+        fail("Can't deserialize \"$str\" as ${resultClass.simpleName}")
     }
 
     @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
@@ -423,7 +424,7 @@ object JSONDeserializer {
                     BitSet().apply {
                         for (value in json) {
                             if (value !is JSONInt)
-                                throw JSONException("Can't deserialize BitSet; array member not int")
+                                fail("Can't deserialize BitSet; array member not int")
                             set(value.value)
                         }
                     }
@@ -433,8 +434,7 @@ object JSONDeserializer {
 
                     if (resultClass.java.isArray) {
                         val type = getTypeParam(types)
-                        val itemClass = type.classifier as? KClass<Any> ?:
-                                throw JSONException("Can't determine array type")
+                        val itemClass = type.classifier as? KClass<Any> ?: fail("Can't determine array type")
                         newArray(itemClass, json.size).apply {
                             for (i in json.indices)
                                 this[i] = deserializeNested(resultType, type, json[i], config)
@@ -448,7 +448,7 @@ object JSONDeserializer {
                         resultClass.constructors.find { it.hasSingleParameter(List::class) }?.run {
                             val type = getTypeParam(parameters[0].type.arguments)
                             call(ArrayList<Any?>(json.size).fillFromJSON(resultType, json, type, config))
-                        } ?: throw JSONException("Can't deserialize array as $resultClass")
+                        } ?: fail("Can't deserialize array as ${resultClass.simpleName}")
 
                     }
 
@@ -461,7 +461,7 @@ object JSONDeserializer {
             throw e
         }
         catch (e: Exception) {
-            throw JSONException("Can't deserialize array as $resultClass", e)
+            fail("Can't deserialize array as ${resultClass.simpleName}", e)
         }
 
     }
@@ -511,9 +511,9 @@ object JSONDeserializer {
 
             if (resultClass.isSealed) {
                 val subClassName = (jsonCopy.remove(config.sealedClassDiscriminator) as? JSONString)?.toString() ?:
-                        throw JSONException("No class name for sealed class")
+                        fail("No class name for sealed class")
                 val subClass = resultClass.sealedSubclasses.find { it.simpleName == subClassName } ?:
-                        throw JSONException("Can't find named subclass for sealed class")
+                        fail("Can't find named subclass for sealed class")
                 return deserializeObject(subClass.createType(types, nullable = resultType.isMarkedNullable), subClass,
                         types, jsonCopy, config)
             }
@@ -536,7 +536,7 @@ object JSONDeserializer {
                                 if (parameter.type.isMarkedNullable)
                                     argMap[parameter] = null
                                 else
-                                    throw JSONException("Can't create $resultClass - missing property $paramName")
+                                    fail("Can't create $resultClass - missing property $paramName")
                             }
                         }
                     }
@@ -549,17 +549,16 @@ object JSONDeserializer {
             throw e
         }
         catch (e: Exception) {
-            throw JSONException("Can't deserialize object as $resultClass", e)
+            fail("Can't deserialize object as ${resultClass.simpleName}", e)
         }
 
-        throw JSONException("Can't deserialize object as $resultClass")
+        fail("Can't deserialize object as ${resultClass.simpleName}")
 
     }
 
     private fun deserializeMap(resultType: KType, map: MutableMap<Any, Any?>, types: List<KTypeProjection>,
             json: JSONMapping<*>, config: JSONConfig): MutableMap<Any, Any?> {
-        val keyClass = getTypeParam(types, 0).classifier as? KClass<*> ?:
-                throw JSONException("Key type can not be determined for Map")
+        val keyClass = getTypeParam(types, 0).classifier as? KClass<*> ?: fail("Key type can not be determined for Map")
         val valueType = getTypeParam(types, 1)
         for (entry in json.entries) {
             map[deserializeString(keyClass, entry.key)] = deserializeNested(resultType, valueType, entry.value, config)
@@ -581,7 +580,7 @@ object JSONDeserializer {
                             member.setter.call(instance, value)
                         }
                         catch (e: Exception) {
-                            throw JSONException("Error setting property ${entry.key} in ${resultClass.simpleName}", e)
+                            fail("Error setting property ${entry.key} in ${resultClass.simpleName}", e)
                         }
                         finally {
                             member.isAccessible = wasAccessible
@@ -589,13 +588,13 @@ object JSONDeserializer {
                     }
                     else {
                         if (member.getter.call(instance) != value)
-                            throw JSONException("Can't set property ${entry.key} in ${resultClass.simpleName}")
+                            fail("Can't set property ${entry.key} in ${resultClass.simpleName}")
                     }
                 }
             }
             else {
                 if (!(config.allowExtra || config.hasAllowExtraPropertiesAnnotation(resultClass.annotations)))
-                    throw JSONException("Can't find property ${entry.key} in ${resultClass.simpleName}")
+                    fail("Can't find property ${entry.key} in ${resultClass.simpleName}")
             }
         }
         return instance
@@ -646,7 +645,7 @@ object JSONDeserializer {
             val enclosingClass = enclosingType.classifierAsClass(this)
             val index = enclosingClass.typeParameters.indexOfFirst { it.name == typeParameter.name }
             return enclosingType.arguments.getOrNull(index)?.type ?:
-                    throw JSONException("Can't create $this - no type information for ${typeParameter.name}")
+                    fail("Can't create $this - no type information for ${typeParameter.name}")
         }
 
         if (arguments.isEmpty())
@@ -667,7 +666,10 @@ object JSONDeserializer {
     }
 
     private fun KType.classifierAsClass(target: KType): KClass<*> {
-        return classifier as? KClass<*> ?: throw JSONException("Can't create $target - insufficient type information")
+        return classifier as? KClass<*> ?: fail("Can't create $target - insufficient type information")
     }
+
+    private val KType.simpleName
+        get() = (classifier as? KClass<*>)?.simpleName ?: toString()
 
 }

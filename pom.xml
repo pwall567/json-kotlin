@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.pwall.json</groupId>
   <artifactId>json-kotlin</artifactId>
-  <version>3.16</version>
+  <version>3.17-SNAPSHOT</version>
   <name>JSON serialization and deserialization for Kotlin</name>
   <description>Kotlin classes to perform auto-serialization and deserialization.</description>
   <packaging>jar</packaging>
@@ -62,6 +62,11 @@
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin-annotations</artifactId>
       <version>1.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>net.pwall.json</groupId>
+      <artifactId>json-pointer</artifactId>
+      <version>1.0</version>
     </dependency>
     <dependency>
       <groupId>net.pwall.json</groupId>

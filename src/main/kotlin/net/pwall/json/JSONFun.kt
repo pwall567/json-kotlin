@@ -2,7 +2,7 @@
  * @(#) JSONFun.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019, 2020 Peter Wall
+ * Copyright (c) 2019, 2020, 2021 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,8 @@ import java.lang.reflect.Type
 import java.lang.reflect.WildcardType
 import java.math.BigDecimal
 import java.math.BigInteger
+
+import net.pwall.json.JSONKotlinException.Companion.fail
 
 /** Type alias for `JSONInt` to make it closer to Kotlin standard class names. */
 typealias JSONInt = JSONInteger
@@ -334,7 +336,7 @@ fun targetKType(mainClass: KClass<*>, vararg paramTypes: KType, nullable: Boolea
  * @receiver    the Java [Type] to be converted
  * @param       nullable    `true` if the [KType] is to be nullable
  * @return      the resulting Kotlin [KType]
- * @throws      JSONException if the [Type] can not be converted
+ * @throws      JSONKotlinException if the [Type] can not be converted
  */
 fun Type.toKType(nullable: Boolean = false): KType = when (this) {
     is Class<*> -> this.kotlin.createType(nullable = nullable)
@@ -347,7 +349,7 @@ fun Type.toKType(nullable: Boolean = false): KType = when (this) {
                     KTypeProjection.contravariant(it.lowerBounds[0].toKType(true))
             else -> KTypeProjection.invariant(it.toKType(true))
         } }, nullable)
-    else -> throw JSONException("Can't handle type: $this")
+    else -> fail("Can't handle type: $this")
 }
 
 /**
@@ -356,7 +358,7 @@ fun Type.toKType(nullable: Boolean = false): KType = when (this) {
  * @receiver    the [JSONValue] (or `null`)
  * @param       resultType  the target [KType]
  * @param       config      an optional [JSONConfig] to customise the conversion
- * @throws      JSONException if the value can not be converted
+ * @throws      JSONKotlinException if the value can not be converted
  */
 fun JSONValue?.deserialize(resultType: KType, config: JSONConfig = JSONConfig.defaultConfig): Any? =
         JSONDeserializer.deserialize(resultType, this, config)
@@ -368,7 +370,7 @@ fun JSONValue?.deserialize(resultType: KType, config: JSONConfig = JSONConfig.de
  * @param       resultClass the target [KClass]
  * @param       config      an optional [JSONConfig] to customise the conversion
  * @param       T           the target class
- * @throws      JSONException if the value can not be converted
+ * @throws      JSONKotlinException if the value can not be converted
  */
 fun <T: Any> JSONValue?.deserialize(resultClass: KClass<T>, config: JSONConfig = JSONConfig.defaultConfig): T? =
         JSONDeserializer.deserialize(resultClass, this, config)
@@ -379,7 +381,7 @@ fun <T: Any> JSONValue?.deserialize(resultClass: KClass<T>, config: JSONConfig =
  * @receiver    the [JSONValue] (or `null`)
  * @param       config      an optional [JSONConfig] to customise the conversion
  * @param       T           the target class
- * @throws      JSONException if the value can not be converted
+ * @throws      JSONKotlinException if the value can not be converted
  */
 inline fun <reified T: Any> JSONValue?.deserialize(config: JSONConfig = JSONConfig.defaultConfig): T? =
         JSONDeserializer.deserialize(this, config)
@@ -390,7 +392,7 @@ inline fun <reified T: Any> JSONValue?.deserialize(config: JSONConfig = JSONConf
  * @receiver    the [JSONValue] (or `null`)
  * @param       javaType    the target [Type]
  * @param       config      an optional [JSONConfig] to customise the conversion
- * @throws      JSONException if the value can not be converted
+ * @throws      JSONKotlinException if the value can not be converted
  */
 fun JSONValue?.deserialize(javaType: Type, config: JSONConfig = JSONConfig.defaultConfig): Any? =
         JSONDeserializer.deserialize(javaType, this, config)

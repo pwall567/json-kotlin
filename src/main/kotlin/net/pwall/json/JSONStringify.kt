@@ -2,7 +2,7 @@
  * @(#) JSONStringify.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2020 Peter Wall
+ * Copyright (c) 2020, 2021 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@ import java.util.Date
 import java.util.Enumeration
 import java.util.stream.BaseStream
 
+import net.pwall.json.JSONKotlinException.Companion.fail
 import net.pwall.json.JSONSerializerFunctions.findToJSON
 import net.pwall.json.JSONSerializerFunctions.formatISO8601
 import net.pwall.json.JSONSerializerFunctions.isSealedSubclass
@@ -191,7 +192,7 @@ object JSONStringify {
                 return
             }
             catch (e: Exception) {
-                throw JSONException("Error in custom toJSON - ${objClass.simpleName}", e)
+                fail("Error in custom toJSON - ${objClass.simpleName}", e)
             }
         }
         when (obj) {
@@ -264,7 +265,7 @@ object JSONStringify {
             try {
                 val v = member.getter.call(obj)
                 if (v != null && v in references)
-                    throw JSONException("Circular reference: field ${member.name} in ${obj::class.simpleName}")
+                    fail("Circular reference: field ${member.name} in ${obj::class.simpleName}")
                 if (v != null || config.hasIncludeIfNullAnnotation(annotations) || config.includeNulls || includeAll) {
                     if (continuation)
                         append(',')
@@ -278,7 +279,7 @@ object JSONStringify {
                 throw e
             }
             catch (e: Exception) {
-                throw JSONException("Error getting property ${member.name} from ${obj::class.simpleName}", e)
+                fail("Error getting property ${member.name} from ${obj::class.simpleName}", e)
             }
             finally {
                 member.isAccessible = wasAccessible

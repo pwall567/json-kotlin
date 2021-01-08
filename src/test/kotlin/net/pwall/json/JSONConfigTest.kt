@@ -2,7 +2,7 @@
  * @(#) JSONConfigTest.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019, 2020 Peter Wall
+ * Copyright (c) 2019, 2020, 2021 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,7 @@ class JSONConfigTest {
         val config = JSONConfig().apply {
             fromJSON { json ->
                 if (json !is JSONObject)
-                    throw JSONException("Must be JSONObject")
+                    fail("Must be JSONObject")
                 Dummy1(json.getString("a"), json.getInt("b"))
             }
         }
@@ -67,7 +67,7 @@ class JSONConfigTest {
         val config = JSONConfig().apply {
             fromJSON { json ->
                 if (json !is JSONObject)
-                    throw JSONException("Must be JSONObject")
+                    fail("Must be JSONObject")
                 Dummy1(json.getString("a"), json.getInt("b"))
             }
         }
@@ -80,7 +80,7 @@ class JSONConfigTest {
         val config = JSONConfig().apply {
             fromJSON { json ->
                 if (json !is JSONObject)
-                    throw JSONException("Must be JSONObject")
+                    fail("Must be JSONObject")
                 Dummy1(json.getString("a"), json.getInt("b"))
             }
         }
@@ -101,7 +101,7 @@ class JSONConfigTest {
         val config = JSONConfig()
         assertNull(config.findToJSONMapping(stringType))
         assertNull(config.findToJSONMapping(String::class))
-        config.toJSON<String> { str -> JSONString(str ?: throw JSONException("String expected")) }
+        config.toJSON<String> { str -> JSONString(str ?: fail("String expected")) }
         assertNotNull(config.findToJSONMapping(stringType))
         assertNotNull(config.findToJSONMapping(String::class))
     }

@@ -2,7 +2,7 @@
  * @(#) JSONConfig.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019, 2020 Peter Wall
+ * Copyright (c) 2019, 2020, 2021 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.isSupertypeOf
 
+import net.pwall.json.JSONKotlinException.Companion.fail
 import net.pwall.json.annotation.JSONAllowExtra
 import net.pwall.json.annotation.JSONIgnore
 import net.pwall.json.annotation.JSONIncludeAllProperties
@@ -50,7 +51,7 @@ class JSONConfig {
     /** Name of property to store sealed class subclass name as discriminator */
     var sealedClassDiscriminator = defaultSealedClassDiscriminator
         set(newValue) {
-            if (newValue.isNotEmpty()) field = newValue else throw JSONException("Sealed class discriminator invalid")
+            if (newValue.isNotEmpty()) field = newValue else fail("Sealed class discriminator invalid")
         }
 
     /** Read buffer size (for `json-ktor`), arbitrarily limited to multiple of 16, not greater than 256K */
@@ -59,7 +60,7 @@ class JSONConfig {
             if ((newValue and 15) == 0 && newValue in 16..(256 * 1024))
                 field = newValue
             else
-                throw JSONException("Read buffer size invalid - $newValue")
+                fail("Read buffer size invalid - $newValue")
         }
 
     /** Initial allocation size for stringify operations, arbitrarily limited to 16 to 256K */
@@ -68,7 +69,7 @@ class JSONConfig {
             if (newValue in 16..(256 * 1024))
                 field = newValue
             else
-                throw JSONException("Stringify initial allocation size invalid - $newValue")
+                fail("Stringify initial allocation size invalid - $newValue")
         }
 
     /** Character set (for `json-ktor` and  `json-ktor-client`) */
@@ -202,15 +203,15 @@ class JSONConfig {
     fun fromJSONString(type: KType) {
         fromJSONMap[type] = { json ->
             when (json) {
-                null -> if (type.isMarkedNullable) null else throw JSONException("Can't deserialize null as $type")
+                null -> if (type.isMarkedNullable) null else fail("Can't deserialize null as $type")
                 is JSONString -> {
-                    val resultClass = type.classifier as? KClass<*> ?: throw JSONException("Can't deserialize $type")
+                    val resultClass = type.classifier as? KClass<*> ?: fail("Can't deserialize $type")
                     val constructor = resultClass.constructors.find {
                         it.parameters.size == 1 && it.parameters[0].type == stringType
                     }
-                    constructor?.call(json.toString()) ?: throw JSONException("Can't deserialize $type")
+                    constructor?.call(json.toString()) ?: fail("Can't deserialize $type")
                 }
-                else -> throw JSONException("Can't deserialize ${json::class.simpleName} as $type")
+                else -> fail("Can't deserialize ${json::class.simpleName} as $type")
             }
         }
     }

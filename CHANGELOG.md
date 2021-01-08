@@ -2,6 +2,12 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+### Added
+- `JSONKotlinException`: New exception class
+### Changed
+- several: switched to use `JSONKotlinException`
+
 ## [3.16] - 2021-01-07
 ### Changed
 - `JSONFun.kt`: added `value` extension variables for `JSONValue` primitive types

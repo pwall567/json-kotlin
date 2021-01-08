@@ -2,7 +2,7 @@
  * @(#) JSONDeserializerTest.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019, 2020 Peter Wall
+ * Copyright (c) 2019, 2020, 2021 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -77,7 +77,8 @@ class JSONDeserializerTest {
     }
 
     @Test fun `null input should cause exception for non-null function`() {
-        assertFailsWith<JSONException> { JSONDeserializer.deserializeNonNull(String::class, null) }
+        val e = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserializeNonNull(String::class, null) }
+        expect("Can't deserialize null as String") { e.message }
     }
 
     @Test fun `when JSONValue expected it should pass through unchanged`() {
@@ -386,7 +387,8 @@ class JSONDeserializerTest {
             addValue("ABC")
             addValue(false)
         }
-        assertFailsWith<JSONException> { JSONDeserializer.deserialize(BooleanArray::class, json) }
+        val e = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize(BooleanArray::class, json) }
+        expect("Can't deserialize 123 as Boolean") { e.message }
     }
 
     @Test fun `JSONArray of number should return ByteArray`() {
@@ -445,7 +447,8 @@ class JSONDeserializerTest {
             addValue(true)
             addValue(321321)
         }
-        assertFailsWith<JSONException> { JSONDeserializer.deserialize(IntArray::class, json) }
+        val e = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize(IntArray::class, json) }
+        expect("Can't deserialize \"12345\" as Int") { e.message }
     }
 
     @Test fun `JSONArray to IntArray should fail if entries not integer`() {
@@ -454,7 +457,8 @@ class JSONDeserializerTest {
             addValue(0.123)
             addValue(321321)
         }
-        assertFailsWith<JSONException> { JSONDeserializer.deserialize(IntArray::class, json) }
+        val e = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize(IntArray::class, json) }
+        expect("Can't deserialize 0.123 as Int") { e.message }
     }
 
     @Test fun `JSONArray of number should return LongArray`() {
@@ -694,7 +698,8 @@ class JSONDeserializerTest {
     }
 
     @Test fun `null should fail for non-nullable String`() {
-        assertFailsWith<JSONException> { JSONDeserializer.deserialize(stringType, null) }
+        val e = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize(stringType, null) }
+        expect("Can't deserialize null as String") { e.message }
     }
 
     @Test fun `JSONObject should deserialize to object`() {
