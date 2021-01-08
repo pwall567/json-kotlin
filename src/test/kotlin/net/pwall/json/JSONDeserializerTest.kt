@@ -388,7 +388,7 @@ class JSONDeserializerTest {
             addValue(false)
         }
         val e = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize(BooleanArray::class, json) }
-        expect("Can't deserialize 123 as Boolean") { e.message }
+        expect("Can't deserialize 123 as Boolean at /0") { e.message }
     }
 
     @Test fun `JSONArray of number should return ByteArray`() {
@@ -448,7 +448,7 @@ class JSONDeserializerTest {
             addValue(321321)
         }
         val e = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize(IntArray::class, json) }
-        expect("Can't deserialize \"12345\" as Int") { e.message }
+        expect("Can't deserialize \"12345\" as Int at /0") { e.message }
     }
 
     @Test fun `JSONArray to IntArray should fail if entries not integer`() {
@@ -458,7 +458,7 @@ class JSONDeserializerTest {
             addValue(321321)
         }
         val e = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize(IntArray::class, json) }
-        expect("Can't deserialize 0.123 as Int") { e.message }
+        expect("Can't deserialize 0.123 as Int at /1") { e.message }
     }
 
     @Test fun `JSONArray of number should return LongArray`() {
@@ -1089,6 +1089,17 @@ class JSONDeserializerTest {
         expect(true) { iterator.hasNext() }
         expect(1e40) { iterator.next() }
         expect(false) { iterator.hasNext() }
+    }
+
+    @Test fun `should give error message with pointer`() {
+        val json = JSONObject().apply {
+            putValue("field1", "abc")
+            putValue("field2", "def")
+        }
+        val e1 = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize<Dummy1>(json) }
+        expect("Can't deserialize \"def\" as Int at /field2") { e1.message }
+        val e2 = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize<List<Dummy1>>(JSONArray(json)) }
+        expect("Can't deserialize \"def\" as Int at /0/field2") { e2.message }
     }
 
     private fun <T>  sequenceEquals(seq1: Sequence<T>, seq2: Sequence<T>) = seq1.toList() == seq2.toList()

@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - `JSONKotlinException`: New exception class
 ### Changed
 - several: switched to use `JSONKotlinException`
+- `JSONDeserializer`: make use of pointer on error messages
 
 ## [3.16] - 2021-01-07
 ### Changed
