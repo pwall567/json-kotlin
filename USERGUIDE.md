@@ -9,6 +9,7 @@
 - [Deserialize String to Kotlin object](#deserialize-string-to-kotlin-object)
 - [Serialize Kotlin object to `JSONValue`](#serialize-kotlin-object-to-jsonvalue)
 - [Deserialize `JSONValue` to Kotlin object](#deserialize-jsonvalue-to-kotlin-object)
+- [Exceptions](#exceptions)
 - [Further Examples](#further-examples)
 
 
@@ -579,6 +580,19 @@ This is a shortcut form of the `deserialize` function when supplied with a type 
 See [here](#any) for the effect of specifying a target type of `Any?`.
 
 
+## Exceptions
+
+Most errors in serialization or deserialization cause a `JSONKotlinException` to be thrown.
+The exception has the following available properties:
+
+| Name      | Type          | Description                                                                        |
+| --------- | ------------- | ---------------------------------------------------------------------------------- |
+| `text`    | `String`      | The specific text for the exception, not including pointer or `cause`              |
+| `pointer` | `JSONPointer` | A [JSON Pointer](https://tools.ietf.org/html/rfc6901) to the location of the issue |
+| `message` | `String`      | The conventional exception message, including the pointer                          |
+| `cause`   | `Throwable`   | The original cause of the exception                                                |
+
+
 ## Further Examples
 
 ### Conditional Deserialization
@@ -608,4 +622,4 @@ Many users will wish to use `json-kotlin` in conjunction with the
 An example `Service` class to provide default JSON serialization and deserialization for Spring applications is shown in
 the [Spring and `json-kotlin`](SPRING.md) guide.
 
-2021-01-03
+2021-01-10

@@ -1092,17 +1092,28 @@ class JSONDeserializerTest {
     }
 
     @Test fun `should give error message with pointer`() {
-        val json = JSONObject().apply {
-            putValue("field1", "abc")
-            putValue("field2", "def")
-        }
+        val json = JSON.parse("""{"field1":"abc","field2":"def"}""")
         val e1 = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize<Dummy1>(json) }
         expect("Can't deserialize \"def\" as Int at /field2") { e1.message }
         val e2 = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize<List<Dummy1>>(JSONArray(json)) }
         expect("Can't deserialize \"def\" as Int at /0/field2") { e2.message }
     }
 
-    private fun <T>  sequenceEquals(seq1: Sequence<T>, seq2: Sequence<T>) = seq1.toList() == seq2.toList()
+    @Test fun `should give expanded error message with pointer`() {
+        val json = JSON.parse("""{"field2":1}""")
+        val e1 = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize<Dummy1>(json) }
+        expect("Can't create Dummy1; missing: field1") { e1.message }
+        val e2 = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize<List<Dummy1>>(JSONArray(json)) }
+        expect("Can't create Dummy1; missing: field1 at /0") { e2.message }
+    }
+
+    @Test fun `should give expanded error message for multiple constructors`() {
+        val json = JSON.parse("""[{"aaa":"X"},{"bbb":1},{"ccc":true,"ddd":0}]""")
+        val e = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize<List<MultiConstructor>>(json) }
+        expect("Can't locate constructor for MultiConstructor; properties: ccc, ddd at /2") { e.message }
+    }
+
+    private fun <T> sequenceEquals(seq1: Sequence<T>, seq2: Sequence<T>) = seq1.toList() == seq2.toList()
 
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY,
             Calendar.MINUTE, Calendar.SECOND, Calendar.MILLISECOND, Calendar.ZONE_OFFSET)

@@ -2,12 +2,13 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [Unreleased]
+## [4.0] - 2021-01-10
 ### Added
 - `JSONKotlinException`: New exception class
 ### Changed
 - several: switched to use `JSONKotlinException`
 - `JSONDeserializer`: make use of pointer on error messages
+- `JSONDeserializer`: improved error messages on deserializing objects
 
 ## [3.16] - 2021-01-07
 ### Changed

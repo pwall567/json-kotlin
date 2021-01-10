@@ -266,41 +266,47 @@ is still required to create the internal `JSONValue`-based form.
 This ensures that errant serialization functions don't disrupt the remainder of the JSON, for example by omitting a
 trailing quote or bracket character.
 
+## Breaking changes
+
+**Version 2.0** introduced a change to `JSONConfig` which makes it incompatible with earlier versions - the functions to
+add information to the `JSONConfig` object (e.g. serialization and deserialization mappings) no longer return the object
+itself for chaining purposes.
+The recommended approach to perform repeat actions such as this is to use the Kotlin `apply {}` function.
+
+If there is anyone affected by this change (unlikely, I know!) version 1.2 is still available.
+
+Also, **version 3.8** changed the visibility of an internal function in `JSONDeserializer` from `public` to `private`
+(and changed its signature, although that's hardly relevant if it's no longer public).
+It was never intended that this function would be part of the published API, so the "major version" has not been
+incremented as would normally be the case for a breaking change.
+
+**Version 4.0** changes the content of error messages in exceptions, and thus may be a breaking change for any code that
+is dependent on the precise text of the message.
+In particular:
+- Most messages now include a `JSONPointer` when appropriate, showing the location in the JSON where the error occurred.
+- Errors on deserialization of objects using constructor parameters now include more detail.
+
 ## Dependency Specification
 
-The latest version of the library is 3.16, and it may be obtained from the Maven Central repository.
+The latest version of the library is 4.0, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>3.16</version>
+      <version>4.0</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin:3.16'
+    implementation 'net.pwall.json:json-kotlin:4.0'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:3.16")
+    implementation("net.pwall.json:json-kotlin:4.0")
 ```
-
-## Breaking change
-
-Version 2.0 introduced a change to `JSONConfig` which makes it incompatible with earlier versions - the functions to add
-information to the `JSONConfig` object (e.g. serialization and deserialization mappings) no longer return the object
-itself for chaining purposes.
-The recommended approach to perform repeat actions such as this is to use the Kotlin `apply {}` function.
-
-If there is anyone affected by this change (unlikely, I know!) version 1.2 is still available.
-
-Also, version 3.8 changed the visibility of an internal function in `JSONDeserializer` from `public` to `private`
-(and changed its signature, although that's hardly relevant if it's no longer public).
-It was never intended that this function would be part of the published API, so the "major version" has not been
-incremented as would normally be the case for a breaking change.
 
 Peter Wall
 
-2021-01-07
+2021-01-10
