@@ -523,8 +523,10 @@ object JSONDeserializer {
     private fun MutableCollection<Any?>.fillFromJSON(resultType: KType, json: JSONSequence<*>, type: KType,
             pointer: JSONPointer, config: JSONConfig): MutableCollection<Any?> {
         // using for rather than map to avoid creation of intermediate List
-        for (i in json.indices)
-            add(deserializeNested(resultType, type, json[i], pointer.child(i), config))
+        for (i in json.indices) {
+            if (!add(deserializeNested(resultType, type, json[i], pointer.child(i), config)))
+                fail("Duplicate not allowed", pointer.child(i))
+        }
         return this
     }
 

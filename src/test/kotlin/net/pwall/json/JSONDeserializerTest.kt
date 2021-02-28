@@ -488,6 +488,7 @@ class JSONDeserializerTest {
     private val listStringType = List::class.createType(listOf(stringTypeProjection))
     private val arrayListStringType = ArrayList::class.createType(listOf(stringTypeProjection))
     private val linkedListStringType = LinkedList::class.createType(listOf(stringTypeProjection))
+    private val setStringType = Set::class.createType(listOf(stringTypeProjection))
     private val hashSetStringType = HashSet::class.createType(listOf(stringTypeProjection))
     private val linkedHashSetStringType = LinkedHashSet::class.createType(listOf(stringTypeProjection))
     private val mapStringIntType = Map::class.createType(listOf(stringTypeProjection, intTypeProjection))
@@ -507,6 +508,16 @@ class JSONDeserializerTest {
 
     @Test fun `JSONArray of JSONString should return LinkedList of String`() {
         expect(LinkedList(listStrings)) { JSONDeserializer.deserialize(linkedListStringType, jsonArrayString) }
+    }
+
+    @Test fun `JSONArray of JSONString should return Set of String`() {
+        expect(LinkedHashSet(listStrings)) { JSONDeserializer.deserialize(setStringType, jsonArrayString) }
+    }
+
+    @Test fun `JSONArray of JSONString should reject duplicate`() {
+        val jsonArrayDuplicate = JSONArray().addValue("abc").addValue("def").addValue("abc")
+        val e = assertFailsWith<JSONKotlinException> { JSONDeserializer.deserialize(setStringType, jsonArrayDuplicate) }
+        expect("Duplicate not allowed at /2") { e.message }
     }
 
     @Test fun `JSONArray of JSONString should return HashSet of String`() {

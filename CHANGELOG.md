@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [4.1] - 2021-02-28
+### Changed
+- `JSONDeserializer`: added duplicate check on deserialization of `Set`
+
 ## [4.0] - 2021-01-10
 ### Added
 - `JSONKotlinException`: New exception class
