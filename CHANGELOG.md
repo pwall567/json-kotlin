@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [4.2] - 2021-04-19
+### Changed
+- `pom.xml`: updated dependency versions
+- `JSONFun.kt`: removed `value` extension variables (no longer necessary)
+
 ## [4.1] - 2021-02-28
 ### Changed
 - `JSONDeserializer`: added duplicate check on deserialization of `Set`

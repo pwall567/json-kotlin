@@ -48,38 +48,6 @@ typealias FromJSONMapping = (JSONValue?) -> Any?
 /** Type alias to simplify the definition of `toJSON` mapping functions. */
 typealias ToJSONMapping = (Any?) -> JSONValue?
 
-/** Extension value to simplify access to value of [JSONString]. */
-val JSONString.value: String
-    get() = get()
-
-/** Extension value to simplify access to value of [JSONInt]. */
-val JSONInt.value: Int
-    get() = get()
-
-/** Extension value to simplify access to value of [JSONLong]. */
-val JSONLong.value: Long
-    get() = get()
-
-/** Extension value to simplify access to value of [JSONFloat]. */
-val JSONFloat.value: Float
-    get() = get()
-
-/** Extension value to simplify access to value of [JSONDouble]. */
-val JSONDouble.value: Double
-    get() = get()
-
-/** Extension value to simplify access to value of [JSONDecimal]. */
-val JSONDecimal.value: BigDecimal
-    get() = get()
-
-/** Extension value to simplify access to value of [JSONZero]. */
-val JSONZero.value: Int
-    get() = get()
-
-/** Extension value to simplify access to value of [JSONBoolean]. */
-val JSONBoolean.value: Boolean
-    get() = get()
-
 /**
  * More Kotlin-like conversion function name.
  *
