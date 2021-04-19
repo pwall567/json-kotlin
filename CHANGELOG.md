@@ -2,8 +2,6 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-Dummy log line to force build.
-
 ## [4.2] - 2021-04-19
 ### Changed
 - `pom.xml`: updated dependency versions
