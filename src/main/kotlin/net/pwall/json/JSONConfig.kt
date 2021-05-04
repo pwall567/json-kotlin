@@ -33,6 +33,7 @@ import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.isSupertypeOf
+import kotlin.reflect.typeOf
 
 import net.pwall.json.JSONKotlinException.Companion.fail
 import net.pwall.json.annotation.JSONAllowExtra
@@ -46,6 +47,7 @@ import net.pwall.json.annotation.JSONName
  *
  * @author  Peter Wall
  */
+@OptIn(ExperimentalStdlibApi::class)
 class JSONConfig {
 
     /** Name of property to store sealed class subclass name as discriminator */
@@ -242,7 +244,7 @@ class JSONConfig {
      * @param   T       the type to be mapped
      */
     inline fun <reified T: Any> fromJSON(noinline mapping: (JSONValue?) -> T?) {
-        fromJSON(JSONTypeRef.create<T>(nullable = false).refType, mapping)
+        fromJSON(typeOf<T>(), mapping)
     }
 
     /**
@@ -251,7 +253,7 @@ class JSONConfig {
      * @param   T       the type to be mapped
      */
     inline fun <reified T: Any> fromJSONString() {
-        fromJSONString(JSONTypeRef.create<T>(nullable = false).refType)
+        fromJSONString(typeOf<T>())
     }
 
     /**
@@ -261,7 +263,7 @@ class JSONConfig {
      * @param   T       the type to be mapped
      */
     inline fun <reified T: Any> toJSON(noinline mapping: (T?) -> JSONValue?) {
-        toJSON(JSONTypeRef.create<T>(nullable = true).refType) { mapping(it as T?) }
+        toJSON(typeOf<T>()) { mapping(it as T?) }
     }
 
     /**
@@ -270,7 +272,7 @@ class JSONConfig {
      * @param   T       the type to be mapped
      */
     inline fun <reified T: Any> toJSONString() {
-        toJSONString(JSONTypeRef.create<T>(nullable = true).refType)
+        toJSONString(typeOf<T>())
     }
 
     /**

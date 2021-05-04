@@ -42,6 +42,7 @@ import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.staticFunctions
 import kotlin.reflect.jvm.isAccessible
+import kotlin.reflect.typeOf
 
 import java.lang.reflect.Type
 import java.math.BigDecimal
@@ -80,6 +81,7 @@ import net.pwall.util.ISO8601Date
  *
  * @author  Peter Wall
  */
+@OptIn(ExperimentalStdlibApi::class)
 object JSONDeserializer {
 
     private val anyQType = Any::class.createType(emptyList(), true)
@@ -207,7 +209,7 @@ object JSONDeserializer {
      * @return              the converted object
      */
     inline fun <reified T: Any> deserialize(json: JSONValue?, config: JSONConfig = JSONConfig.defaultConfig): T? =
-            deserialize(JSONTypeRef.create<T>(nullable = true).refType, json, config) as T?
+            deserialize(typeOf<T>(), json, config) as T?
 
     /**
      * Deserialize a parsed [JSONValue] to a parameterized [KClass], with the specified [KTypeProjection]s.

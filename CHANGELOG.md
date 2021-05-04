@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [4.3] - 2021-05-04
+### Changed
+- several: switched to use `typeOf()`
+- `pom.xml`: added compiler switch
+
 ## [4.2] - 2021-04-19
 ### Changed
 - `pom.xml`: updated dependency versions

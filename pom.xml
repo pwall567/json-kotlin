@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.pwall.json</groupId>
   <artifactId>json-kotlin</artifactId>
-  <version>4.2</version>
+  <version>4.3-SNAPSHOT</version>
   <name>JSON serialization and deserialization for Kotlin</name>
   <description>Kotlin classes to perform auto-serialization and deserialization.</description>
   <packaging>jar</packaging>
@@ -128,6 +128,11 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <args>
+            <arg>-Xopt-in=kotlin.RequiresOptIn</arg>
+          </args>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

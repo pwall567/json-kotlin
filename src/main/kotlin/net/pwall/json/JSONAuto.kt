@@ -2,7 +2,7 @@
  * @(#) JSONAuto.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019, 2020 Peter Wall
+ * Copyright (c) 2019, 2020, 2021 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +27,14 @@ package net.pwall.json
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+import kotlin.reflect.typeOf
 
 import java.io.File
 import java.io.InputStream
 import java.io.Reader
 import java.lang.reflect.Type
 
+@OptIn(ExperimentalStdlibApi::class)
 object JSONAuto {
 
     /**
@@ -75,7 +77,7 @@ object JSONAuto {
      * @return              the converted object
      */
     inline fun <reified T: Any> parse(str: CharSequence, config: JSONConfig = JSONConfig.defaultConfig): T? =
-            parse(JSONTypeRef.create<T>(nullable = true).refType, str, config) as T?
+            parse(typeOf<T>(), str, config) as T?
 
     /**
      * Deserialize JSON from string ([CharSequence]) to a specified Java [Type].
@@ -118,7 +120,7 @@ object JSONAuto {
      * @return              the converted object
      */
     inline fun <reified T: Any> parse(reader: Reader, config: JSONConfig = JSONConfig.defaultConfig): T? =
-            parse(JSONTypeRef.create<T>(nullable = true).refType, reader, config) as T?
+            parse(typeOf<T>(), reader, config) as T?
 
     /**
      * Deserialize JSON from a [Reader] to a specified Java [Type].
@@ -162,7 +164,7 @@ object JSONAuto {
      * @return              the converted object
      */
     inline fun <reified T: Any> parse(inputStream: InputStream, config: JSONConfig = JSONConfig.defaultConfig): T? =
-            parse(JSONTypeRef.create<T>(nullable = true).refType, inputStream, config) as T?
+            parse(typeOf<T>(), inputStream, config) as T?
 
     /**
      * Deserialize JSON from an [InputStream] to a specified Java [Type].
@@ -205,7 +207,7 @@ object JSONAuto {
      * @return              the converted object
      */
     inline fun <reified T: Any> parse(file: File, config: JSONConfig = JSONConfig.defaultConfig): T? =
-            parse(JSONTypeRef.create<T>(nullable = true).refType, file, config) as T?
+            parse(typeOf<T>(), file, config) as T?
 
     /**
      * Deserialize JSON from a [File] to a specified Java [Type].
