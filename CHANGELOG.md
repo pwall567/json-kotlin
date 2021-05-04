@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Changed
 - several: switched to use `typeOf()`
 - `pom.xml`: added compiler switch
+- `JSONDeserializer`, `JSONDeserializerFunctions`: add validation of UUID (workaround for Java bug)
 
 ## [4.2] - 2021-04-19
 ### Changed

@@ -261,10 +261,17 @@ class JSONDeserializerTest {
     }
 
     @Test fun `JSONString should return UUID`() {
-        val uuid = UUID.randomUUID()
-        val json = JSONString(uuid.toString())
-        val expected: UUID? = uuid
+        val uuid = "b082b046-ac9b-11eb-8ea7-5fc81989f104"
+        val json = JSONString(uuid)
+        val expected: UUID? = UUID.fromString("b082b046-ac9b-11eb-8ea7-5fc81989f104")
         expect(expected) { JSONDeserializer.deserialize(json) }
+    }
+
+    @Test fun `JSONString should fail on invalid UUID`() {
+        val json = JSONString("b082b046-ac9b-11eb-8ea7-5fc81989f1") // 2 bytes too short
+        assertFailsWith<JSONException> { JSONDeserializer.deserialize<UUID>(json) }.let {
+            expect("Error deserializing \"b082b046-ac9b-11eb-8ea7-5fc81989f1\" as UUID") { it.message }
+        }
     }
 
     @Test fun `JSONString should return URI`() {

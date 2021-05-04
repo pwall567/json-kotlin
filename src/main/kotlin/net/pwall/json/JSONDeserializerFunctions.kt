@@ -2,7 +2,7 @@
  * @(#) JSONDeserializerFunctions.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019, 2020 Peter Wall
+ * Copyright (c) 2019, 2020, 2021 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,10 @@ import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.functions
 import kotlin.reflect.full.isSuperclassOf
 
+import java.util.UUID
+
+import net.pwall.json.validation.JSONValidation
+
 object JSONDeserializerFunctions {
 
     private val fromJsonCache = HashMap<Pair<KClass<*>, KClass<*>>, KFunction<*>>()
@@ -59,5 +63,11 @@ object JSONDeserializerFunctions {
 
     fun findParameterName(parameter: KParameter, config: JSONConfig): String? =
             config.findNameFromAnnotation(parameter.annotations) ?: parameter.name
+
+    fun createUUID(string: String): UUID {
+        if (!JSONValidation.isUUID(string))
+            throw IllegalArgumentException("Not a valid UUID - $string")
+        return UUID.fromString(string)
+    }
 
 }

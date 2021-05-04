@@ -69,6 +69,7 @@ import java.util.stream.IntStream
 import java.util.stream.LongStream
 import java.util.stream.Stream
 
+import net.pwall.json.JSONDeserializerFunctions.createUUID
 import net.pwall.json.JSONDeserializerFunctions.findFromJSON
 import net.pwall.json.JSONDeserializerFunctions.findParameterName
 import net.pwall.json.JSONDeserializerFunctions.hasSingleParameter
@@ -356,7 +357,7 @@ object JSONDeserializer {
 
                 Period::class -> return Period.parse(str) as T
 
-                UUID::class -> return UUID.fromString(str) as T
+                UUID::class -> return createUUID(str) as T
 
             }
 
