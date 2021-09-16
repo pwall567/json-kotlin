@@ -1131,6 +1131,13 @@ class JSONDeserializerTest {
         expect("Can't locate constructor for MultiConstructor; properties: ccc, ddd at /2") { e.message }
     }
 
+    @Test fun `should use type projection upperBounds`() {
+        val json = JSON.parse("""{"expr":{"class":"Const","number":20.0}}""")
+        val expr = JSONDeserializer.deserialize<SealedClassContainer<*>>(json)?.expr
+        assertTrue(expr is Const)
+        expect(20.0) { expr.number }
+    }
+
     private fun <T> sequenceEquals(seq1: Sequence<T>, seq2: Sequence<T>) = seq1.toList() == seq2.toList()
 
     private val calendarFields = arrayOf(Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY,
@@ -1148,5 +1155,7 @@ class JSONDeserializerTest {
     data class TestDataHolder<T>(val description: String, val data: T)
 
     data class TestPage2<T>(val header: String? = null, val lineLists: List<List<T>>)
+
+    data class SealedClassContainer<T: Expr>(val expr: T)
 
 }

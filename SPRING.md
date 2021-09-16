@@ -61,7 +61,7 @@ class JSONConverter : AbstractJsonHttpMessageConverter() {
 
             fromJSON { json -> // example custom deserialization
                 require(json is JSONString) { "JSON representation of Money must be string" }
-                Money.of(json.get())
+                Money.of(json.value)
             }
 
         }

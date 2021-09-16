@@ -1,6 +1,6 @@
 # json-kotlin
 
-[![Build Status](https://travis-ci.org/pwall567/json-kotlin.svg?branch=master)](https://travis-ci.org/pwall567/json-kotlin)
+[![Build Status](https://travis-ci.com/pwall567/json-kotlin.svg?branch=master)](https://travis-ci.com/github/pwall567/json-kotlin)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=v1.4.0&color=blue&logo=kotlin)](https://github.com/JetBrains/kotlin/releases/tag/v1.4.0)
 [![Maven Central](https://img.shields.io/maven-central/v/net.pwall.json/json-kotlin?label=Maven%20Central)](https://search.maven.org/search?q=g:%22net.pwall.json%22%20AND%20a:%22json-kotlin%22)
@@ -9,6 +9,15 @@ JSON serialization and deserialization for Kotlin.
 
 This document provides introductory information on the `json-kotlin` library; fuller information is available in the
 [User Guide](USERGUIDE.md).
+
+## IMPORTANT
+
+This project is in the process of being superseded by [`kjson`](https://github.com/pwall567/kjson).
+New users are encouraged to use that project instead of this one; existing users are encouraged to migrate when
+convenient.
+
+This library will continue to be maintained, but enhancements will be added to the new library first, for example
+[an improved way of specifying polymorphic class deserialization](https://github.com/pwall567/kjson/blob/main/CUSTOM.md#fromjsonpolymorphic).
 
 ## Background
 
@@ -288,25 +297,25 @@ In particular:
 
 ## Dependency Specification
 
-The latest version of the library is 4.3, and it may be obtained from the Maven Central repository.
+The latest version of the library is 4.4, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>4.3</version>
+      <version>4.4</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin:4.3'
+    implementation 'net.pwall.json:json-kotlin:4.4'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:4.3")
+    implementation("net.pwall.json:json-kotlin:4.4")
 ```
 
 Peter Wall
 
-2021-05-04
+2021-09-16

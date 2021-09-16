@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [4.4] - 2021-09-16
+### Changed
+- `JSONDeserializer`: improved type determination for parameterised types with upper bound
+- `pom.xml`: bumped dependency versions
+
 ## [4.3] - 2021-05-04
 ### Changed
 - several: switched to use `typeOf()`
