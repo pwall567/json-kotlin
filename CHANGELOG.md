@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [4.5] - 2021-11-07
+### Changed
+- `pom.xml`: updated to Kotlin 1.5.20
+
 ## [4.4] - 2021-09-16
 ### Changed
 - `JSONDeserializer`: improved type determination for parameterised types with upper bound
