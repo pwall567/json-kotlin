@@ -2,7 +2,7 @@
  * @(#) JSONSerializerFunctions.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2019, 2020 Peter Wall
+ * Copyright (c) 2019, 2020, 2022 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -96,10 +96,7 @@ object JSONSerializerFunctions {
                     return (function as KFunction<JSONValue>).apply { toJsonCache[this@findToJSON] = this }
             }
         }
-        catch (ignore: kotlin.reflect.jvm.internal.KotlinReflectionInternalError) {
-            // seems like a bug in Kotlin runtime
-        }
-        catch (ignore: Exception) {
+        catch (_: Throwable) {
         }
         toJsonCache[this] = null
         return null

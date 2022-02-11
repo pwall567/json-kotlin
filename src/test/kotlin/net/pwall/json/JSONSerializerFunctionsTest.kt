@@ -2,7 +2,7 @@
  * @(#) JSONSerializerFunctionsTest.kt
  *
  * json-kotlin Kotlin JSON Auto Serialize/deserialize
- * Copyright (c) 2020 Peter Wall
+ * Copyright (c) 2020, 2022 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ class JSONSerializerFunctionsTest {
         assertNotNull(DummyFromJSON::class.findToJSON())
     }
 
-    @Test fun `should return null when toJSON is present`() {
+    @Test fun `should return null when toJSON is not present`() {
         assertNull(Dummy1::class.findToJSON())
     }
 
@@ -78,6 +78,17 @@ class JSONSerializerFunctionsTest {
             set(Calendar.ZONE_OFFSET, 10 * 60 * 60 * 1000)
         }
         expect("2020-04-23T19:25:31.123+10:00") { cal.formatISO8601() }
+    }
+
+    @Test fun `should perform reflection on system classes`() {
+        val map: Map<String, String> = emptyMap()
+        assertNull(map::class.findToJSON())
+        val int = 1
+        assertNull(int::class.findToJSON())
+        val lambda: (Int) -> Int = { it }
+        assertNull(lambda::class.findToJSON())
+        val str = "???"
+        assertNull(str::class.findToJSON())
     }
 
 }

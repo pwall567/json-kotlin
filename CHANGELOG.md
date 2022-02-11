@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [4.6] - 2022-02-11
+### Changed
+- `JSONSerializerFunctions`: fixed bug in serialization of some internal Kotlin classes
+
 ## [4.5] - 2021-11-07
 ### Changed
 - `pom.xml`: updated to Kotlin 1.5.20

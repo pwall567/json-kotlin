@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.pwall.json</groupId>
   <artifactId>json-kotlin</artifactId>
-  <version>4.5</version>
+  <version>4.6</version>
   <name>JSON serialization and deserialization for Kotlin</name>
   <description>Kotlin classes to perform auto-serialization and deserialization.</description>
   <packaging>jar</packaging>
