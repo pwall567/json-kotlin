@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/pwall567/json-kotlin.svg?branch=master)](https://travis-ci.com/github/pwall567/json-kotlin)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=v1.4.0&color=blue&logo=kotlin)](https://github.com/JetBrains/kotlin/releases/tag/v1.4.0)
+[![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=v1.6.10&color=7f52ff&logo=kotlin&logoColor=7f52ff)](https://github.com/JetBrains/kotlin/releases/tag/v1.6.10)
 [![Maven Central](https://img.shields.io/maven-central/v/net.pwall.json/json-kotlin?label=Maven%20Central)](https://search.maven.org/search?q=g:%22net.pwall.json%22%20AND%20a:%22json-kotlin%22)
 
 JSON serialization and deserialization for Kotlin.

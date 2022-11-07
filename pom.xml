@@ -14,7 +14,7 @@
   <parent>
     <groupId>net.pwall.maven</groupId>
     <artifactId>maven-kotlin</artifactId>
-    <version>3.1</version>
+    <version>4.0</version>
   </parent>
 
   <properties>
