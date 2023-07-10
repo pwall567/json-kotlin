@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/pwall567/json-kotlin.svg?branch=master)](https://travis-ci.com/github/pwall567/json-kotlin)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=v1.6.10&color=7f52ff&logo=kotlin&logoColor=7f52ff)](https://github.com/JetBrains/kotlin/releases/tag/v1.6.10)
+[![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=v1.7.21&color=7f52ff&logo=kotlin&logoColor=7f52ff)](https://github.com/JetBrains/kotlin/releases/tag/v1.7.21)
 [![Maven Central](https://img.shields.io/maven-central/v/net.pwall.json/json-kotlin?label=Maven%20Central)](https://search.maven.org/search?q=g:%22net.pwall.json%22%20AND%20a:%22json-kotlin%22)
 
 JSON serialization and deserialization for Kotlin.
@@ -297,25 +297,25 @@ In particular:
 
 ## Dependency Specification
 
-The latest version of the library is 4.7.5, and it may be obtained from the Maven Central repository.
+The latest version of the library is 4.8, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>4.7.5</version>
+      <version>4.8</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin:4.7.5'
+    implementation 'net.pwall.json:json-kotlin:4.8'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:4.7.5")
+    implementation("net.pwall.json:json-kotlin:4.8")
 ```
 
 Peter Wall
 
-2023-01-08
+2023-07-10
