@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/pwall567/json-kotlin.svg?branch=master)](https://travis-ci.com/github/pwall567/json-kotlin)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=v1.7.21&color=7f52ff&logo=kotlin&logoColor=7f52ff)](https://github.com/JetBrains/kotlin/releases/tag/v1.7.21)
+[![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=v1.8.22&color=7f52ff&logo=kotlin&logoColor=7f52ff)](https://github.com/JetBrains/kotlin/releases/tag/v1.8.22)
 [![Maven Central](https://img.shields.io/maven-central/v/net.pwall.json/json-kotlin?label=Maven%20Central)](https://search.maven.org/search?q=g:%22net.pwall.json%22%20AND%20a:%22json-kotlin%22)
 
 JSON serialization and deserialization for Kotlin.
@@ -12,12 +12,11 @@ This document provides introductory information on the `json-kotlin` library; fu
 
 ## IMPORTANT
 
-This project is in the process of being superseded by [`kjson`](https://github.com/pwall567/kjson).
-New users are encouraged to use that project instead of this one; existing users are encouraged to migrate when
-convenient.
+This project has been superseded by [`kjson`](https://github.com/pwall567/kjson).
+New users are encouraged to use that project instead of this one; existing users are encouraged to migrate as soon as
+possible.
 
-This library will continue to be maintained, but enhancements will be added to the new library first, for example
-[an improved way of specifying polymorphic class deserialization](https://github.com/pwall567/kjson/blob/main/CUSTOM.md#fromjsonpolymorphic).
+This library will continue to be maintained for bug fixes and dependency upgrades only.
 
 ## Background
 
@@ -297,25 +296,25 @@ In particular:
 
 ## Dependency Specification
 
-The latest version of the library is 4.8, and it may be obtained from the Maven Central repository.
+The latest version of the library is 4.9, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>net.pwall.json</groupId>
       <artifactId>json-kotlin</artifactId>
-      <version>4.8</version>
+      <version>4.9</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'net.pwall.json:json-kotlin:4.8'
+    implementation 'net.pwall.json:json-kotlin:4.9'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("net.pwall.json:json-kotlin:4.8")
+    implementation("net.pwall.json:json-kotlin:4.9")
 ```
 
 Peter Wall
 
-2023-07-10
+2023-10-15

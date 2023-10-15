@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [4.9] - 2023-10-15
+### Changed
+- `pom.xml`: updated dependency versions
+- `pom.xml`: updated to Kotlin 1.8.22
+
 ## [4.8] - 2023-07-10
 ### Changed
 - `pom.xml`: updated dependency versions
